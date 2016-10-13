@@ -1,10 +1,10 @@
-{% extends "dashboard/base.html" %}
+{% extends "base.html" %}
 
 {% block wrapper %}
     <!-- Main Header -->
     <header class="main-header">
         {% block header %}
-            {% include "dashboard/header.html" %}
+            {% include "header.html" %}
         {% endblock header %}
     </header>
     <!-- End Main Header -->
@@ -15,7 +15,7 @@
         <!-- sidebar: style can be found in sidebar.less -->
         <section class="sidebar">
             {% block sidebar %}
-                {% include "dashboard/left_sidebar.html" %}
+                {% include "left_sidebar.html" %}
             {% endblock sidebar %}
         </section>
         <!-- /.sidebar -->
@@ -70,7 +70,7 @@
     <!-- Control Sidebar -->
     {% block control_sidebar %}
         <aside class="control-sidebar control-sidebar-dark">
-            {% include "dashboard/right_sidebar.html" %}
+            {% include "right_sidebar.html" %}
         </aside><!-- /.control-sidebar -->
         <!--
             Add the sidebar's background. This div must be placed

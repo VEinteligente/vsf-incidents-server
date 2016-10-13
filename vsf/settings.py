@@ -143,9 +143,7 @@ STATIC_ROOT = 'vsf/static'
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'vsf/static'),
-)
+STATICFILES_DIRS = []
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
