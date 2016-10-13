@@ -4,4 +4,4 @@ from django.views.generic import TemplateView
 
 class LoginPrueba(TemplateView):
 
-    template_name = '../../vsf/templates/base.html'
+    template_name = 'home.html'
