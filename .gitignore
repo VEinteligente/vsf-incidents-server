@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 ### Python template
+=======
+>>>>>>> 3186815cc4867929ac74cf539266c1011278b57f
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -12,6 +15,7 @@ __pycache__/
 env/
 build/
 develop-eggs/
+dist/
 downloads/
 eggs/
 .eggs/
@@ -43,6 +47,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *,cover
+.hypothesis/
 
 # Translations
 *.mo
@@ -50,6 +55,14 @@ coverage.xml
 
 # Django stuff:
 *.log*
+local_settings.py
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
 
 # Sphinx documentation
 docs/_build/
@@ -66,4 +79,24 @@ target/
 *.pyc
 media/cache/*
 media/users_img/*
-!media/users_img/.gitignore
+# IPython Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# dotenv
+.env
+
+# virtualenv
+venv/
+ENV/
+
+# Spyder project settings
+.spyderproject
+
+# Rope project settings
+.ropeproject
