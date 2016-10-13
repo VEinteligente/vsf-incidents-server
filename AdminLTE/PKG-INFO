@@ -1,0 +1,36 @@
+Metadata-Version: 1.1
+Name: django-adminlte
+Version: 1.2
+Summary: AdminLTE Bootstrap Theme packaged for Django
+Home-page: https://github.com/ricardotun/django-adminlte
+Author: Ricardo Tun
+Author-email: me@ricardotun.net
+License: MIT License
+Description: # django-adminlte
+        
+        AdminLTE Bootstrap Theme packaged for Django
+        
+        ## ToDo
+        
+        - Base template
+        - Template tags
+        
+        ## About AdminLTE
+        
+        **AdminLTE** -- is a fully responsive admin template. Based on **Bootstrap 3** framework. Highly customizable and easy to use. Fits many screen resolutions from small mobile devices to large desktops. Check out the live preview now and see for yourself.
+        
+        **Live Preview: http://almsaeedstudio.com/preview/**
+        
+Keywords: django bootstrap admin theme
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content :: CGI Tools/Libraries
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Utilities

@@ -1,0 +1,8 @@
+include README.md
+include django_adminlte/__init__.py
+include django_adminlte/static/AdminLTE/LICENSE
+include django_adminlte/static/AdminLTE/README.md
+recursive-include django_adminlte/static/AdminLTE/css *
+recursive-include django_adminlte/static/AdminLTE/fonts *
+recursive-include django_adminlte/static/AdminLTE/img *
+recursive-include django_adminlte/static/AdminLTE/js *
