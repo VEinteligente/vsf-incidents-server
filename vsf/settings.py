@@ -91,6 +91,14 @@ DATABASES = {
         'HOST': '',
         'PORT': '',
         'ATOMIC_REQUESTS': True
+    },
+    'titan_db': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'pipeline_db',
+        'USER': 'pipeline_db',
+        'PASSWORD': '70:o}wt2amTr7#Q_FTJRQ',
+        'HOST': 'titan.saturno.space',
+        'PORT': '5432'
     }
 }
 
