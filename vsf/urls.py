@@ -19,18 +19,20 @@ from event import urls as event_urls
 from incident import urls as incident_urls
 from measurement import urls as measurement_urls
 from vsf_user import urls as user_urls
+from dashboard import urls as dashboard_urls
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+                  url(r'^admin/', admin.site.urls),
 
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+                  url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
-    url(r'^events/', include(event_urls, namespace='events')),
-    url(r'^incidents/', include(incident_urls, namespace='incidents')),
-    url(r'^measurements/', include(measurement_urls, namespace='measurements')),
-    url(r'^users/', include(user_urls, namespace='users')),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
+                  url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
+                  url(r'^events/', include(event_urls, namespace='events')),
+                  url(r'^incidents/', include(incident_urls, namespace='incidents')),
+                  url(r'^measurements/', include(measurement_urls, namespace='measurements')),
+                  url(r'^users/', include(user_urls, namespace='users')),
+              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
               + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -40,10 +40,19 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'bootstrapform',
+    'dashboard',
     'event',
+    'vsf.apps.EventFrontConfig',
+    'vsf.apps.EventRestConfig',
     'incident',
+    # 'incident.front',
+    # 'incident.rest',
     'measurement',
+    'vsf.apps.MeasurementFrontConfig',
+    'vsf.apps.MeasurementRestConfig',
     'vsf_user',
+    # 'vsf_user.front',
+    # 'vsf_user.rest',
 ]
 
 MIDDLEWARE = [
@@ -61,9 +70,7 @@ ROOT_URLCONF = 'vsf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            join(BASE_DIR,  'vsf/templates'),
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,11 +154,13 @@ USE_L10N = True
 USE_TZ = True
 
 
-STATIC_ROOT = 'vsf/static'
+STATIC_ROOT = 'vsf/static/'
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [
+    'static'
+]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
