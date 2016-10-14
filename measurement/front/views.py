@@ -26,3 +26,9 @@ class MeasurementTableView(generic.TemplateView):
         # print rows
 
         return context
+
+
+class LoginPrueba(TemplateView):
+
+    template_name = 'measurement/templates/list.html'
+

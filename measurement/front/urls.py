@@ -1,7 +1,10 @@
 from django.conf.urls import url
-import views
+from measurement.front import views
 
 urlpatterns = [
+    url(
+        r'^$', views.LoginPrueba.as_view(), name='index'
+    ),
     url(
         r'^measurement-table/$',
         views.MeasurementTableView.as_view(),

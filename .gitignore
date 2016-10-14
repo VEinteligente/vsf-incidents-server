@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 ### Python template
-=======
->>>>>>> 3186815cc4867929ac74cf539266c1011278b57f
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
