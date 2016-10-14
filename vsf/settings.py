@@ -62,7 +62,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            join(BASE_DIR,  'vsf/templates'),
+            join(BASE_DIR,  'dashboard/templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -151,9 +151,10 @@ STATIC_ROOT = 'vsf/static'
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'vsf/static'),
-)
+STATICFILES_DIRS = [
+    'static'
+]
+
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
