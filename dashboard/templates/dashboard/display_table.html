@@ -1,5 +1,64 @@
-{% extends 'dashboard/base.html' %}
+{% extends 'dashboard/layout.html' %}
 
 {% block content %}
-    <h1>Hola esto es prueba</h1>
-{% endblock content %}
+    <div class="table-responsive">
+        <table role="grid" id="content1" class="table table-bordered table-striped table-hover dataTable">
+            <thead>
+                <tr role="row">
+                    <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
+                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">ID
+                    </th>
+                    <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
+                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">Input
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr role="row">
+                    <td class="sorting_1">
+                    </td>
+                    <td class="sorting_1">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+
+$(function () {
+        $('#content1').DataTable({
+            
+        
+            language: {
+                processing:     "Procesando...",
+                search:         "Buscar:",
+                lengthMenu:    "Mostrar _MENU_ elementos",
+                info:           "Mostrando elementos de _START_ a _END_ de _TOTAL_ elementos",
+                infoEmpty:      "Mostrando elementos de 0 a 0 de 0 elementos",
+                infoFiltered:   "(artículos _MAX_ filtrados en total)",
+                infoPostFix:    "",
+                loadingRecords: "Cargando",
+                zeroRecords:    "Ningún elemento en la muestra",
+                emptyTable:     "No hay datos disponibles en la tabla",
+                paginate: {
+                    first:      "Primero",
+                    previous:   "Anterior",
+                    next:       "Siguiente",
+                    last:       "Último"
+                },
+                aria: {
+                    sortAscending:  ": Habilitar para ordenar la columna en orden ascendente",
+                    sortDescending: ": Habilitar para ordenar la columna en orden descendente"
+                }
+            }
+            
+            });
+    
+})
+    
+
+</script>
+{% endblock %}
