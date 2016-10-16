@@ -1,0 +1,33 @@
+{% extends 'dashboard/layout.html' %}
+{% load static %}
+
+{% block style %}
+    <link rel="stylesheet" href="{% static 'plugins/datatables/dataTables.bootstrap.css' %}">
+{% endblock %}
+
+{% block content %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>prueba</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    alo
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'plugins/datatables/dataTables.bootstrap.js' %}"></script>
+<script type="application/javascript">
+    $(Document).on('ready', function(){
+        alert("epa!");
+        $('.data-table').DataTable();
+    });
+</script>
+{% endblock %}

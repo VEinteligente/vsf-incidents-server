@@ -42,17 +42,9 @@ INSTALLED_APPS = [
     'bootstrapform',
     'dashboard',
     'event',
-    'vsf.apps.EventFrontConfig',
-    'vsf.apps.EventRestConfig',
     'incident',
-    # 'incident.front',
-    # 'incident.rest',
     'measurement',
-    'vsf.apps.MeasurementFrontConfig',
-    'vsf.apps.MeasurementRestConfig',
     'vsf_user',
-    # 'vsf_user.front',
-    # 'vsf_user.rest',
 ]
 
 MIDDLEWARE = [

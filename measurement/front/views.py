@@ -4,4 +4,4 @@ from django.views.generic import TemplateView
 
 class LoginPrueba(TemplateView):
 
-    template_name = 'measurement/templates/list.html'
+    template_name = 'list.html'
