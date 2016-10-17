@@ -32,6 +32,9 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
+        <!-- DataTables -->
+        <link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.css' %}">
+
         {% block extracss %}{% endblock extracss %}
 
         {% block style %}{% endblock style %}
@@ -79,6 +82,8 @@
             <script src="{% static 'dist/js/app.min.js' %}"></script>
             <!-- SKAT Setup -->
             <script src="{% static 'dist/js/SKAT.js' %}"></script>
+            <!-- DataTables -->
+            <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
             <!-- For additional js scripts -->
             {% block extrajs %}{% endblock extrajs %}
         {% endblock mainjs %}

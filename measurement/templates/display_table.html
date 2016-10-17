@@ -1,25 +1,28 @@
 {% extends 'dashboard/layout.html' %}
+{% load key_value %}
 
 {% block content %}
     <div class="table-responsive">
         <table role="grid" id="content1" class="table table-bordered table-striped table-hover dataTable">
             <thead>
                 <tr role="row">
+                  {% for item in columns %}
                     <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
-                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">ID
+                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">{{ item }}
                     </th>
-                    <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
-                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">Input
-                    </th>
+                  {% endfor %}
                 </tr>
             </thead>
             <tbody>
+                {% for item in rows %}
                 <tr role="row">
+                {% for key in columns %}
                     <td class="sorting_1">
+                    {{ item|key_value:key }}
                     </td>
-                    <td class="sorting_1">
-                    </td>
+                {% endfor %}                
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
