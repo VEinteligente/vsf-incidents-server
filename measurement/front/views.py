@@ -4,12 +4,9 @@ from django.db import connections
 import psycopg2
 
 
-# Create your views here.
-
-
 class MeasurementTableView(generic.TemplateView):
 
-    template_name = 'dashboard/display_table.html'
+    template_name = 'display_table.html'
 
     def get_context_data(self, **kwargs):
 
@@ -29,8 +26,3 @@ class MeasurementTableView(generic.TemplateView):
         # print rows
 
         return context
-
-
-class LoginPrueba(generic.TemplateView):
-
-    template_name = 'measurement/list.html'

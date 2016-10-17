@@ -3,10 +3,7 @@ from measurement.front import views
 
 urlpatterns = [
     url(
-        r'^$', views.LoginPrueba.as_view(), name='index'
-    ),
-    url(
-        r'^measurement-table/$',
+        r'^$',
         views.MeasurementTableView.as_view(),
         name='measurement-table'
     ),
