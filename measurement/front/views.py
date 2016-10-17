@@ -17,9 +17,9 @@ class MeasurementTableView(generic.TemplateView):
 
         try:
             cursor = connections['titan_db'].cursor()
-            cursor.execute("select * from metrics")
+            cursor.execute("select * from metrics limit 5")
             # columns = [col[0] for col in cursor.description]
-            # rows = [dict(zip(columns, row)) for row in cursor.fetchone()]
+            # rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
             rows = cursor.fetchone()
         finally:
             connections['titan_db'].close()
