@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'incident',
     'measurement',
     'vsf_user',
+    'prettyjson',
 ]
 
 MIDDLEWARE = [

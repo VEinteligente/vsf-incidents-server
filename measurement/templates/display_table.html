@@ -1,5 +1,6 @@
 {% extends 'dashboard/layout.html' %}
 {% load key_value %}
+{% load prettyjson %}
 
 {% block content %}
     <div class="table-responsive">
@@ -18,7 +19,11 @@
                 <tr role="row">
                 {% for key in columns %}
                     <td class="sorting_1">
-                    {{ item|key_value:key }}
+                    {% if key == 'test_keys' or key == 'options' or key == 'test_helpers' %}
+                        {% prettyjson item|key_value:key %}
+                    {% else %}
+                        {{ item|key_value:key }}
+                    {% endif %}    
                     </td>
                 {% endfor %}                
                 </tr>
@@ -29,6 +34,7 @@
 {% endblock %}
 
 {% block extrajs %}
+{% prettyjson_setup jquery=False %}
 <script>
 
 $(function () {
