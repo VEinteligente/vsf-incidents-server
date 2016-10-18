@@ -8,7 +8,7 @@ urlpatterns = [
         name='measurement-table'
     ),
     url(
-        r'^$',
+        r'^dns-table/$',
         views.DNSTableView.as_view(),
         name='dns-table'
     ),
