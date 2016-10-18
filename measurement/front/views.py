@@ -26,3 +26,30 @@ class MeasurementTableView(generic.TemplateView):
             connections['titan_db'].close()
 
         return context
+
+
+class DNSTableView(generic.TemplateView):
+
+    template_name = 'display_dns_table.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(DNSTableView,self).get_context_data(**kwargs)
+
+        try:
+            cursor = connections['titan_db'].cursor()
+            query = "select id, input, test_keys, measurement_start_time "
+            query += "from metrics where test_name='dns_consistency' "
+            query += "limit 5"
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            # rows = cursor.fetchall()
+
+            context['rows'] = rows
+            context['columns'] = columns
+
+        finally:
+            connections['titan_db'].close()
+
+        return context
