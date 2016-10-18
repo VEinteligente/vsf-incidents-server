@@ -6,18 +6,28 @@
     <div class="table-responsive">
         <table role="grid" id="content1" class="table table-bordered table-striped table-hover dataTable">
             <thead>
-                <tr role="row">
+                <tr>
                   {% for item in columns %}
-                    <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
-                    rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">{{ item }}
+                    <th>
+                        {{ item }}
                     </th>
                   {% endfor %}
                 </tr>
             </thead>
+            <tfoot>
+                <tr>
+                  {% for item in columns %}
+                    <th>
+                        {{ item }}
+                    </th>
+                  {% endfor %}
+                </tr>
+            </tfoot>
             <tbody>
                 {% for item in rows %}
-                <tr role="row">
+                <tr>
                 {% for key in columns %}
+
                     <td class="sorting_1">
                     {% if key == 'test_keys' or key == 'options' or key == 'test_helpers' %}
                         {% prettyjson item|key_value:key %}
@@ -38,36 +48,60 @@
 <script>
 
 $(function () {
-        $('#content1').DataTable({
+    $('#content1').DataTable({
+
+        initComplete: function () {
+            this.api().columns().every( function () {
+                var column = this;
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.footer()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+
+                column.data().unique().sort().each( function ( d, j ) {
+                    if(column.search() === '^'+d+'$'){
+                        select.append( '<option value="'+d+'" selected="selected">'+d+'</option>' )
+                    } else {
+                        select.append( '<option value="'+d+'">'+d+'</option>' )
+                    }
+                } );
+            } );
+        },
             
         
-            language: {
-                processing:     "Procesando...",
-                search:         "Buscar:",
-                lengthMenu:    "Mostrar _MENU_ elementos",
-                info:           "Mostrando elementos de _START_ a _END_ de _TOTAL_ elementos",
-                infoEmpty:      "Mostrando elementos de 0 a 0 de 0 elementos",
-                infoFiltered:   "(artículos _MAX_ filtrados en total)",
-                infoPostFix:    "",
-                loadingRecords: "Cargando",
-                zeroRecords:    "Ningún elemento en la muestra",
-                emptyTable:     "No hay datos disponibles en la tabla",
-                paginate: {
-                    first:      "Primero",
-                    previous:   "Anterior",
-                    next:       "Siguiente",
-                    last:       "Último"
-                },
-                aria: {
-                    sortAscending:  ": Habilitar para ordenar la columna en orden ascendente",
-                    sortDescending: ": Habilitar para ordenar la columna en orden descendente"
-                }
+        language: {
+            processing:     "Procesando...",
+            search:         "Buscar:",
+            lengthMenu:    "Mostrar _MENU_ elementos",
+            info:           "Mostrando elementos de _START_ a _END_ de _TOTAL_ elementos",
+            infoEmpty:      "Mostrando elementos de 0 a 0 de 0 elementos",
+            infoFiltered:   "(artículos _MAX_ filtrados en total)",
+            infoPostFix:    "",
+            loadingRecords: "Cargando",
+            zeroRecords:    "Ningún elemento en la muestra",
+            emptyTable:     "No hay datos disponibles en la tabla",
+            paginate: {
+                first:      "Primero",
+                previous:   "Anterior",
+                next:       "Siguiente",
+                last:       "Último"
+            },
+            aria: {
+                sortAscending:  ": Habilitar para ordenar la columna en orden ascendente",
+                sortDescending: ": Habilitar para ordenar la columna en orden descendente"
             }
-            
-            });
+        }
+
+    });
     
 })
-    
 
 </script>
 {% endblock %}

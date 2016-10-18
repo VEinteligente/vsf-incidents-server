@@ -75,8 +75,10 @@ class MeasurementTableView(generic.TemplateView):
 
         try:
             cursor = connections['titan_db'].cursor()
-            cursor.execute("select * from metrics")
-            columns = [col[0].encode("ascii","ignore") for col in cursor.description]
+
+            cursor.execute("select * from metrics LIMIT 59")
+            columns = [col[0] for col in cursor.description]
+
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
             # rows = cursor.fetchall()
 
@@ -120,3 +122,8 @@ class DNSTableView(generic.TemplateView):
             connections['titan_db'].close()
 
         return context
+
+
+class PruebaDataTable(generic.TemplateView):
+
+    template_name = 'list.html'

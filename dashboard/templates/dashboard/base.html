@@ -33,12 +33,13 @@
         <![endif]-->
 
         <!-- DataTables -->
-        <link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.css' %}">
+        <link rel="stylesheet" href="{% static 'plugins/datatables/datatables.min.css' %}">
 
         {% block extracss %}{% endblock extracss %}
 
         {% block style %}{% endblock style %}
     </head>
+
     <!--
         BODY TAG OPTIONS:
         =================
@@ -79,11 +80,23 @@
             <!-- ListJS -->
             <script src="http://listjs.com/no-cdn/list.js"></script>
             <!-- AdminLTE App -->
+            <script type="application/javascript">
+                var AdminLTEOptions = {
+                    //Enable sidebar expand on hover effect for sidebar mini
+                    //This option is forced to true if both the fixed layout and sidebar mini
+                    //are used together
+                    sidebarExpandOnHover: true,
+                    //BoxRefresh Plugin
+                    enableBoxRefresh: true,
+                    //Bootstrap.js tooltip
+                    enableBSToppltip: true
+                };
+            </script>
             <script src="{% static 'dist/js/app.min.js' %}"></script>
             <!-- SKAT Setup -->
             <script src="{% static 'dist/js/SKAT.js' %}"></script>
             <!-- DataTables -->
-            <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+            <script src="{% static 'plugins/datatables/datatables.min.js' %}"></script>
             <!-- For additional js scripts -->
             {% block extrajs %}{% endblock extrajs %}
         {% endblock mainjs %}
