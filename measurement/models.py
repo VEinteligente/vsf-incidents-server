@@ -9,3 +9,6 @@ class DNS(models.Model):
     verbose = models.CharField(max_length=50)
     ip = models.GenericIPAddressField()
     public = models.BooleanField(default=True)
+
+    def __unicode__(self):
+        return u"%s" % self.verbose
