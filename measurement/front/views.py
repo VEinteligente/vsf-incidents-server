@@ -5,19 +5,13 @@ from django.db.models import Q
 from measurement.models import DNS
 import json
 
+
+# DNSTestKey Object #
+# Parser test key object #
+# Input: Json string obj #
+
 class DNSTestKey(object):
     """docstring for TestKey"""
-    # def __init__(self, json):
-    #     self.resolver = json['control_resolver']
-    #     self.errors = json['errors']
-    #     self.successful = json['successful']
-    #     self.failed = json['failed']
-    #     self.inconsistent = json['inconsistent']
-    #     self.queries = json['queries']
-    #     self.sonda = json['annotations']
-
-    #     super(DNSTestKey, self).__init__()
-
     def __init__(self, j):
         self.__dict__ = json.loads(j)
 
@@ -80,7 +74,6 @@ class DNSTestKey(object):
             return False
 
 
-
 class MeasurementTableView(generic.TemplateView):
 
     template_name = 'display_table.html'
@@ -92,11 +85,10 @@ class MeasurementTableView(generic.TemplateView):
         try:
             cursor = connections['titan_db'].cursor()
 
-            cursor.execute("select * from metrics LIMIT 59")
+            cursor.execute("select * from metrics")
             columns = [col[0] for col in cursor.description]
 
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            # rows = cursor.fetchall()
 
             context['rows'] = rows
             context['columns'] = columns
