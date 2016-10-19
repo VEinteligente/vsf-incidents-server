@@ -11,13 +11,15 @@
         <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
         <!-- Bootstrap 3.3.6 -->
         <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+        <!-- DataTables -->
+        <link rel="stylesheet" href="{% static 'plugins/datatables/jquery.dataTables.min.css' %}">
         <!-- Font Awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
         <!-- Ionicons -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
         <!-- Theme style -->
         <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
-        <link rel="stylesheet" href="{% static 'dist/css/SKAT.css' %}">
+        <link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
         <!--
             AdminLTE Skins. We have chosen the skin-blue for this base html.
             However, you can choose any other skin. Make sure you
@@ -32,8 +34,6 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-        <!-- DataTables -->
-        <link rel="stylesheet" href="{% static 'plugins/datatables/datatables.min.css' %}">
 
         {% block extracss %}{% endblock extracss %}
 
@@ -68,36 +68,42 @@
         </div> <!-- ./wrapper -->
 
         {% block mainjs %}
-            <!-- REQUIRED JS SCRIPTS -->
+{#            <!-- REQUIRED JS SCRIPTS -->#}
+{#            <!-- jQuery 2.2.3 -->#}
+{#            <script src="{% static 'plugins/jQuery/jquery-2.2.3.min.js' %}"></script>#}
+{#            <!-- Bootstrap 3.3.6 -->#}
+{#            <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>#}
+{#            <!-- SlimScroll -->#}
+{#            <script src="{% static 'plugins/slimScroll/jquery.slimscroll.min.js' %}"></script>#}
+{#            <!-- FastClick -->#}
+{#            <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>#}
+{#            <!-- AdminLTE App -->#}
+{#            <script src="{% static 'dist/js/app.min.js' %}"></script>#}
+{#            <!-- SKAT Setup -->#}
+{#            <script src="{% static 'dist/js/SKAT.js' %}"></script>#}
+{#            <!-- DataTables -->#}
+{#            <script src="{% static 'plugins/datatables/datatables.min.js' %}"></script>#}
+{#            <!-- For additional js scripts -->#}
+
             <!-- jQuery 2.2.3 -->
             <script src="{% static 'plugins/jQuery/jquery-2.2.3.min.js' %}"></script>
             <!-- Bootstrap 3.3.6 -->
             <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
-            <!-- SlimScroll -->
+            <!-- DataTables -->
+            <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+            <!-- daterangepicker -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+            <script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>
+            <!-- datepicker -->
+            <script src="{% static 'plugins/datepicker/bootstrap-datepicker.js' %}"></script>
+            <!-- Bootstrap WYSIHTML5 -->
+            <script src="{% static 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js' %}"></script>
+            <!-- Slimscroll -->
             <script src="{% static 'plugins/slimScroll/jquery.slimscroll.min.js' %}"></script>
             <!-- FastClick -->
-            <script src="{% static 'plugins/fastclick/fastclick.min.js' %}"></script>
-            <!-- ListJS -->
-            <script src="http://listjs.com/no-cdn/list.js"></script>
+            <script src="{% static 'plugins/fastclick/fastclick.js' %}"></script>
             <!-- AdminLTE App -->
-            <script type="application/javascript">
-                var AdminLTEOptions = {
-                    //Enable sidebar expand on hover effect for sidebar mini
-                    //This option is forced to true if both the fixed layout and sidebar mini
-                    //are used together
-                    sidebarExpandOnHover: true,
-                    //BoxRefresh Plugin
-                    enableBoxRefresh: true,
-                    //Bootstrap.js tooltip
-                    enableBSToppltip: true
-                };
-            </script>
             <script src="{% static 'dist/js/app.min.js' %}"></script>
-            <!-- SKAT Setup -->
-            <script src="{% static 'dist/js/SKAT.js' %}"></script>
-            <!-- DataTables -->
-            <script src="{% static 'plugins/datatables/datatables.min.js' %}"></script>
-            <!-- For additional js scripts -->
             {% block extrajs %}{% endblock extrajs %}
         {% endblock mainjs %}
         <!-- For js code -->
