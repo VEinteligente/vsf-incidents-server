@@ -12,4 +12,9 @@ urlpatterns = [
         views.DNSTableView.as_view(),
         name='dns-table'
     ),
+    url(
+        r'^prueba/$',
+        views.PruebaDataTable.as_view(),
+        name='test'
+    ),
 ]

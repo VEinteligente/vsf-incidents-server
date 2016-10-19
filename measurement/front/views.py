@@ -57,4 +57,4 @@ class DNSTableView(generic.TemplateView):
 
 class PruebaDataTable(generic.TemplateView):
 
-    template_name = 'list.html'
+    template_name = 'index.html'

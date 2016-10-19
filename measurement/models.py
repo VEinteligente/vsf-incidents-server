@@ -11,4 +11,4 @@ class DNS(models.Model):
     public = models.BooleanField(default=True)
 
     def __unicode__(self):
-        return u"%s" % self.verbose
+        return u"%s - %s" % (self.verbose, self.ip)
