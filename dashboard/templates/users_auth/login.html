@@ -1,0 +1,64 @@
+{% extends "dashboard/base.html" %}
+
+{% load i18n static bootstrap3 widget_tweaks %}
+
+{% block style %}
+    <style>
+        @media (min-width:768px) {
+            .login-box {width:420px}
+        }
+    </style>
+{% endblock style %}
+
+{% block skin_class %}{% endblock skin_class %}
+
+{% block extra_body_class %}login-page{% endblock extra_body_class %}
+
+{% block pre_wrapper %}
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="{% url 'dashboard:login' %}"><b>VSF</b></a>
+        </div>
+        <!-- /.login-logo -->
+        <div class="login-box-body">
+            <p class="login-box-msg">{% trans "Ingrese su usuario y contraseña para iniciar sesión." %}</p>
+            {% if next %}
+                {% if user.is_authenticated %}
+                    <div class="alert alert-danger alert-dismissable alert-link">
+                        <button class="close" type="button" data-dismiss="alert" aria-hidden="true">×</button>
+                        Your account doesn't have access to this page. To proceed, please login with an account that has access.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info alert-dismissable alert-link">
+                        <button class="close" type="button" data-dismiss="alert" aria-hidden="true">×</button>
+                        Please login to see this page.
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <form action="{% url 'dashboard:login' %}" method="post">
+                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}" />
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                {% bootstrap_form_errors form type='non_fields' %}
+                <div class="form-group has-feedback">
+                    {% render_field form.username class+="form-control" placeholder="Usuario" required="required" %}
+                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                </div>
+                <div class="form-group has-feedback">
+                    {% render_field form.password class+="form-control" placeholder="Contraseña" required="required" %}
+                    <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                </div>
+                <div class="row">
+                    <div class="col-xs-offset-7 col-xs-5">
+                        <button type="submit" class="btn btn-primary btn-block btn-flat">{% trans "Iniciar Sesión" %}</button>
+                    </div> <!-- /.col -->
+                </div>
+            </form>
+
+            <a href="{% url 'dashboard:password_reset' %}">Olvidé mi contraseña</a>
+        </div> <!-- /.login-box-body -->
+    </div> <!-- /.login-box -->
+{% endblock pre_wrapper %}
