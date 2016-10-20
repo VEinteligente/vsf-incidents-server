@@ -32,54 +32,91 @@ class DNSTestKey(object):
         try:
             sonda_isp = self.get_isp_sonda()
 
-            # Encontrar lista de ips de los proveedores que sean de la sonda_isp
-            # Output: lista de objetos DNS
-            ips = DNS.objects.filter(~Q(isp=sonda_isp) & ~Q(isp='digitel'))
-            ips_required = [dns.ip 
-                            for dns in DNS.objects.filter(Q(isp=sonda_isp) | Q(isp='digitel'))]
+            # Encontrar lista de ips #
+            # del proveedor de la sonda_isp #
+            # Output: lista de ips #
+            ips_required = [dns.ip
+                            for dns in
+                            DNS.objects.filter(Q(isp=sonda_isp) |
+                                               Q(isp='digitel'))]
 
-            for isp in ips:
-                if self.successful and isp in self.successful:
-                    self.successful = self.successful.remove(isp.ip)
-                if self.failed and isp in self.failed:
-                    self.failed = self.failed.remove(isp.ip)
-                if self.inconsistent and isp in self.inconsistent:
-                    self.inconsistent = self.inconsistent.remove(isp.ip)
-                if self.errors:
-                    self.errors.pop(isp.ip, None)
-                if self.queries:
-                    for q in self.queries:
-                        if isp.ip == q['resolver_hostname']:
-                            self.queries.remove(q)
+            # Dejar ips de la lista de ips_required #
+            self.left_data_from_list(ips_required)
 
-            # Filtrar por la lista de public dns
+            # Ignorar ips que esten registrados #
+            # como de acceso publico #
             if list_public_dns:
 
-                for ip in list_public_dns:
-                    if self.successful and ip in self.successful:
-                        self.successful = self.successful.remove(ip)
-                    if self.failed and ip in self.failed:
-                        self.failed = self.failed.remove(ip)
-                    if self.inconsistent and ip in self.inconsistent:
-                        self.inconsistent = self.inconsistent.remove(ip)
-                    if self.errors:
-                        self.errors.pop(ip, None)
-                    if self.queries:
-                        for q in self.queries:
-                            if ip == q['resolver_hostname']:
-                                self.queries.remove(q)
-
-            self.successful = [ip for ip in self.successful if ip in ips_required]
-            self.failed = [ip for ip in self.failed if ip in ips_required]
-            self.inconsistent = [ip for ip in self.inconsistent if ip in ips_required]
-            #self.queries = [self.queries[0]]
-            #self.queries += [q for q in self.queries if q['resolver_hostname'] in ips_required]
+                self.ignore_data_from_list(list_public_dns)
 
             return True
 
         except Exception:
 
             return False
+
+    def ignore_data_from_list(self, list_ip):
+
+        self.successful = [ip
+                           for ip in self.successful
+                           if self.successful and
+                           ip not in list_ip]
+
+        self.failed = [ip for ip in self.failed
+                       if self.failed and ip not in list_ip]
+
+        self.inconsistent = [ip
+                             for ip in self.inconsistent
+                             if self.inconsistent and
+                             ip not in list_ip]
+
+        if self.errors:
+            for ip in list_ip:
+                self.errors.pop(ip, None)
+
+        if self.queries:
+            for q in self.queries:
+                if self.queries[0] == q:
+                    pass
+                elif q['resolver_hostname'] in list_ip:
+                    q.pop('resolver_hostname', None)
+                    q.pop('resolver_port', None)
+                    q.pop('query_type', None)
+                    q.pop('hostname', None)
+                    q.pop('failure', None)
+                    q.pop('answers', None)
+
+            self.queries = filter(None, self.queries)
+
+    def left_data_from_list(self, list_ip):
+
+        self.successful = [ip
+                           for ip in self.successful
+                           if self.successful and ip in list_ip]
+
+        self.failed = [ip for ip in self.failed
+                       if self.failed and ip in list_ip]
+        self.inconsistent = [ip
+                             for ip in self.inconsistent
+                             if self.inconsistent and ip in list_ip]
+
+        if self.errors:
+            for ip in list_ip:
+                self.errors.pop(ip, None)
+
+        if self.queries:
+            for q in self.queries:
+                if self.queries[0] == q:
+                    pass
+                elif q['resolver_hostname'] not in list_ip:
+                    q.pop('resolver_hostname', None)
+                    q.pop('resolver_port', None)
+                    q.pop('query_type', None)
+                    q.pop('hostname', None)
+                    q.pop('failure', None)
+                    q.pop('answers', None)
+
+            self.queries = filter(None, self.queries)
 
 
 class MeasurementTableView(generic.TemplateView):
@@ -88,7 +125,7 @@ class MeasurementTableView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(MeasurementTableView,self).get_context_data(**kwargs)
+        context = super(MeasurementTableView, self).get_context_data(**kwargs)
 
         try:
             cursor = connections['titan_db'].cursor()
@@ -113,24 +150,23 @@ class DNSTableView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(DNSTableView,self).get_context_data(**kwargs)
+        context = super(DNSTableView, self).get_context_data(**kwargs)
 
         try:
             cursor = connections['titan_db'].cursor()
             query = "select id, input, test_keys, measurement_start_time "
             query += "from metrics where test_name='dns_consistency' "
-            query += "limit 5"
             cursor.execute(query)
-            columns = [col[0].encode("ascii","ignore") 
+            columns = [col[0].encode("ascii", "ignore")
                        for col in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
             # Adding columns
-            columns_final = columns[:len(columns)/2]
-            columns_final += ['match','dns isp',
+            columns_final = columns[:len(columns) / 2]
+            columns_final += ['match', 'dns isp',
                               'control result',
-                              'dns name', 'dns result'] 
-            columns_final += columns[len(columns)/2:]
+                              'dns name', 'dns result']
+            columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
 
             # Answers
@@ -140,8 +176,10 @@ class DNSTableView(generic.TemplateView):
 
                 test_key = DNSTestKey(json.dumps(row['test_keys']))
                 dns_isp = test_key.get_isp_sonda()
+                public_dns = [dns.ip
+                              for dns in DNS.objects.filter(public=True)]
 
-                if test_key.ignore_data():
+                if test_key.ignore_data(public_dns):
 
                     queries = test_key.get_queries()
                     answers = queries[0]['answers']
@@ -171,15 +209,15 @@ class DNSTableView(generic.TemplateView):
                                 match = False
 
                         if DNS.objects.filter(ip=dns_name).exists():
-                            dns_table_name = DNS.objects.get(ip=dns_name).verbose
+                            dns_table_name = DNS.objects\
+                                                .get(ip=dns_name).verbose
                         else:
                             dns_table_name = dns_name
 
-                        ans += [[row['id'], row['input'], 
+                        ans += [[row['id'], row['input'],
                                 match, dns_isp, control_resolver,
                                 dns_table_name, dns_result,
                                 row['measurement_start_time']]]
-
 
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
