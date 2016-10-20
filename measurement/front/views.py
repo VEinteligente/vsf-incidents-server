@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
@@ -228,6 +230,13 @@ class DNSTableView(generic.TemplateView):
         return context
 
 
-class PruebaDataTable(generic.TemplateView):
+class PruebaDataTable(LoginRequiredMixin, generic.TemplateView):
 
-    template_name = 'index.html'
+    template_name = 'list.html'
+
+    def get(self, request, *args, **kwargs):
+
+        logout(request)
+        print "done"
+
+        return super(PruebaDataTable, self).get(request, *args, **kwargs)
