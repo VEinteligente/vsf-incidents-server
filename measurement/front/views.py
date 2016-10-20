@@ -8,19 +8,12 @@ from measurement.models import DNS
 import json
 
 
+# DNSTestKey Object #
+# Parser test key object #
+# Input: Json string obj #
+
 class DNSTestKey(object):
     """docstring for TestKey"""
-    # def __init__(self, json):
-    #     self.resolver = json['control_resolver']
-    #     self.errors = json['errors']
-    #     self.successful = json['successful']
-    #     self.failed = json['failed']
-    #     self.inconsistent = json['inconsistent']
-    #     self.queries = json['queries']
-    #     self.sonda = json['annotations']
-
-    #     super(DNSTestKey, self).__init__()
-
     def __init__(self, j):
         self.__dict__ = json.loads(j)
 
@@ -44,6 +37,8 @@ class DNSTestKey(object):
             # Encontrar lista de ips de los proveedores que sean de la sonda_isp
             # Output: lista de objetos DNS
             ips = DNS.objects.filter(~Q(isp=sonda_isp) & ~Q(isp='digitel'))
+            ips_required = [dns.ip 
+                            for dns in DNS.objects.filter(Q(isp=sonda_isp) | Q(isp='digitel'))]
 
             for isp in ips:
                 if self.successful and isp in self.successful:
@@ -76,12 +71,17 @@ class DNSTestKey(object):
                             if ip == q['resolver_hostname']:
                                 self.queries.remove(q)
 
+            self.successful = [ip for ip in self.successful if ip in ips_required]
+            self.failed = [ip for ip in self.failed if ip in ips_required]
+            self.inconsistent = [ip for ip in self.inconsistent if ip in ips_required]
+            #self.queries = [self.queries[0]]
+            #self.queries += [q for q in self.queries if q['resolver_hostname'] in ips_required]
+
             return True
 
         except Exception:
 
             return False
-
 
 
 class MeasurementTableView(generic.TemplateView):
@@ -95,11 +95,10 @@ class MeasurementTableView(generic.TemplateView):
         try:
             cursor = connections['titan_db'].cursor()
 
-            cursor.execute("select * from metrics LIMIT 59")
+            cursor.execute("select * from metrics")
             columns = [col[0] for col in cursor.description]
 
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            # rows = cursor.fetchall()
 
             context['rows'] = rows
             context['columns'] = columns
@@ -122,14 +121,17 @@ class DNSTableView(generic.TemplateView):
             cursor = connections['titan_db'].cursor()
             query = "select id, input, test_keys, measurement_start_time "
             query += "from metrics where test_name='dns_consistency' "
-            query += "limit 100"
+            query += "limit 5"
             cursor.execute(query)
-            columns = [col[0].encode("ascii","ignore") for col in cursor.description]
+            columns = [col[0].encode("ascii","ignore") 
+                       for col in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
             # Adding columns
             columns_final = columns[:len(columns)/2]
-            columns_final += ['dns isp','control result','dns name', 'dns result'] 
+            columns_final += ['match','dns isp',
+                              'control result',
+                              'dns name', 'dns result'] 
             columns_final += columns[len(columns)/2:]
             columns_final.remove('test_keys')
 
@@ -137,27 +139,46 @@ class DNSTableView(generic.TemplateView):
             ans = []
 
             for row in rows:
+
                 test_key = DNSTestKey(json.dumps(row['test_keys']))
                 dns_isp = test_key.get_isp_sonda()
-                control_resolver = test_key.get_resolver()
 
                 if test_key.ignore_data():
 
                     queries = test_key.get_queries()
+                    answers = queries[0]['answers']
+
+                    for a in answers:
+                        if a['answer_type'] == 'A':
+                            control_resolver = a['ipv4']
 
                     for query in queries:
 
                         dns_name = query['resolver_hostname']
+
+                        if query['failure']:
+                            dns_result = query['failure']
+                            match = False
+                        else:
+
+                            answers = query['answers']
+
+                            for a in answers:
+                                if a['answer_type'] == 'A':
+                                    dns_result = a['ipv4']
+
+                            if control_resolver == dns_result:
+                                match = True
+                            else:
+                                match = False
 
                         if DNS.objects.filter(ip=dns_name).exists():
                             dns_table_name = DNS.objects.get(ip=dns_name).verbose
                         else:
                             dns_table_name = dns_name
 
-                        dns_result = query['failure']
-
                         ans += [[row['id'], row['input'], 
-                                dns_isp, control_resolver,
+                                match, dns_isp, control_resolver,
                                 dns_table_name, dns_result,
                                 row['measurement_start_time']]]
 
