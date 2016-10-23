@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django_u2f import views
 from event import urls as event_urls
 from incident import urls as incident_urls
 from measurement import urls as measurement_urls
@@ -26,6 +27,7 @@ from django.conf.urls.static import static
 urlpatterns = [
           url(r'^admin/', admin.site.urls),
 
+          url(r'', include('django_u2f.urls', namespace='u2f')),
           url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
           url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),

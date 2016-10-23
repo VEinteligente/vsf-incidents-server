@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 from os.path import join
 
-from django.urls import reverse_lazy
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'django_u2f',
+
     'bootstrap3',
     'widget_tweaks',
     'rest_framework',
@@ -167,4 +168,4 @@ MEDIA_URL = '/media/'
 
 # Login redirect url
 
-LOGIN_URL = reverse_lazy('dashboard:login')
+LOGIN_URL = 'u2f:login'
