@@ -15,7 +15,6 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
-from django_u2f import views
 from event import urls as event_urls
 from incident import urls as incident_urls
 from measurement import urls as measurement_urls
