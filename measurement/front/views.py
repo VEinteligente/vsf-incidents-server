@@ -8,6 +8,33 @@ from measurement.models import DNS
 import json
 
 
+# Database connection object #
+class DBconnection(object):
+    """docstring for DBconnection"""
+    def __init__(self, db_name):
+        self.db_name = db_name
+
+    def db_execute(self, query):
+
+        try:
+            cursor = connections[self.db_name].cursor()
+
+            cursor.execute(query)
+            columns = [col[0].encode("ascii", "ignore")
+                       for col in cursor.description]
+
+            rows = [dict(zip(columns, row))
+                    for row in cursor.fetchall()]
+
+            return {'columns': columns,
+                    'rows': rows
+                    }
+
+        finally:
+            connections['titan_db'].close()
+
+
+
 # DNSTestKey Object #
 # Parser test key object #
 # Input: Json string obj #
@@ -129,19 +156,17 @@ class MeasurementTableView(generic.TemplateView):
 
         context = super(MeasurementTableView, self).get_context_data(**kwargs)
 
-        try:
-            cursor = connections['titan_db'].cursor()
+        # Create database object #
+        database = DBconnection('titan_db')
+        query = "select * from metrics"
 
-            cursor.execute("select * from metrics")
-            columns = [col[0] for col in cursor.description]
+        result = database.db_execute(query)
+        context['rows'] = {}
+        context['columns'] = {}
 
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-            context['rows'] = rows
-            context['columns'] = columns
-
-        finally:
-            connections['titan_db'].close()
+        if result:
+            context['rows'] = result['rows']
+            context['columns'] = result['columns']
 
         return context
 
@@ -155,13 +180,20 @@ class DNSTableView(generic.TemplateView):
         context = super(DNSTableView, self).get_context_data(**kwargs)
 
         try:
-            cursor = connections['titan_db'].cursor()
+
+            # Create database object #
+            database = DBconnection('titan_db')
             query = "select id, input, test_keys, measurement_start_time "
             query += "from metrics where test_name='dns_consistency' "
-            cursor.execute(query)
-            columns = [col[0].encode("ascii", "ignore")
-                       for col in cursor.description]
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            result = database.db_execute(query)
+            rows = {}
+            columns = {}
+
+            if result:
+
+                rows = result['rows']
+                columns = result['columns']
 
             # Adding columns
             columns_final = columns[:len(columns) / 2]
@@ -224,8 +256,8 @@ class DNSTableView(generic.TemplateView):
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
 
-        finally:
-            connections['titan_db'].close()
+        except Exception as e:
+            print e
 
         return context
 
