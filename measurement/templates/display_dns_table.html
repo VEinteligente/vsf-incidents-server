@@ -27,7 +27,7 @@
                 <tr role="row">
                 {% for key in columns %}
                     <td class="sorting_1">
-                    {% if key == 'match' %}
+                    {% if key == 'match' or key == 'status' %}
                         {% if item|key_value:key %}
                             <i class="fa fa-check" style="color: green;" aria-hidden="true"></i>
                             <span class="hide">Yes</span>

@@ -47,16 +47,24 @@ class DNSTestKey(object):
         self.__dict__ = json.loads(j)
 
     def get_queries(self):
-        return self.queries
+        if self.queries:
+            return self.queries
 
     def get_resolver(self):
-        return self.control_resolver
+        if self.control_resolver:
+            return self.control_resolver
 
     def get_errors(self):
-        return self.errors
+        if self.errors:
+            return self.errors
 
     def get_isp_sonda(self):
-        return self.annotations['isp']
+        if self.annotations:
+            return self.annotations['isp']
+
+    def get_tcp_connect(self):
+        if self.tcp_connect:
+            return self.tcp_connect
 
     def ignore_data(self, list_public_dns=None):
 
@@ -171,7 +179,7 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics limit 5"
+        query = "select * from metrics"
 
         result = database.db_execute(query)
         context['rows'] = {}
@@ -307,7 +315,52 @@ class TCPTableView(generic.TemplateView):
         context = super(TCPTableView, self).get_context_data(**kwargs)
 
         try:
-            print "Hola"
+            database = DBconnection('titan_db')
+            query = "select id, input, test_keys, measurement_start_time "
+            query += "from metrics where test_name='web_connectivity' limit 50"
+
+            result = database.db_execute(query)
+            rows = {}
+            columns = {}
+
+            if result:
+
+                rows = result['rows']
+                columns = result['columns']
+
+            # Adding columns
+            columns_final = columns[:len(columns) / 2]
+            columns_final += ['status', 'ip']
+            columns_final += columns[len(columns) / 2:]
+            columns_final.remove('test_keys')
+
+            ans = []
+
+            for row in rows:
+
+                # Convert json test_keys into python object
+                test_key = DNSTestKey(json.dumps(row['test_keys']))
+                tcp_connect = test_key.get_tcp_connect()
+                tcp_connect = [tcp for tcp in tcp_connect if tcp is not None]
+                status = False
+
+                print tcp_connect
+
+                for tcp in tcp_connect:
+
+                    if tcp['status']['success']:
+                        status = tcp['status']['success']
+
+                    ip = tcp['ip']
+
+                    # Formating the answers #
+                    ans += [[row['id'], row['input'],
+                            status, ip,
+                            row['measurement_start_time']]]
+
+            # Context data variables #
+            context['rows'] = [dict(zip(columns_final, row)) for row in ans]
+            context['columns'] = columns_final
 
         except Exception as e:
 

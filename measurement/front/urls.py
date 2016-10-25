@@ -13,6 +13,11 @@ urlpatterns = [
         name='dns-table'
     ),
     url(
+        r'^tcp-table/$',
+        views.TCPTableView.as_view(),
+        name='tcp-table'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
