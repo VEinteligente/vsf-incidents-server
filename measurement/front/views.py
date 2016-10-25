@@ -26,13 +26,15 @@ class DBconnection(object):
             rows = [dict(zip(columns, row))
                     for row in cursor.fetchall()]
 
-            return {'columns': columns,
-                    'rows': rows
-                    }
+        except Exception as e:
+            print e
 
         finally:
             connections['titan_db'].close()
 
+            return {'columns': columns,
+                    'rows': rows
+                    }
 
 
 # DNSTestKey Object #
@@ -61,19 +63,18 @@ class DNSTestKey(object):
         try:
             sonda_isp = self.get_isp_sonda()
 
-            # Encontrar lista de ips #
-            # del proveedor de la sonda_isp #
-            # Output: lista de ips #
+            # Find ip list #
+            # from sonda_isp provider #
+            # Output: ip list #
             ips_required = [dns.ip
                             for dns in
                             DNS.objects.filter(Q(isp=sonda_isp) |
                                                Q(isp='digitel'))]
 
-            # Dejar ips de la lista de ips_required #
+            # Leave only ips from ips_required list #
             self.left_data_from_list(ips_required)
 
-            # Ignorar ips que esten registrados #
-            # como de acceso publico #
+            # Ignore ips registered as public access #
             if list_public_dns:
 
                 self.ignore_data_from_list(list_public_dns)
@@ -86,23 +87,28 @@ class DNSTestKey(object):
 
     def ignore_data_from_list(self, list_ip):
 
+        # Get successful ips not in list_ip #
         self.successful = [ip
                            for ip in self.successful
                            if self.successful and
                            ip not in list_ip]
 
+        # Get failed ips not in list_ip #
         self.failed = [ip for ip in self.failed
                        if self.failed and ip not in list_ip]
 
+        # Get inconsistent ips not in list_ip #
         self.inconsistent = [ip
                              for ip in self.inconsistent
                              if self.inconsistent and
                              ip not in list_ip]
 
+        # Get errors ips not in list_ip #
         if self.errors:
             for ip in list_ip:
                 self.errors.pop(ip, None)
 
+        # Get queries with ips not in list_ip #
         if self.queries:
             for q in self.queries:
                 if self.queries[0] == q:
@@ -119,20 +125,27 @@ class DNSTestKey(object):
 
     def left_data_from_list(self, list_ip):
 
+        # Get successful ips in list_ip #
         self.successful = [ip
                            for ip in self.successful
                            if self.successful and ip in list_ip]
 
+        # Get failed ips in list_ip #
         self.failed = [ip for ip in self.failed
                        if self.failed and ip in list_ip]
+
+        # Get inconsistent ips in list_ip #
         self.inconsistent = [ip
                              for ip in self.inconsistent
                              if self.inconsistent and ip in list_ip]
 
+        # Get errors ips in list_ip #
         if self.errors:
             for ip in list_ip:
+                pass
                 self.errors.pop(ip, None)
 
+        # Get queries without ips not in list_ip #
         if self.queries:
             for q in self.queries:
                 if self.queries[0] == q:
@@ -158,7 +171,7 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics"
+        query = "select * from metrics limit 5"
 
         result = database.db_execute(query)
         context['rows'] = {}
@@ -204,59 +217,100 @@ class DNSTableView(generic.TemplateView):
             columns_final.remove('test_keys')
 
             # Answers
-            ans = []
+            ans = self.get_answers(rows)
 
-            for row in rows:
-
-                test_key = DNSTestKey(json.dumps(row['test_keys']))
-                dns_isp = test_key.get_isp_sonda()
-                public_dns = [dns.ip
-                              for dns in DNS.objects.filter(public=True)]
-
-                if test_key.ignore_data(public_dns):
-
-                    queries = test_key.get_queries()
-                    answers = queries[0]['answers']
-
-                    for a in answers:
-                        if a['answer_type'] == 'A':
-                            control_resolver = a['ipv4']
-
-                    for query in queries:
-
-                        dns_name = query['resolver_hostname']
-
-                        if query['failure']:
-                            dns_result = query['failure']
-                            match = False
-                        else:
-
-                            answers = query['answers']
-
-                            for a in answers:
-                                if a['answer_type'] == 'A':
-                                    dns_result = a['ipv4']
-
-                            if control_resolver == dns_result:
-                                match = True
-                            else:
-                                match = False
-
-                        if DNS.objects.filter(ip=dns_name).exists():
-                            dns_table_name = DNS.objects\
-                                                .get(ip=dns_name).verbose
-                        else:
-                            dns_table_name = dns_name
-
-                        ans += [[row['id'], row['input'],
-                                match, dns_isp, control_resolver,
-                                dns_table_name, dns_result,
-                                row['measurement_start_time']]]
-
+            # Context data variables #
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
 
         except Exception as e:
+            print e
+
+        return context
+
+    def get_answers(self, rows):
+
+        ans = []
+
+        for row in rows:
+
+            # Convert json test_keys into python object
+            test_key = DNSTestKey(json.dumps(row['test_keys']))
+
+            # Get sonda isp and public DNS #
+            dns_isp = test_key.get_isp_sonda()
+            public_dns = [dns.ip
+                          for dns in DNS.objects.filter(public=True)]
+
+            # Ignore data from test_key #
+            if test_key.ignore_data(public_dns):
+
+                # Get queries #
+                queries = test_key.get_queries()
+
+                # Get answers #
+                answers = queries[0]['answers']
+
+                # Get control resolver from answer_type A #
+                for a in answers:
+                    if a['answer_type'] == 'A':
+                        control_resolver = a['ipv4']
+
+                # Verify each result from queries with control resolver #
+                for query in queries:
+
+                    dns_name = query['resolver_hostname']
+                    match = False
+
+                    # If query has failure, dns result is a failure response #
+                    # and match is False #
+                    # If query doesn't has failure, then find dns result #
+                    # from answer type A and later compare it with control #
+                    # resolver. If both are the same, match is True otherwise #
+                    # match is False #
+
+                    if query['failure']:
+                        dns_result = query['failure']
+                    else:
+
+                        answers = query['answers']
+
+                        for a in answers:
+                            if a['answer_type'] == 'A':
+                                dns_result = a['ipv4']
+
+                        if control_resolver == dns_result:
+                            match = True
+
+                    # If dns_name is in DNS table, find its name #
+                    if DNS.objects.filter(ip=dns_name).exists():
+                        dns_table_name = DNS.objects\
+                                            .get(ip=dns_name).verbose
+                    else:
+                        dns_table_name = dns_name
+
+                    # Formating the answers #
+                    ans += [[row['id'], row['input'],
+                            match, dns_isp, control_resolver,
+                            dns_table_name, dns_result,
+                            row['measurement_start_time']]]
+
+        return ans
+
+
+class TCPTableView(generic.TemplateView):
+
+    template_name = 'display_dns_table.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(TCPTableView, self).get_context_data(**kwargs)
+
+        try:
+            print "Hola"
+
+        except Exception as e:
+
             print e
 
         return context
