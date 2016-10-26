@@ -7,7 +7,7 @@
             <thead>
                 <tr role="row">
                   {% for item in columns %}
-                    <th aria-sort="ascending"  style="width: 176px;" colspan="1" 
+                    <th aria-sort="ascending"  style="width: 176px;" colspan="1"
                     rowspan="1" aria-controls="content" tabindex="0" class="sorting_asc">{{ item }}
                     </th>
                   {% endfor %}
@@ -27,7 +27,7 @@
                 <tr role="row">
                 {% for key in columns %}
                     <td class="sorting_1">
-                    {% if key == 'match' or key == 'status' %}
+                    {% if key == 'match' or key == 'bloqueado' or key == 'medicion exitosa' %}
                         {% if item|key_value:key %}
                             <i class="fa fa-check" style="color: green;" aria-hidden="true"></i>
                             <span class="hide">Yes</span>
@@ -37,9 +37,9 @@
                         {% endif %}
                     {% else %}
                         {{ item|key_value:key }}
-                    {% endif %}    
+                    {% endif %}
                     </td>
-                {% endfor %}                
+                {% endfor %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -52,8 +52,8 @@
 
 $(function () {
         $('#content1').DataTable({
-            
-        
+
+
             initComplete: function () {
             this.api().columns().every( function () {
                 var column = this;
@@ -78,8 +78,8 @@ $(function () {
                 } );
             } );
         },
-            
-        
+
+
         language: {
             processing:     "Procesando...",
             search:         "Buscar:",
@@ -104,9 +104,9 @@ $(function () {
         }
 
     });
-    
+
 })
-    
+
 
 </script>
 {% endblock %}

@@ -26,15 +26,15 @@ class DBconnection(object):
             rows = [dict(zip(columns, row))
                     for row in cursor.fetchall()]
 
+            return {'columns': columns,
+                    'rows': rows
+                    }
+
         except Exception as e:
             print e
 
         finally:
             connections['titan_db'].close()
-
-            return {'columns': columns,
-                    'rows': rows
-                    }
 
 
 # DNSTestKey Object #
@@ -49,6 +49,8 @@ class DNSTestKey(object):
     def get_queries(self):
         if self.queries:
             return self.queries
+        else:
+            return []
 
     def get_resolver(self):
         if self.control_resolver:
@@ -57,6 +59,8 @@ class DNSTestKey(object):
     def get_errors(self):
         if self.errors:
             return self.errors
+        else:
+            return {}
 
     def get_isp_sonda(self):
         if self.annotations:
@@ -65,6 +69,8 @@ class DNSTestKey(object):
     def get_tcp_connect(self):
         if self.tcp_connect:
             return self.tcp_connect
+        else:
+            return []
 
     def ignore_data(self, list_public_dns=None):
 
@@ -316,8 +322,9 @@ class TCPTableView(generic.TemplateView):
 
         try:
             database = DBconnection('titan_db')
-            query = "select id, input, test_keys, measurement_start_time "
-            query += "from metrics where test_name='web_connectivity' limit 50"
+            query = "select id, input, test_keys, probe_cc, probe_ip, "
+            query += "measurement_start_time "
+            query += "from metrics where test_name='web_connectivity' "
 
             result = database.db_execute(query)
             rows = {}
@@ -330,7 +337,7 @@ class TCPTableView(generic.TemplateView):
 
             # Adding columns
             columns_final = columns[:len(columns) / 2]
-            columns_final += ['status', 'ip']
+            columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
             columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
 
@@ -341,21 +348,18 @@ class TCPTableView(generic.TemplateView):
                 # Convert json test_keys into python object
                 test_key = DNSTestKey(json.dumps(row['test_keys']))
                 tcp_connect = test_key.get_tcp_connect()
-                tcp_connect = [tcp for tcp in tcp_connect if tcp is not None]
-                status = False
-
-                print tcp_connect
 
                 for tcp in tcp_connect:
 
-                    if tcp['status']['success']:
-                        status = tcp['status']['success']
-
                     ip = tcp['ip']
+                    port = tcp['port']
+                    blocked = tcp['status']['blocked']
+                    success = tcp['status']['success']
 
                     # Formating the answers #
                     ans += [[row['id'], row['input'],
-                            status, ip,
+                            ip, port, blocked, success,
+                            row['probe_cc'], row['probe_ip'],
                             row['measurement_start_time']]]
 
             # Context data variables #
