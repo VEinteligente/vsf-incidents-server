@@ -12,3 +12,14 @@ class DNS(models.Model):
 
     def __unicode__(self):
         return u"%s - %s" % (self.verbose, self.ip)
+
+
+class Flag(models.Model):
+
+    medicion = models.CharField(verbose_name='Id de la Medicion',
+                                max_length=40)
+    # True -> hard, False -> soft, None -> muted
+    flag = models.NullBooleanField(default=False)
+
+    def __unicode__(self):
+        return u"%s" % (self.medicion)

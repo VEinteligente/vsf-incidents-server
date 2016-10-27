@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
-from measurement.models import DNS
+from measurement.models import DNS, Flag
 import json
 
 
@@ -223,7 +223,7 @@ class DNSTableView(generic.TemplateView):
                 columns = result['columns']
 
             # Adding columns
-            columns_final = columns[:len(columns) / 2]
+            columns_final = ['flag'] + columns[:len(columns) / 2]
             columns_final += ['match', 'dns isp',
                               'control result',
                               'dns name', 'dns result']
@@ -275,6 +275,7 @@ class DNSTableView(generic.TemplateView):
 
                     dns_name = query['resolver_hostname']
                     match = False
+                    flag_status = 'No flag'
 
                     # If query has failure, dns result is a failure response #
                     # and match is False #
@@ -295,6 +296,20 @@ class DNSTableView(generic.TemplateView):
 
                         if control_resolver == dns_result:
                             match = True
+                        else:
+                            # Search flag #
+
+                            # if Flag.objects.filter(medicion=row['id']).exists():
+
+                            #     f = Flag.objects.get(medicion=row['id'])
+
+                            #     if f.flag:
+                            #         flag_status = 'hard'
+                            #     elif f.flag is False:
+                            #         flag_status = 'soft'
+                            #     elif f.flag is None:
+                            #         flag_status = 'muted'
+                            pass
 
                     # If dns_name is in DNS table, find its name #
                     if DNS.objects.filter(ip=dns_name).exists():
@@ -304,7 +319,7 @@ class DNSTableView(generic.TemplateView):
                         dns_table_name = dns_name
 
                     # Formating the answers #
-                    ans += [[row['id'], row['input'],
+                    ans += [flag_status, [row['id'], row['input'],
                             match, dns_isp, control_resolver,
                             dns_table_name, dns_result,
                             row['measurement_start_time']]]
