@@ -12,10 +12,10 @@ class UpdateFlagView(generic.UpdateView):
     """docstring for UpdateFlagView"""
     model = Flag
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
 
         try:
-            queryset = self.model.objects.all()
+            queryset = self.model.objects.using('default').all()
 
             # Create database object #
             database = DBconnection('titan_db')
@@ -26,24 +26,24 @@ class UpdateFlagView(generic.UpdateView):
                 ids = '('
 
                 for f in queryset:
-                    if f.medicion == queryset[-1].medicion:
-                        ids += f.medicion
+                    if f.medicion == queryset[len(queryset)-1].medicion:
+                        ids += '\'' + f.medicion + '\''
                     else:
-                        ids += f.medicion + ', '
+                        ids += '\'' + f.medicion + '\', '
 
                 ids += ')'
 
             # Query for dns #
-            query_dns = "select id, test_keys"
+            query_dns = "select id, test_keys "
             query_dns += "from metrics where test_name='dns_consistency' "
 
             # Query for TCP flags #
-            query_tcp = "select id, test_keys"
+            query_tcp = "select id, test_keys "
             query_tcp += "from metrics where test_name='web_connectivity' "
 
             if ids:
-                query_dns += " where id not in " + ids
-                query_tcp += " where id not in " + ids
+                query_dns += " and id not in " + ids
+                query_tcp += " and id not in " + ids
 
             # Results from execute queries #
             result_dns = database.db_execute(query_dns)
@@ -104,6 +104,8 @@ class UpdateFlagView(generic.UpdateView):
                 # Verify each result from queries with control resolver #
                 for query in queries:
 
+                    dns_name = query['resolver_hostname']
+
                     # If query doesn't has failure, then find dns result #
                     # from answer type A and later compare it with control #
                     # resolver #
@@ -118,8 +120,10 @@ class UpdateFlagView(generic.UpdateView):
 
                         # If doesn't match, generate soft flag in measurement #
                         if control_resolver != dns_result:
-                            flag = Flag.object.create(medicion=row['id'])
-                            flag.save()
+                            flag = Flag.objects.create(ip=dns_name,
+                                                       medicion=row['id'],
+                                                       type_med='DNS')
+                            flag.save(using='default')
 
         return True
 
@@ -134,7 +138,9 @@ class UpdateFlagView(generic.UpdateView):
             for tcp in tcp_connect:
 
                 if tcp['status']['blocked']:
-                    flag = Flag.object.create(medicion=row['id'])
-                    flag.save()
+                    flag = Flag.objects.create(ip=tcp['ip'],
+                                               medicion=row['id'],
+                                               type_med='TCP')
+                    flag.save(using='default')
 
         return True

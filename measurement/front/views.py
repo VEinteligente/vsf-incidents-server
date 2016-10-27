@@ -286,30 +286,35 @@ class DNSTableView(generic.TemplateView):
 
                     if query['failure']:
                         dns_result = query['failure']
+
+
+                    answers = query['answers']
+
+                    for a in answers:
+                        if a['answer_type'] == 'A':
+                            dns_result = a['ipv4']
+
+                    if control_resolver == dns_result:
+                        match = True
                     else:
+                        # Search flag #
 
-                        answers = query['answers']
+                        if Flag.objects.filter(ip=dns_name,
+                                               medicion=row['id'],
+                                               type_med='DNS').exists():
 
-                        for a in answers:
-                            if a['answer_type'] == 'A':
-                                dns_result = a['ipv4']
+                            f = Flag.objects.filter(ip=dns_name,
+                                                    medicion=row['id'],
+                                                    type_med='DNS')
 
-                        if control_resolver == dns_result:
-                            match = True
-                        else:
-                            # Search flag #
+                            print f
 
-                            # if Flag.objects.filter(medicion=row['id']).exists():
-
-                            #     f = Flag.objects.get(medicion=row['id'])
-
-                            #     if f.flag:
-                            #         flag_status = 'hard'
-                            #     elif f.flag is False:
-                            #         flag_status = 'soft'
-                            #     elif f.flag is None:
-                            #         flag_status = 'muted'
-                            pass
+                            if f.flag:
+                                flag_status = 'hard'
+                            elif f.flag is False:
+                                flag_status = 'soft'
+                            elif f.flag is None:
+                                flag_status = 'muted'
 
                     # If dns_name is in DNS table, find its name #
                     if DNS.objects.filter(ip=dns_name).exists():
@@ -319,7 +324,7 @@ class DNSTableView(generic.TemplateView):
                         dns_table_name = dns_name
 
                     # Formating the answers #
-                    ans += [flag_status, [row['id'], row['input'],
+                    ans += [[flag_status, row['id'], row['input'],
                             match, dns_isp, control_resolver,
                             dns_table_name, dns_result,
                             row['measurement_start_time']]]

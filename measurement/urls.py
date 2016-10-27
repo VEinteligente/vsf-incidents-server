@@ -7,7 +7,7 @@ urlpatterns = [
     url(r'^', include(front_url, namespace='measurement_front')),
     url(r'^api/', include(api_url, namespace='measurement_api')),
     url(
-        r'^$',
+        r'^update-flags/$',
         views.UpdateFlagView.as_view(),
         name='update-flags'
     ),
