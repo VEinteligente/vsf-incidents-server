@@ -18,6 +18,11 @@ urlpatterns = [
         name='tcp-table'
     ),
     url(
+        r'^http-table/$',
+        views.HTTPTableView.as_view(),
+        name='http-table'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
