@@ -388,6 +388,48 @@ class TCPTableView(generic.TemplateView):
 
         return context
 
+    def get_answers(self, rows):
+
+        ans = []
+
+        for row in rows:
+
+            # Convert json test_keys into python object
+            test_key = DNSTestKey(json.dumps(row['test_keys']))
+            tcp_connect = test_key.get_tcp_connect()
+
+            for tcp in tcp_connect:
+
+                flag_status = 'No flag'
+
+                if Flag.objects.filter(ip=tcp['ip'],
+                                       medicion=row['id'],
+                                       type_med='TCP').exists():
+
+                    f = Flag.objects.get(ip=tcp['ip'],
+                                         medicion=row['id'],
+                                         type_med='TCP')
+
+                    if f.flag:
+                        flag_status = 'hard'
+                    elif f.flag is False:
+                        flag_status = 'soft'
+                    elif f.flag is None:
+                        flag_status = 'muted'
+
+                ip = tcp['ip']
+                port = tcp['port']
+                blocked = tcp['status']['blocked']
+                success = tcp['status']['success']
+
+                # Formating the answers #
+                ans += [[flag_status, row['id'], row['input'],
+                         ip, port, blocked, success,
+                         row['probe_cc'], row['probe_ip'],
+                         row['measurement_start_time']]]
+
+        return ans
+
 
 class HTTPTableView(generic.TemplateView):
 
@@ -400,14 +442,15 @@ class HTTPTableView(generic.TemplateView):
         try:
             database = DBconnection('titan_db')
             # query = "select id, input, test_keys, probe_cc, probe_ip, measurement_start_time "
-            query = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'metrics'"
+            query = "SELECT * FROM metrics LIMIT 1"
             # query += "from metrics where test_name='web_connectivity' limit 1"
 
             result = database.db_execute(query)
             rows = {}
             columns = {}
 
-            print result
+            for r in result['rows']:
+                print r
 
             if result:
                 rows = result['rows']
@@ -421,12 +464,12 @@ class HTTPTableView(generic.TemplateView):
 
             # p = lambda: None
             # print rows[0]
-            # print '----------------------------------------------------------------------------------------------------'
+            # print '--------------------------------------------------------------------------------------------------'
             # print json.loads(rows[0].test_keys)
             # p = json.loads(rows[0].test_keys)
             # print "hey"
             # print p.body_proportion
-            # print '----------------------------------------------------------------------------------------------------'
+            # print '--------------------------------------------------------------------------------------------------'
 
             ans = []
 
@@ -458,6 +501,48 @@ class HTTPTableView(generic.TemplateView):
             print e
 
         return context
+
+    def get_answers(self, rows):
+
+        ans = []
+
+        for row in rows:
+
+            # Convert json test_keys into python object
+            test_key = DNSTestKey(json.dumps(row['test_keys']))
+            tcp_connect = test_key.get_tcp_connect()
+
+            for tcp in tcp_connect:
+
+                flag_status = 'No flag'
+
+                if Flag.objects.filter(ip=tcp['ip'],
+                                       medicion=row['id'],
+                                       type_med='TCP').exists():
+
+                    f = Flag.objects.get(ip=tcp['ip'],
+                                         medicion=row['id'],
+                                         type_med='TCP')
+
+                    if f.flag:
+                        flag_status = 'hard'
+                    elif f.flag is False:
+                        flag_status = 'soft'
+                    elif f.flag is None:
+                        flag_status = 'muted'
+
+                ip = tcp['ip']
+                port = tcp['port']
+                blocked = tcp['status']['blocked']
+                success = tcp['status']['success']
+
+                # Formating the answers #
+                ans += [[flag_status, row['id'], row['input'],
+                         ip, port, blocked, success,
+                         row['probe_cc'], row['probe_ip'],
+                         row['measurement_start_time']]]
+
+        return ans
 
 
 class PruebaDataTable(LoginRequiredMixin, generic.TemplateView):

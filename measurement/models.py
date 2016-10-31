@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django_mysql.models import JSONField
 
 
 class metrics(models.Model):
@@ -8,24 +9,24 @@ class metrics(models.Model):
     _DATABASE = 'titan_db'
     manage = False
 
-    # input = models.CharField(max_length=50)
-    # report_id = models.CharField(max_length=100)
-    # report_filename
-    # options
-    # probe_cc
-    # probe_asn
-    # probe_ip
-    # data_format_version
-    # test_name
-    # test_start_time
-    # measurement_start_time
-    # test_runtime
-    # test_helpers
-    # test_keys
-    # software_name
-    # software_version
-    # test_version
-    # bucket_date
+    input = models.CharField(max_length=50)
+    report_id = models.CharField(max_length=100)
+    report_filename
+    options
+    probe_cc
+    probe_asn
+    probe_ip
+    data_format_version
+    test_name
+    test_start_time
+    measurement_start_time
+    test_runtime
+    test_helpers
+    test_keys = JSONField()
+    software_name
+    software_version
+    test_version
+    bucket_date
 
 
 class DNS(models.Model):
