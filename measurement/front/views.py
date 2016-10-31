@@ -53,6 +53,22 @@ class DNSTestKey(object):
         if self.control_resolver:
             return self.control_resolver
 
+    def get_client_resolver(self):
+        if self.client_resolver:
+            return self.client_resolver
+
+    def get_headers_match(self):
+        if self.headers_match:
+            return self.headers_match
+
+    def get_body_length_match(self):
+        if self.body_length_match:
+            return self.body_length_match
+
+    def get_status_code_match(self):
+        if self.status_code_match:
+            return self.status_code_match
+
     def get_errors(self):
         if self.errors:
             return self.errors
@@ -182,7 +198,7 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics"
+        query = "select * from metrics where test_name='web_connectivity'"
 
         result = database.db_execute(query)
         context['rows'] = {}
@@ -259,72 +275,72 @@ class DNSTableView(generic.TemplateView):
                 # Get queries #
                 queries = test_key.get_queries()
 
-                # Get answers #
-                answers = queries[0]['answers']
+                if not queries[0]['failure']:
 
-                # Get control resolver from answer_type A #
-                for a in answers:
-                    if a['answer_type'] == 'A':
-                        control_resolver = a['ipv4']
+                    # Get answers #
+                    answers = queries[0]['answers']
 
-                # Verify each result from queries with control resolver #
-                for query in queries:
-
-                    dns_name = query['resolver_hostname']
-                    match = False
-                    flag_status = 'No flag'
-
-                    # If query has failure, dns result is a failure response #
-                    # and match is False #
-                    # If query doesn't has failure, then find dns result #
-                    # from answer type A and later compare it with control #
-                    # resolver. If both are the same, match is True otherwise #
-                    # match is False #
-
-                    if query['failure']:
-                        dns_result = query['failure']
-
-
-                    answers = query['answers']
-
+                    # Get control resolver from answer_type A #
                     for a in answers:
                         if a['answer_type'] == 'A':
-                            dns_result = a['ipv4']
+                            control_resolver = a['ipv4']
 
-                    if control_resolver == dns_result:
-                        match = True
-                    else:
-                        # Search flag #
+                    # Verify each result from queries with control resolver #
+                    for query in queries:
 
-                        if Flag.objects.filter(ip=dns_name,
-                                               medicion=row['id'],
-                                               type_med='DNS').exists():
+                        dns_name = query['resolver_hostname']
+                        match = False
+                        flag_status = 'No flag'
 
-                            f = Flag.objects.filter(ip=dns_name,
-                                                    medicion=row['id'],
-                                                    type_med='DNS')
+                        # If query has failure, dns result #
+                        # is a failure response and match is False #
 
-                            print f
+                        # If query doesn't has failure, then find dns result #
+                        # from answer type A and later compare it with control #
+                        # resolver. If both are the same, match is True otherwise #
+                        # match is False #
 
-                            if f.flag:
-                                flag_status = 'hard'
-                            elif f.flag is False:
-                                flag_status = 'soft'
-                            elif f.flag is None:
-                                flag_status = 'muted'
+                        if query['failure']:
+                            dns_result = query['failure']
 
-                    # If dns_name is in DNS table, find its name #
-                    if DNS.objects.filter(ip=dns_name).exists():
-                        dns_table_name = DNS.objects\
-                                            .get(ip=dns_name).verbose
-                    else:
-                        dns_table_name = dns_name
+                        answers = query['answers']
 
-                    # Formating the answers #
-                    ans += [[flag_status, row['id'], row['input'],
-                            match, dns_isp, control_resolver,
-                            dns_table_name, dns_result,
-                            row['measurement_start_time']]]
+                        for a in answers:
+                            if a['answer_type'] == 'A':
+                                dns_result = a['ipv4']
+
+                        if control_resolver == dns_result:
+                            match = True
+                        else:
+                            # Search flag #
+
+                            if Flag.objects.filter(ip=dns_name,
+                                                   medicion=row['id'],
+                                                   type_med='DNS').exists():
+
+                                f = Flag.objects.get(ip=dns_name,
+                                                     medicion=row['id'],
+                                                     type_med='DNS')
+
+                                if f.flag:
+                                    flag_status = 'hard'
+                                elif f.flag is False:
+                                    flag_status = 'soft'
+                                elif f.flag is None:
+                                    flag_status = 'muted'
+
+                        # If dns_name is in DNS table, find its name #
+                        if DNS.objects.filter(ip=dns_name).exists():
+                            dns_table_name = DNS.objects\
+                                                .get(ip=dns_name).verbose
+                        else:
+                            dns_table_name = dns_name
+
+                        # Formating the answers #
+                        ans += [[flag_status, row['id'], row['input'],
+                                match, dns_isp, control_resolver,
+                                dns_table_name, dns_result,
+                                row['measurement_start_time']]]
 
         return ans
 
@@ -338,6 +354,7 @@ class TCPTableView(generic.TemplateView):
         context = super(TCPTableView, self).get_context_data(**kwargs)
 
         try:
+            # Create database connection #
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, probe_cc, probe_ip, "
             query += "measurement_start_time "
@@ -353,31 +370,13 @@ class TCPTableView(generic.TemplateView):
                 columns = result['columns']
 
             # Adding columns
-            columns_final = columns[:len(columns) / 2]
+            columns_final = ['flag'] + columns[:len(columns) / 2]
             columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
             columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
 
-            ans = []
-
-            for row in rows:
-
-                # Convert json test_keys into python object
-                test_key = DNSTestKey(json.dumps(row['test_keys']))
-                tcp_connect = test_key.get_tcp_connect()
-
-                for tcp in tcp_connect:
-
-                    ip = tcp['ip']
-                    port = tcp['port']
-                    blocked = tcp['status']['blocked']
-                    success = tcp['status']['success']
-
-                    # Formating the answers #
-                    ans += [[row['id'], row['input'],
-                            ip, port, blocked, success,
-                            row['probe_cc'], row['probe_ip'],
-                            row['measurement_start_time']]]
+            # Answers #
+            ans = self.get_answers(rows)
 
             # Context data variables #
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
@@ -388,8 +387,6 @@ class TCPTableView(generic.TemplateView):
             print e
 
         return context
-
-from collections import namedtuple
 
 
 class HTTPTableView(generic.TemplateView):

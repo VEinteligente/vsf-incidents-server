@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views import generic
 from django.http import HttpResponse
 from measurement.models import Flag, DNS
+from django.db.models import Q
 from measurement.front.views import DBconnection, DNSTestKey
 import json
 
@@ -15,21 +16,25 @@ class UpdateFlagView(generic.UpdateView):
     def get(self, request, *args, **kwargs):
 
         try:
-            queryset = self.model.objects.using('default').all()
+            # List of 'medicion' of Flags #
+            list_dns = self.model.objects.using('default')\
+                                         .values_list('medicion', flat=True)\
+                                         .order_by('medicion')\
+                                         .distinct()
 
             # Create database object #
             database = DBconnection('titan_db')
             ids = None
 
-            if queryset:
+            if list_dns:
 
                 ids = '('
 
-                for f in queryset:
-                    if f.medicion == queryset[len(queryset)-1].medicion:
-                        ids += '\'' + f.medicion + '\''
+                for f in list_dns:
+                    if f == list_dns[len(list_dns)-1]:
+                        ids += '\'' + f + '\''
                     else:
-                        ids += '\'' + f.medicion + '\', '
+                        ids += '\'' + f + '\', '
 
                 ids += ')'
 
@@ -66,7 +71,10 @@ class UpdateFlagView(generic.UpdateView):
             # Update TCP Flags #
             update_tcp = self.update_tcp_flags(rows_tcp)
 
-            if update_dns and update_tcp:
+            # Update HTTP Flags #
+            update_http = self.update_http_flags(rows_tcp)
+
+            if update_dns and update_tcp and update_http:
 
                 return HttpResponse(status=200)
 
@@ -109,8 +117,18 @@ class UpdateFlagView(generic.UpdateView):
                     # If query doesn't has failure, then find dns result #
                     # from answer type A and later compare it with control #
                     # resolver #
+                    if query['failure']:
 
-                    if not query['failure']:
+                        if not Flag.objects.filter(ip=dns_name,
+                                                   medicion=row['id'],
+                                                   type_med='DNS').exists():
+
+                            flag = Flag.objects.create(ip=dns_name,
+                                                       medicion=row['id'],
+                                                       type_med='DNS')
+                            flag.save(using='default')
+
+                    else:
 
                         answers = query['answers']
 
@@ -120,10 +138,15 @@ class UpdateFlagView(generic.UpdateView):
 
                         # If doesn't match, generate soft flag in measurement #
                         if control_resolver != dns_result:
-                            flag = Flag.objects.create(ip=dns_name,
+
+                            if not Flag.objects.filter(ip=dns_name,
                                                        medicion=row['id'],
-                                                       type_med='DNS')
-                            flag.save(using='default')
+                                                       type_med='DNS').exists():
+
+                                flag = Flag.objects.create(ip=dns_name,
+                                                           medicion=row['id'],
+                                                           type_med='DNS')
+                                flag.save(using='default')
 
         return True
 
@@ -138,9 +161,36 @@ class UpdateFlagView(generic.UpdateView):
             for tcp in tcp_connect:
 
                 if tcp['status']['blocked']:
-                    flag = Flag.objects.create(ip=tcp['ip'],
+
+                    if not Flag.objects.filter(ip=tcp['ip'],
                                                medicion=row['id'],
-                                               type_med='TCP')
+                                               type_med='TCP').exists():
+
+                        flag = Flag.objects.create(ip=tcp['ip'],
+                                                   medicion=row['id'],
+                                                   type_med='TCP')
+                        flag.save(using='default')
+
+        return True
+
+    def update_http_flags(self, rows):
+
+        for row in rows:
+
+            # Convert json test_keys into python object
+            test_key = DNSTestKey(json.dumps(row['test_keys']))
+
+            if not test_key.get_headers_match() and \
+               not test_key.get_body_length_match() or \
+               not test_key.get_status_code_match():
+
+                if not Flag.objects.filter(ip=test_key.get_client_resolver(),
+                                           medicion=row['id'],
+                                           type_med='HTTP').exists():
+
+                    flag = Flag.objects.create(ip=test_key.get_client_resolver(),
+                                               medicion=row['id'],
+                                               type_med='HTTP')
                     flag.save(using='default')
 
         return True
