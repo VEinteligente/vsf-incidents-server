@@ -100,10 +100,12 @@ DATABASES = {
         'NAME': 'pipeline_db',
         'USER': 'pipeline_db',
         'PASSWORD': '70:o}wt2amTr7#Q_FTJRQ',
-        'HOST': 'titan.saturno.space',
+        'HOST': '37.218.242.176',  # titan ip
         'PORT': '5432'
     }
 }
+
+DATABASE_ROUTERS = ['vsf.DBRouter.CustomRouter']
 
 
 # Password validation

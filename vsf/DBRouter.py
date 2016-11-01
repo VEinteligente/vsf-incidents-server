@@ -26,7 +26,7 @@ class CustomRouter(object):
             return True
         return None
 
-    def allow_migrate(self, db, model):
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
         All non-auth models end up in this pool.
         """

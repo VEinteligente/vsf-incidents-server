@@ -4,7 +4,7 @@ from django.contrib.auth import logout
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
-from measurement.models import DNS, Flag
+from measurement.models import DNS, Flag, Metric
 import json
 
 
@@ -198,7 +198,7 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics where test_name='web_connectivity'"
+        query = "select * from metrics where test_name='web_connectivity' LIMIT 1"
 
         result = database.db_execute(query)
         context['rows'] = {}
@@ -439,66 +439,72 @@ class HTTPTableView(generic.TemplateView):
 
         context = super(HTTPTableView, self).get_context_data(**kwargs)
 
-        try:
-            database = DBconnection('titan_db')
-            # query = "select id, input, test_keys, probe_cc, probe_ip, measurement_start_time "
-            query = "SELECT * FROM metrics LIMIT 1"
-            # query += "from metrics where test_name='web_connectivity' limit 1"
+        a = Metric.objects.filter(test_name='web_connectivity').first()
 
-            result = database.db_execute(query)
-            rows = {}
-            columns = {}
+        print a.test_keys['body_proportion']
 
-            for r in result['rows']:
-                print r
+        jobj = json.loads(a.test_keys)
 
-            if result:
-                rows = result['rows']
-                columns = result['columns']
-
-            # Adding columns
-            columns_final = columns[:len(columns) / 2]
-            columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
-            columns_final += columns[len(columns) / 2:]
-            columns_final.remove('test_keys')
-
-            # p = lambda: None
-            # print rows[0]
-            # print '--------------------------------------------------------------------------------------------------'
-            # print json.loads(rows[0].test_keys)
-            # p = json.loads(rows[0].test_keys)
-            # print "hey"
-            # print p.body_proportion
-            # print '--------------------------------------------------------------------------------------------------'
-
-            ans = []
-
-            for row in rows:
-
-                # Convert json test_keys into python object
-                test_key = DNSTestKey(json.dumps(row['test_keys']))
-                tcp_connect = test_key.get_tcp_connect()
-
-                for tcp in tcp_connect:
-
-                    ip = tcp['ip']
-                    port = tcp['port']
-                    blocked = tcp['status']['blocked']
-                    success = tcp['status']['success']
-
-                    # Formating the answers #
-                    ans += [[row['id'], row['input'],
-                            ip, port, blocked, success,
-                            row['probe_cc'], row['probe_ip'],
-                            row['measurement_start_time']]]
-
-            # Context data variables #
-            context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-            context['columns'] = columns_final
-
-        except Exception as e:
-
-            print e
+        # try:
+        #     database = DBconnection('titan_db')
+        #     # query = "select id, input, test_keys, probe_cc, probe_ip, measurement_start_time "
+        #     query = "SELECT * FROM metrics LIMIT 1"
+        #     # query += "from metrics where test_name='web_connectivity' limit 1"
+        #
+        #     result = database.db_execute(query)
+        #     rows = {}
+        #     columns = {}
+        #
+        #     for r in result['rows']:
+        #         print r
+        #
+        #     if result:
+        #         rows = result['rows']
+        #         columns = result['columns']
+        #
+        #     # Adding columns
+        #     columns_final = columns[:len(columns) / 2]
+        #     columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
+        #     columns_final += columns[len(columns) / 2:]
+        #     columns_final.remove('test_keys')
+        #
+        #     # p = lambda: None
+        #     # print rows[0]
+        #     # print '------------------------------------------------------------------------------------------------'
+        #     # print json.loads(rows[0].test_keys)
+        #     # p = json.loads(rows[0].test_keys)
+        #     # print "hey"
+        #     # print p.body_proportion
+        #     # print '------------------------------------------------------------------------------------------------'
+        #
+        #     ans = []
+        #
+        #     for row in rows:
+        #
+        #         # Convert json test_keys into python object
+        #         test_key = DNSTestKey(json.dumps(row['test_keys']))
+        #         tcp_connect = test_key.get_tcp_connect()
+        #
+        #         for tcp in tcp_connect:
+        #
+        #             ip = tcp['ip']
+        #             port = tcp['port']
+        #             blocked = tcp['status']['blocked']
+        #             success = tcp['status']['success']
+        #
+        #             # Formating the answers #
+        #             ans += [[row['id'], row['input'],
+        #                     ip, port, blocked, success,
+        #                     row['probe_cc'], row['probe_ip'],
+        #                     row['measurement_start_time']]]
+        #
+        #     # Context data variables #
+        #     context['rows'] = [dict(zip(columns_final, row)) for row in ans]
+        #     context['columns'] = columns_final
+        #
+        # except Exception as e:
+        #
+        #     print e
 
         return context
 

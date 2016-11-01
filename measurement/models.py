@@ -1,32 +1,36 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from django_mysql.models import JSONField
 
 
-class metrics(models.Model):
+class Metric(models.Model):
 
     _DATABASE = 'titan_db'
     manage = False
 
+    # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
+
     input = models.CharField(max_length=50)
     report_id = models.CharField(max_length=100)
-    report_filename
-    options
-    probe_cc
-    probe_asn
-    probe_ip
-    data_format_version
-    test_name
-    test_start_time
-    measurement_start_time
-    test_runtime
-    test_helpers
-    test_keys = JSONField()
-    software_name
-    software_version
-    test_version
-    bucket_date
+    report_filename = models.CharField(max_length=150)
+    options = models.TextField()
+    probe_cc = models.CharField(max_length=50)
+    probe_asn = models.CharField(max_length=50)
+    probe_ip = models.GenericIPAddressField()
+    data_format_version = models.CharField(max_length=10)
+    test_name = models.CharField(max_length=25)
+    test_start_time = models.DateTimeField()
+    measurement_start_time = models.DateTimeField()
+    test_runtime = models.FloatField()
+    test_helpers = models.TextField()
+    test_keys = models.TextField()
+    software_name = models.CharField(max_length=15)
+    software_version = models.CharField(max_length=10)
+    test_version = models.CharField(max_length=10)
+    bucket_date = models.DateTimeField()
+
+    class Meta:
+        db_table = 'metrics'
 
 
 class DNS(models.Model):
