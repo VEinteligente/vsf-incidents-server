@@ -1,0 +1,63 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block content %}
+<div class="table-responsive">
+    <table id="my-table">
+        <thead>
+            <th>id</th>
+            <th>measurement_start_time</th>
+            <th>input</th>
+            <th>probe_cc</th>
+            <th>body_length_match</th>
+            <th>body_proportion</th>
+            <th>headers_match</th>
+            <th>status_code_match</th>
+            <th>title_match</th>
+        </thead>
+        <tfoot>
+            <th>id</th>
+            <th>measurement_start_time</th>
+            <th>input</th>
+            <th>probe_cc</th>
+            <th>body_length_match</th>
+            <th>body_proportion</th>
+            <th>headers_match</th>
+            <th>status_code_match</th>
+            <th>title_match</th>
+        </tfoot>
+        <tbody></tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+{% block extrajs %}
+<script>
+
+$(function () {
+
+    $('#my-table').dataTable({
+        "order": [[ 0, "desc" ]],
+        "bPaginate": true,
+        "sPaginationType": "full_numbers",
+        "bProcessing": true,
+        "bServerSide": true,
+        "sAjaxSource": "/measurements/http-table-ajax/",
+        "aoColumns": [
+            { "mData": "id" },
+            { "mData": "measurement_start_time" },
+            { "mData": "input" },
+            { "mData": "probe_cc" },
+            { "mData": 'body_length_match'},
+            { "mData": 'body_proportion'},
+            { "mData": 'headers_match'},
+            { "mData": 'status_code_match'},
+            { "mData": 'title_match'}
+
+        ]
+    });
+
+})
+
+</script>
+{% endblock %}

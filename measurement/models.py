@@ -11,6 +11,7 @@ class Metric(models.Model):
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
 
     input = models.CharField(max_length=50)
+    annotations = models.TextField()
     report_id = models.CharField(max_length=100)
     report_filename = models.CharField(max_length=150)
     options = models.TextField()

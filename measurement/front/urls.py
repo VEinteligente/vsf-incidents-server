@@ -23,6 +23,11 @@ urlpatterns = [
         name='http-table'
     ),
     url(
+        r'^http-table-ajax/$',
+        views.SubscriberListDatatablesView.as_view(),
+        name='http-table-ajax'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'

@@ -1,11 +1,18 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.core.serializers.json import DjangoJSONEncoder
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
+from eztables.views import DatatablesView
+from django.utils.six import text_type
 from measurement.models import DNS, Flag, Metric
+import re
 import json
+
+RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
 # Database connection object #
@@ -433,131 +440,91 @@ class TCPTableView(generic.TemplateView):
 
 class HTTPTableView(generic.TemplateView):
 
-    template_name = ''
-
-    def get_context_data(self, **kwargs):
-
-        context = super(HTTPTableView, self).get_context_data(**kwargs)
-
-        a = Metric.objects.filter(test_name='web_connectivity').first()
-
-        print a.test_keys['body_proportion']
-
-        jobj = json.loads(a.test_keys)
-
-        # try:
-        #     database = DBconnection('titan_db')
-        #     # query = "select id, input, test_keys, probe_cc, probe_ip, measurement_start_time "
-        #     query = "SELECT * FROM metrics LIMIT 1"
-        #     # query += "from metrics where test_name='web_connectivity' limit 1"
-        #
-        #     result = database.db_execute(query)
-        #     rows = {}
-        #     columns = {}
-        #
-        #     for r in result['rows']:
-        #         print r
-        #
-        #     if result:
-        #         rows = result['rows']
-        #         columns = result['columns']
-        #
-        #     # Adding columns
-        #     columns_final = columns[:len(columns) / 2]
-        #     columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
-        #     columns_final += columns[len(columns) / 2:]
-        #     columns_final.remove('test_keys')
-        #
-        #     # p = lambda: None
-        #     # print rows[0]
-        #     # print '------------------------------------------------------------------------------------------------'
-        #     # print json.loads(rows[0].test_keys)
-        #     # p = json.loads(rows[0].test_keys)
-        #     # print "hey"
-        #     # print p.body_proportion
-        #     # print '------------------------------------------------------------------------------------------------'
-        #
-        #     ans = []
-        #
-        #     for row in rows:
-        #
-        #         # Convert json test_keys into python object
-        #         test_key = DNSTestKey(json.dumps(row['test_keys']))
-        #         tcp_connect = test_key.get_tcp_connect()
-        #
-        #         for tcp in tcp_connect:
-        #
-        #             ip = tcp['ip']
-        #             port = tcp['port']
-        #             blocked = tcp['status']['blocked']
-        #             success = tcp['status']['success']
-        #
-        #             # Formating the answers #
-        #             ans += [[row['id'], row['input'],
-        #                     ip, port, blocked, success,
-        #                     row['probe_cc'], row['probe_ip'],
-        #                     row['measurement_start_time']]]
-        #
-        #     # Context data variables #
-        #     context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-        #     context['columns'] = columns_final
-        #
-        # except Exception as e:
-        #
-        #     print e
-
-        return context
-
-    def get_answers(self, rows):
-
-        ans = []
-
-        for row in rows:
-
-            # Convert json test_keys into python object
-            test_key = DNSTestKey(json.dumps(row['test_keys']))
-            tcp_connect = test_key.get_tcp_connect()
-
-            for tcp in tcp_connect:
-
-                flag_status = 'No flag'
-
-                if Flag.objects.filter(ip=tcp['ip'],
-                                       medicion=row['id'],
-                                       type_med='TCP').exists():
-
-                    f = Flag.objects.get(ip=tcp['ip'],
-                                         medicion=row['id'],
-                                         type_med='TCP')
-
-                    if f.flag:
-                        flag_status = 'hard'
-                    elif f.flag is False:
-                        flag_status = 'soft'
-                    elif f.flag is None:
-                        flag_status = 'muted'
-
-                ip = tcp['ip']
-                port = tcp['port']
-                blocked = tcp['status']['blocked']
-                success = tcp['status']['success']
-
-                # Formating the answers #
-                ans += [[flag_status, row['id'], row['input'],
-                         ip, port, blocked, success,
-                         row['probe_cc'], row['probe_ip'],
-                         row['measurement_start_time']]]
-
-        return ans
+    template_name = 'display_http_table.html'
 
 
-class PruebaDataTable(LoginRequiredMixin, generic.TemplateView):
+class SubscriberListDatatablesView(DatatablesView):
+
+    model = Metric
+    queryset = Metric.objects.filter(test_name='web_connectivity')
+    fields = {
+        'id': 'id',
+        'measurement_start_time': 'measurement_start_time',
+        'input': 'input',
+        'probe_cc': 'probe_cc',
+        'test': 'test_keys'
+    }
+
+    # def get_field(self, index):
+    #     if isinstance(self.fields, dict):
+    #         print index
+    #         print self.fields
+    #         print "---------------------------------------------------------------------------"
+    #         print self.dt_data
+    #         return self.dt_data['mDataProp_%s' % index]
+    #     else:
+    #         return self.fields[index]
+
+    def get_row(self, row):
+        '''Format a single row (if necessary)'''
+
+        if isinstance(self.fields, dict):
+            a = dict([
+                (key, text_type(value).format(**row) if RE_FORMATTED.match(value) else row[value])
+                for key, value in self.fields.items()
+            ])
+
+            if a['test']['body_length_match']:
+                a['body_length_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
+                                     '<span class="hide">Yes</span>'
+            else:
+                a['body_length_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
+                                     '<span class="hide">No</span>'
+
+            try:
+                if a['test']['body_proportion']:
+                    a['body_proportion'] = a['test']['body_proportion']
+            except KeyError:
+                a['body_proportion'] = 2
+
+            if a['test']['headers_match']:
+                a['headers_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
+                                     '<span class="hide">Yes</span>'
+            else:
+                a['headers_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
+                                     '<span class="hide">No</span>'
+
+            if a['test']['status_code_match']:
+                a['status_code_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
+                                     '<span class="hide">Yes</span>'
+            else:
+                a['status_code_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
+                                     '<span class="hide">No</span>'
+
+            if a['test']['title_match']:
+                a['title_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
+                                     '<span class="hide">Yes</span>'
+            else:
+                a['title_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
+                                     '<span class="hide">No</span>'
+
+            return a
+        else:
+            return [text_type(field).format(**row) if RE_FORMATTED.match(field)
+                    else row[field]
+                    for field in self.fields]
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
+
+
+class PruebaDataTable(generic.TemplateView):
 
     template_name = 'list.html'
 
     def get(self, request, *args, **kwargs):
-
-        logout(request)
         print "done"
 
         return super(PruebaDataTable, self).get(request, *args, **kwargs)
