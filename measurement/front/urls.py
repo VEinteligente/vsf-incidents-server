@@ -24,7 +24,7 @@ urlpatterns = [
     ),
     url(
         r'^http-table-ajax/$',
-        views.SubscriberListDatatablesView.as_view(),
+        views.HTTPListDatatablesView.as_view(),
         name='http-table-ajax'
     ),
     url(
