@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from event.models import Event
 
 
 class Metric(models.Model):
@@ -68,6 +69,7 @@ class Flag(models.Model):
                                 max_length=50,
                                 choices=TYPE_CHOICES,
                                 default=MED)
+    event = models.ForeignKey(Event, null=True, blank=True)
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.medicion, self.ip, self.type_med)

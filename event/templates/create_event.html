@@ -1,0 +1,54 @@
+{% extends 'dashboard/layout.html' %}
+{% load key_value %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                {{ form }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h3 class=" form-group">Measurements</h3>
+                <div class="responsive-table">
+                    <table id="measurement_id">
+                        <thead>
+                            <th>test</th>
+                            <th>test</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>test1</td>
+                                <td>test2</td>
+                            </tr>
+                            <tr>
+                                <td>tast1</td>
+                                <td>tast2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a class="btn btn-default click-me">click me</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    $(document).ready(function () {
+
+        var table = $('#measurement_id').DataTable();
+
+        $('#measurement_id tbody').on('click', 'tr', function () {
+            $(this).toggleClass('selected');
+        });
+
+        $('.click-me').on('click', function () {
+            console.log(table.rows('.selected').data());
+        });
+
+    })
+</script>
+{% endblock %}

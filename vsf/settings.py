@@ -41,17 +41,19 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap3',
+    'debug_toolbar',
     'widget_tweaks',
     'rest_framework',
     'dashboard',
     'event',
-    'incident',
+    'Case',
     'measurement',
     'vsf_user',
     'prettyjson',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -170,3 +172,8 @@ MEDIA_URL = '/media/'
 # Login redirect url
 
 LOGIN_URL = reverse_lazy('dashboard:login')
+
+INTERNAL_IPS = ('127.0.0.1',)
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+}
