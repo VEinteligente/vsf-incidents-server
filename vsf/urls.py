@@ -1,3 +1,4 @@
+
 """vsf URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
@@ -23,6 +24,8 @@ from dashboard import urls as dashboard_urls
 from django.conf import settings
 from django.conf.urls.static import static
 
+import debug_toolbar
+
 urlpatterns = [
           url(r'^admin/', admin.site.urls),
 
@@ -33,6 +36,7 @@ urlpatterns = [
           url(r'^incidents/', include(incident_urls, namespace='incidents')),
           url(r'^measurements/', include(measurement_urls, namespace='measurements')),
           url(r'^users/', include(user_urls, namespace='users')),
+          url(r'^debug/', include(debug_toolbar.urls))
       ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
       + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
