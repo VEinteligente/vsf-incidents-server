@@ -58,6 +58,14 @@ class DNSTestKey(object):
         self.__dict__ = json.loads(j)
 
     def get_queries(self):
+        """Execute a query in the database.
+
+        Args:
+            query (str): SQL query
+
+        Returns:
+            dict: A dictionary with data for columns and rows
+        """
         if self.queries:
             return self.queries
         else:
@@ -375,6 +383,7 @@ class TCPTableView(generic.TemplateView):
             query += "from metrics where test_name='web_connectivity' "
 
             result = database.db_execute(query)
+
             rows = {}
             columns = {}
 
