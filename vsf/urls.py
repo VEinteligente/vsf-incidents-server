@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 from event import urls as event_urls
-from incident import urls as incident_urls
+from Case import urls as case_urls
 from measurement import urls as measurement_urls
 from vsf_user import urls as user_urls
 from dashboard import urls as dashboard_urls
@@ -30,7 +30,7 @@ urlpatterns = [
 
           url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
           url(r'^events/', include(event_urls, namespace='events')),
-          url(r'^incidents/', include(incident_urls, namespace='incidents')),
+          url(r'^cases/', include(case_urls, namespace='cases')),
           url(r'^measurements/', include(measurement_urls, namespace='measurements')),
           url(r'^users/', include(user_urls, namespace='users')),
       ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \

@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'dashboard',
     'event',
-    'incident',
+    'Case',
     'measurement',
     'vsf_user',
     'prettyjson',
