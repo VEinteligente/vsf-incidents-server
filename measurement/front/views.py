@@ -15,13 +15,24 @@ import json
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
-# Database connection object #
 class DBconnection(object):
-    """docstring for DBconnection"""
+    """Database connection object.
+
+    Attributes:
+        db_name (str): Database name.
+    """
     def __init__(self, db_name):
         self.db_name = db_name
 
     def db_execute(self, query):
+        """Execute a query in the database.
+
+        Args:
+            query (str): SQL query
+
+        Returns:
+            dict: A dictionary with data for columns and rows
+        """
         try:
             cursor = connections[self.db_name].cursor()
 
@@ -41,12 +52,8 @@ class DBconnection(object):
             connections['titan_db'].close()
 
 
-# DNSTestKey Object #
-# Parser test key object #
-# Input: Json string obj #
-
 class DNSTestKey(object):
-    """docstring for TestKey"""
+    """Test key object from json string object."""
     def __init__(self, j):
         self.__dict__ = json.loads(j)
 
