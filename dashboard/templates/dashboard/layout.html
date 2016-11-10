@@ -30,16 +30,38 @@
             <section class="content-header">
                 {% block content_header %}
                     {% block content_header_title %}
+                        {% if page_header %}
+                        <h1>
+                            {{page_header}}
+                            <small>{{page_header_description}}</small>
+                        </h1>
+                        {% else %}
                         <h1>
                             Page Header <small>Optional description</small>
                         </h1>
+                        {% endif %}
                     {% endblock content_header_title %}
                     {% block content_header_breadcrumbs %}
+                        {% if breadcrumb %}
+                        <ol class="breadcrumb">
+                            <li>
+                                <i class="fa fa-home"></i> Dashboard
+                            </li>
+                                {% for bread in breadcrumb %}
+                                    {% if forlopp.last %}
+                                        <li class="active">Here</li>
+                                    {% else %}
+                                        <li> {{bread}}</li>
+                                    {% endif %}
+                                {% endfor %}
+                        </ol>
+                        {% else %}
                         <ol class="breadcrumb">
                             <li><a href="#"><i class="fa fa-dashboard"></i> Level 1</a></li>
                             <li><a href="#">Level 2</a></li>
                             <li class="active">Here</li>
                         </ol>
+                        {% endif %}
                     {% endblock content_header_breadcrumbs %}
                 {% endblock content_header %}
             </section> <!-- End Content Header (Page header) -->
