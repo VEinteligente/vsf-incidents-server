@@ -62,6 +62,9 @@ class Flag(models.Model):
 
     medicion = models.CharField(verbose_name='Id de la Medicion',
                                 max_length=40)
+    date = models.DateTimeField()
+    target = models.CharField(max_length=100)
+    isp = models.CharField(max_length=100)
     ip = models.GenericIPAddressField()
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
