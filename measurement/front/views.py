@@ -15,13 +15,24 @@ import json
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
-# Database connection object #
 class DBconnection(object):
-    """docstring for DBconnection"""
+    """Database connection object.
+
+    Attributes:
+        db_name (str): Database name.
+    """
     def __init__(self, db_name):
         self.db_name = db_name
 
     def db_execute(self, query):
+        """Execute a query in the database.
+
+        Args:
+            query (str): SQL query
+
+        Returns:
+            dict: A dictionary with data for columns and rows
+        """
         try:
             cursor = connections[self.db_name].cursor()
 
@@ -41,59 +52,98 @@ class DBconnection(object):
             connections['titan_db'].close()
 
 
-# DNSTestKey Object #
-# Parser test key object #
-# Input: Json string obj #
-
 class DNSTestKey(object):
-    """docstring for TestKey"""
+    """Test key object from json string object."""
     def __init__(self, j):
         self.__dict__ = json.loads(j)
 
     def get_queries(self):
+        """Execute a query in the database.
+
+        Args:
+            query (str): SQL query
+
+        Returns:
+            dict: A dictionary with data for columns and rows
+        """
         if self.queries:
             return self.queries
         else:
             return []
 
     def get_resolver(self):
+        """Get Control Resolver value in Test key object
+        Returns:
+            string: control resolver value
+        """
         if self.control_resolver:
             return self.control_resolver
 
     def get_client_resolver(self):
+        """Get Client Resolver value in Test key object
+        Returns:
+            string: client resolver value
+        """
         if self.client_resolver:
             return self.client_resolver
 
     def get_headers_match(self):
+        """Get Header Match value in Test key object
+        Returns:
+            string: header match value
+        """
         if self.headers_match:
             return self.headers_match
 
     def get_body_length_match(self):
+        """Get Body Length Match value in Test key object
+        Returns:
+            int: body length match value
+        """
         if self.body_length_match:
             return self.body_length_match
 
     def get_status_code_match(self):
+        """Get Status Code Match value in Test key object
+        Returns:
+            string: status code match value
+        """
         if self.status_code_match:
             return self.status_code_match
 
     def get_errors(self):
+        """Get posible error dict in Test key object
+        Returns:
+            dict: A dictionary with all possible errors
+        """
         if self.errors:
             return self.errors
         else:
             return {}
 
     def get_isp_sonda(self):
+        """Get probe's ISP value in Test key object
+        Returns:
+            string: probe's ISP value
+        """
         if self.annotations:
             return self.annotations['isp']
 
     def get_tcp_connect(self):
+        """Get TCP connections list in Test key object
+        Returns:
+            list: list of TCP connections
+        """
         if self.tcp_connect:
             return self.tcp_connect
         else:
             return []
 
     def ignore_data(self, list_public_dns=None):
-
+        """Filter every object with probe ISP in list
+        Args:
+            list_public_dns: List of public DNS to ignore
+        """
         try:
             sonda_isp = self.get_isp_sonda()
 
@@ -120,6 +170,10 @@ class DNSTestKey(object):
             return False
 
     def ignore_data_from_list(self, list_ip):
+        """Filter every object with diferent IP in list
+        Args:
+            list_ip: List of IP to ignore
+        """
 
         # Get successful ips not in list_ip #
         self.successful = [ip
@@ -158,6 +212,10 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
     def left_data_from_list(self, list_ip):
+        """Filter every object with IP in list
+        Args:
+            list_ip: List of IP to ignore
+        """
 
         # Get successful ips in list_ip #
         self.successful = [ip
@@ -196,6 +254,8 @@ class DNSTestKey(object):
 
 
 class MeasurementTableView(generic.TemplateView):
+    """MeasurementTableView: TemplateView than
+    display a list of all metrics in DB"""
 
     template_name = 'display_table.html'
 
@@ -219,6 +279,9 @@ class MeasurementTableView(generic.TemplateView):
 
 
 class DNSTableView(generic.TemplateView):
+    """DNSTableView: TemplateView than
+    display a list of metrics in DB
+    with dns_consistency as test_name"""
 
     template_name = 'display_dns_table.html'
 
@@ -263,6 +326,11 @@ class DNSTableView(generic.TemplateView):
         return context
 
     def get_answers(self, rows):
+        """ Create from every row a Test Key object to
+        extract the data to display in the list
+        Args:
+            rows: DB rows
+        """
 
         ans = []
 
@@ -353,6 +421,9 @@ class DNSTableView(generic.TemplateView):
 
 
 class TCPTableView(generic.TemplateView):
+    """TCPTableView: TemplateView than
+    display a list of metrics in DB
+    with web_connectivity as test_name"""
 
     template_name = 'display_dns_table.html'
 
@@ -368,6 +439,7 @@ class TCPTableView(generic.TemplateView):
             query += "from metrics where test_name='web_connectivity' "
 
             result = database.db_execute(query)
+
             rows = {}
             columns = {}
 
@@ -396,7 +468,11 @@ class TCPTableView(generic.TemplateView):
         return context
 
     def get_answers(self, rows):
-
+        """ Create from every row a Test Key object to
+        extract the data to display in the list
+        Args:
+            rows: DB rows
+        """
         ans = []
 
         for row in rows:
@@ -439,11 +515,17 @@ class TCPTableView(generic.TemplateView):
 
 
 class HTTPTableView(generic.TemplateView):
+    """HTTPTableView: TemplateView than
+    display a list of metrics in DB using
+    HTTPListDatatablesView"""
 
     template_name = 'display_http_table.html'
 
 
-class SubscriberListDatatablesView(DatatablesView):
+class HTTPListDatatablesView(DatatablesView):
+    """HTTPListDatatablesView: DatatablesView than
+    populate a DataTable with all metrics with web_connectivity
+    as test_name"""
 
     model = Metric
     queryset = Metric.objects.filter(test_name='web_connectivity')
