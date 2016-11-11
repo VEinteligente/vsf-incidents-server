@@ -18,5 +18,9 @@ urlpatterns = [
         views.UpdateEvent.as_view(),
         name='update-event'
     ),
-
+    url(
+        r'^$',
+        views.ListEvent.as_view(),
+        name='list-event'
+    ),
 ]

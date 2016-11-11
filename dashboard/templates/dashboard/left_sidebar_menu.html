@@ -1,15 +1,27 @@
-<li class="header">MENÚ</li>
+<!-- <li class="header">HOME</li> -->
 <li class="treeview">
     <a href="#">
-        <i class="fa fa-fw fa-heartbeat"></i> <span class="opt-name">Pacientes</span>
+        <span class="opt-name">Measurements</span>
         <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
     </a>
     <ul class="treeview-menu">
-        <li><a href=""><i class="fa fa-fw fa-heartbeat"></i> <span class="opt-name">Crear paciente</span></a></li>
-        <li><a href=""><i class="fa fa-fw fa-list"></i> <span class="opt-name">Listar pacientes</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:measurement-table' %}"><span class="opt-name">All</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:dns-table' %}"><span class="opt-name">DNS</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:tcp-table' %}"><span class="opt-name">TCP</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:http-table' %}"><span class="opt-name">HTTP</span></a></li>
     </ul>
 </li>
 <li class="treeview">
+    <a href="#">
+        <span class="opt-name">Events</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+    </a>
+    <ul class="treeview-menu">
+        <li><a href="{% url 'events:event_front:list-event' %}"><span class="opt-name">List Events</span></a></li>
+        <li><a href="{% url 'events:event_front:create-event' %}"><span class="opt-name">New Event</span></a></li>
+    </ul>
+</li>
+<!-- <li class="treeview">
     <a href="#">
         <i class="fa fa-fw fa-flask"></i> <span class="opt-name">Medicamentos</span>
         <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
@@ -53,4 +65,4 @@
         <li><a href=""><i class="fa fa-fw fa-list"></i> <span class="opt-name">Tipos de motivos de consulta</span></a></li>
         <li><a href=""><i class="fa fa-fw fa-list"></i> <span class="opt-name">Tipos de tratamientos</span></a></li>
     </ul>
-</li>
+</li> -->
