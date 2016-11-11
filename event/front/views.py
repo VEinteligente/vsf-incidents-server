@@ -63,9 +63,11 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
 
 
 class UpdateEvent(generic.UpdateView):
+    """UpdateEvent: UpdateView than
+    update an Event object in DB"""
     form_class = EventForm
     model = Event
-    success_url = 'http://google.com'
+    success_url = reverse_lazy('events:event_front:list-event')
     template_name = 'create_event.html'
 
     def get_context_data(self, **kwargs):
