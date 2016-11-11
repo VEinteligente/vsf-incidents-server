@@ -53,7 +53,7 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href={% url event.identification 'update-event'  %}>Edit</a></li>
+                                    <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
                                 </ul>
                             </div>
                         </td>

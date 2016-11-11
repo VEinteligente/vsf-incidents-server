@@ -30,7 +30,7 @@ class ListEvent(PageTitleMixin, generic.ListView):
 class CreateEvent(PageTitleMixin, generic.CreateView):
     """CreateEvent: CreateView than
     create a new Event object in DB"""
-    form_class = EventForm
+    form_class = EventForm    
     page_header = "New Event"
     page_header_description = ""
     breadcrumb = ["Events", "New Event"]
@@ -64,6 +64,7 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
 
 class UpdateEvent(generic.UpdateView):
     form_class = EventForm
+    model = Event
     success_url = 'http://google.com'
     template_name = 'create_event.html'
 
