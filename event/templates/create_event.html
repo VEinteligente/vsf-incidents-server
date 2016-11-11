@@ -12,6 +12,16 @@
                         <h3 class="box-title">Create New Event</h3>
                     </div>
                     <div class="box-body">
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                    &times;
+                                </button>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         {% bootstrap_field form.identification %}
                         {% bootstrap_field form.open_ended %}
                         {% bootstrap_field form.flags %}
