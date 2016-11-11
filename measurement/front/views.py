@@ -12,6 +12,8 @@ from measurement.models import DNS, Flag, Metric
 import re
 import json
 
+from dashboard.mixins import PageTitleMixin
+
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
@@ -253,10 +255,13 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(generic.TemplateView):
+class MeasurementTableView(PageTitleMixin, generic.TemplateView):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
 
+    page_header = "Measurement List"
+    page_header_description = ""
+    breadcrumb = [""]
     template_name = 'display_table.html'
 
     def get_context_data(self, **kwargs):
@@ -265,13 +270,23 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics where test_name='web_connectivity' LIMIT 1"
+        query = "select * from metrics where test_name='web_connectivity' LIMIT 10"
 
         result = database.db_execute(query)
         context['rows'] = {}
         context['columns'] = {}
 
         if result:
+            # Search every metric with flag in DB
+            flags = Flag.objects.all().values('medicion', 'flag')
+            # Add Column Flag and his value in every row in Rows dictionary
+            result['columns'].insert(0, "flag")
+            for row in result['rows']:
+                flag_value = "not"
+                for flag in flags:
+                    if (str(flag['medicion']) == str(row['id'])):
+                        flag_value = flag['flag']
+                row.update({'flag': flag_value})
             context['rows'] = result['rows']
             context['columns'] = result['columns']
 
