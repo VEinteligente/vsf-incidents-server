@@ -65,6 +65,7 @@ class Flag(models.Model):
     date = models.DateTimeField()
     target = models.CharField(max_length=100)
     isp = models.CharField(max_length=100)
+    region = models.CharField(max_length=100, default='CCS')
     ip = models.GenericIPAddressField()
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)

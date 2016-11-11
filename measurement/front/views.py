@@ -121,14 +121,6 @@ class DNSTestKey(object):
         else:
             return {}
 
-    def get_isp_sonda(self):
-        """Get probe's ISP value in Test key object
-        Returns:
-            string: probe's ISP value
-        """
-        if self.annotations:
-            return self.annotations['isp']
-
     def get_tcp_connect(self):
         """Get TCP connections list in Test key object
         Returns:
@@ -139,14 +131,12 @@ class DNSTestKey(object):
         else:
             return []
 
-    def ignore_data(self, list_public_dns=None):
+    def ignore_data(self, sonda_isp, list_public_dns=None):
         """Filter every object with probe ISP in list
         Args:
             list_public_dns: List of public DNS to ignore
         """
         try:
-            sonda_isp = self.get_isp_sonda()
-
             # Find ip list #
             # from sonda_isp provider #
             # Output: ip list #
@@ -265,7 +255,7 @@ class MeasurementTableView(generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics where test_name='web_connectivity' LIMIT 1"
+        query = "select * from metrics LIMIT 5"
 
         result = database.db_execute(query)
         context['rows'] = {}
@@ -340,12 +330,12 @@ class DNSTableView(generic.TemplateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get sonda isp and public DNS #
-            dns_isp = test_key.get_isp_sonda()
+            dns_isp = 'cantv' #VALOR MIENTRAS SE HCE TABLA DE SONDA
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
             # Ignore data from test_key #
-            if test_key.ignore_data(public_dns):
+            if test_key.ignore_data(dns_isp, public_dns):
 
                 # Get queries #
                 queries = test_key.get_queries()

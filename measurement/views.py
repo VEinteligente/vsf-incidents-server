@@ -1,10 +1,14 @@
 from django.shortcuts import render
 from django.views import generic
 from django.http import HttpResponse
-from measurement.models import Flag, DNS
-from django.db.models import Q
+from datetime import datetime
+from measurement.models import Flag, DNS, Metric
+from django.db.models import (
+    Q, Count, Case, When, CharField
+)
 from measurement.front.views import DBconnection, DNSTestKey
 import json
+from vsf import conf
 
 # Create your views here.
 
@@ -31,7 +35,7 @@ class UpdateFlagView(generic.UpdateView):
                 ids = '('
 
                 for f in list_dns:
-                    if f == list_dns[len(list_dns)-1]:
+                    if f == list_dns[len(list_dns) - 1]:
                         ids += '\'' + f + '\''
                     else:
                         ids += '\'' + f + '\', '
@@ -69,12 +73,15 @@ class UpdateFlagView(generic.UpdateView):
             update_dns = self.update_dns_flags(rows_dns)
 
             # Update TCP Flags #
-            update_tcp = self.update_tcp_flags(rows_tcp)
+            #update_tcp = self.update_tcp_flags(rows_tcp)
 
             # Update HTTP Flags #
-            update_http = self.update_http_flags(rows_tcp)
+            #update_http = self.update_http_flags(rows_tcp)
 
-            if update_dns and update_tcp and update_http:
+            # Update Hard Flags #
+            #update_hard_flags = self.update_hard_flags()
+
+            if update_dns: #and update_tcp and update_http and update_hard_flags:
 
                 return HttpResponse(status=200)
 
@@ -92,11 +99,12 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
+            dns_isp = 'cantv'
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
             # Ignore data from test_key #
-            if test_key.ignore_data(public_dns):
+            if test_key.ignore_data(dns_isp, public_dns):
 
                 # Get queries #
                 queries = test_key.get_queries()
@@ -119,12 +127,16 @@ class UpdateFlagView(generic.UpdateView):
                     # resolver #
                     if query['failure']:
 
-                        if not Flag.objects.filter(ip=dns_name,
-                                                   medicion=row['id'],
+                        if not Flag.objects.filter(medicion=row['id'],
+                                                   ip=dns_name,
                                                    type_med='DNS').exists():
 
-                            flag = Flag.objects.create(ip=dns_name,
-                                                       medicion=row['id'],
+                            flag = Flag.objects.create(medicion=row['id'],
+                                                       date=row['measurement_start_time'],
+                                                       target=row['input'],
+                                                       isp='cantv',
+                                                       region='CCS',
+                                                       ip=dns_name,
                                                        type_med='DNS')
                             flag.save(using='default')
 
@@ -144,6 +156,10 @@ class UpdateFlagView(generic.UpdateView):
                                                        type_med='DNS').exists():
 
                                 flag = Flag.objects.create(ip=dns_name,
+                                                           date=row['measurement_start_time'],
+                                                           target=row['input'],
+                                                           isp='cantv',
+                                                           region='CCS',
                                                            medicion=row['id'],
                                                            type_med='DNS')
                                 flag.save(using='default')
@@ -167,6 +183,10 @@ class UpdateFlagView(generic.UpdateView):
                                                type_med='TCP').exists():
 
                         flag = Flag.objects.create(ip=tcp['ip'],
+                                                   date=row['measurement_start_time'],
+                                                   target=row['input'],
+                                                   isp='cantv',
+                                                   region='CCS',
                                                    medicion=row['id'],
                                                    type_med='TCP')
                         flag.save(using='default')
@@ -189,8 +209,69 @@ class UpdateFlagView(generic.UpdateView):
                                            type_med='HTTP').exists():
 
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
+                                               date=row['measurement_start_time'],
+                                               target=row['input'],
+                                               isp='cantv',
+                                               region='CCS',
                                                medicion=row['id'],
                                                type_med='HTTP')
                     flag.save(using='default')
 
         return True
+
+    def update_hard_flags(self):
+
+        # Evaluating first condition for hard flags
+        ids = Metric.objects.values_list('report_id',flat=True)
+        ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
+
+        flags = Flag.objects\
+                    .filter(medicion__in=ids)
+
+        result = flags\
+                     .values('isp','target','type_med')\
+                     .annotate(total_soft=Count(Case(
+                               When(flag=False, then=1),
+                               output_field=CharField())))\
+                     .filter(total_soft=conf.SOFT_FLAG_REPEATED_X1)
+
+        if result:
+
+            for r in result:
+                flags_to_update = flags.filter(isp=r['isp'],
+                                               target=r['target'],
+                                               type_med=r['type_med'])
+
+                map(self.soft_to_hard_flag, flags_to_update)
+
+        else:
+
+            # Evaluating second condition for hard flags
+            ids = Metric.objects.values_list('report_id',flat=True)
+            ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
+
+            flags = Flag.objects\
+                    .filter(medicion__in=ids)
+
+            result = flags\
+                         .values('isp','target','type_med','region')\
+                         .annotate(total_soft=Count(Case(
+                                   When(flag=False, then=1),
+                                   output_field=CharField())))\
+                         .filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+
+            if result:
+
+                for r in result:
+                    flags_to_update = flags.filter(isp=r['isp'],
+                                                   target=r['target'],
+                                                   type_med=r['type_med'],
+                                                   region=r['region'])
+
+                    map(self.soft_to_hard_flag, flags_to_update)
+
+        return True
+
+    def soft_to_hard_flag(self, flag):
+        flag.flag = True
+        flag.save(using='default')
