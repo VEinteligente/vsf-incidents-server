@@ -13,5 +13,10 @@ urlpatterns = [
         views.FlagsTable.as_view(),
         name='create-ajax'
     ),
+    url(
+        r'^$',
+        views.ListEvent.as_view(),
+        name='list-event'
+    ),
 
 ]
