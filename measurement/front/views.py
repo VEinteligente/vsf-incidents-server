@@ -12,6 +12,8 @@ from measurement.models import DNS, Flag, Metric
 import re
 import json
 
+from dashboard.mixins import PageTitleMixin
+
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
@@ -172,8 +174,8 @@ class DNSTestKey(object):
                            ip not in list_ip]
 
         # Get failed ips not in list_ip #
-        self.failed = [ip for ip in self.failed
-                       if self.failed and ip not in list_ip]
+        self.failures = [ip for ip in self.failures
+                       if self.failures and ip not in list_ip]
 
         # Get inconsistent ips not in list_ip #
         self.inconsistent = [ip
@@ -213,8 +215,8 @@ class DNSTestKey(object):
                            if self.successful and ip in list_ip]
 
         # Get failed ips in list_ip #
-        self.failed = [ip for ip in self.failed
-                       if self.failed and ip in list_ip]
+        self.failures = [ip for ip in self.failures
+                         if self.failures and ip in list_ip]
 
         # Get inconsistent ips in list_ip #
         self.inconsistent = [ip
@@ -243,10 +245,13 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(generic.TemplateView):
+class MeasurementTableView(PageTitleMixin, generic.TemplateView):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
 
+    page_header = "Measurement List"
+    page_header_description = ""
+    breadcrumb = [""]
     template_name = 'display_table.html'
 
     def get_context_data(self, **kwargs):
@@ -262,6 +267,16 @@ class MeasurementTableView(generic.TemplateView):
         context['columns'] = {}
 
         if result:
+            # Search every metric with flag in DB
+            flags = Flag.objects.all().values('medicion', 'flag')
+            # Add Column Flag and his value in every row in Rows dictionary
+            result['columns'].insert(0, "flag")
+            for row in result['rows']:
+                flag_value = "not"
+                for flag in flags:
+                    if (str(flag['medicion']) == str(row['id'])):
+                        flag_value = flag['flag']
+                row.update({'flag': flag_value})
             context['rows'] = result['rows']
             context['columns'] = result['columns']
 
@@ -340,7 +355,7 @@ class DNSTableView(generic.TemplateView):
                 # Get queries #
                 queries = test_key.get_queries()
 
-                if not queries[0]['failure']:
+                if not queries[0]['failure'] and queries[0]['answers']:
 
                     # Get answers #
                     answers = queries[0]['answers']

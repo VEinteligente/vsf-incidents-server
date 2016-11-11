@@ -43,11 +43,11 @@ class UpdateFlagView(generic.UpdateView):
                 ids += ')'
 
             # Query for dns #
-            query_dns = "select id, test_keys "
+            query_dns = "select id, input, test_keys, measurement_start_time "
             query_dns += "from metrics where test_name='dns_consistency' "
 
             # Query for TCP flags #
-            query_tcp = "select id, test_keys "
+            query_tcp = "select id, input, test_keys, measurement_start_time "
             query_tcp += "from metrics where test_name='web_connectivity' "
 
             if ids:
@@ -73,15 +73,15 @@ class UpdateFlagView(generic.UpdateView):
             update_dns = self.update_dns_flags(rows_dns)
 
             # Update TCP Flags #
-            #update_tcp = self.update_tcp_flags(rows_tcp)
+            update_tcp = self.update_tcp_flags(rows_tcp)
 
             # Update HTTP Flags #
-            #update_http = self.update_http_flags(rows_tcp)
+            update_http = self.update_http_flags(rows_tcp)
 
             # Update Hard Flags #
-            #update_hard_flags = self.update_hard_flags()
+            update_hard_flags = self.update_hard_flags()
 
-            if update_dns: #and update_tcp and update_http and update_hard_flags:
+            if update_dns and update_tcp and update_http and update_hard_flags:
 
                 return HttpResponse(status=200)
 
@@ -103,66 +103,73 @@ class UpdateFlagView(generic.UpdateView):
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
+            date = row['measurement_start_time']
+
             # Ignore data from test_key #
             if test_key.ignore_data(dns_isp, public_dns):
 
                 # Get queries #
                 queries = test_key.get_queries()
 
-                # Get answers #
-                answers = queries[0]['answers']
+                if not queries[0]['failure'] and queries[0]['answers']:
 
-                # Get control resolver from answer_type A #
-                for a in answers:
-                    if a['answer_type'] == 'A':
-                        control_resolver = a['ipv4']
+                    # Get answers #
+                    answers = queries[0]['answers']
+                    control_resolver = []
+                    dns_result = []
 
-                # Verify each result from queries with control resolver #
-                for query in queries:
+                    # Get control resolver from answer_type A #
+                    for a in answers:
+                        if a['answer_type'] == 'A':
+                            control_resolver += a['ipv4']
 
-                    dns_name = query['resolver_hostname']
+                    # Verify each result from queries with control resolver #
+                    for query in queries:
 
-                    # If query doesn't has failure, then find dns result #
-                    # from answer type A and later compare it with control #
-                    # resolver #
-                    if query['failure']:
+                        dns_name = query['resolver_hostname']
 
-                        if not Flag.objects.filter(medicion=row['id'],
-                                                   ip=dns_name,
-                                                   type_med='DNS').exists():
+                        # If query doesn't has failure, then find dns result #
+                        # from answer type A and later compare it with control #
+                        # resolver #
+                        if query['failure']:
 
-                            flag = Flag.objects.create(medicion=row['id'],
-                                                       date=row['measurement_start_time'],
-                                                       target=row['input'],
-                                                       isp='cantv',
-                                                       region='CCS',
+                            if not Flag.objects.filter(medicion=row['id'],
                                                        ip=dns_name,
-                                                       type_med='DNS')
-                            flag.save(using='default')
-
-                    else:
-
-                        answers = query['answers']
-
-                        for a in answers:
-                            if a['answer_type'] == 'A':
-                                dns_result = a['ipv4']
-
-                        # If doesn't match, generate soft flag in measurement #
-                        if control_resolver != dns_result:
-
-                            if not Flag.objects.filter(ip=dns_name,
-                                                       medicion=row['id'],
                                                        type_med='DNS').exists():
 
-                                flag = Flag.objects.create(ip=dns_name,
-                                                           date=row['measurement_start_time'],
+                                flag = Flag.objects.create(medicion=row['id'],
+                                                           date=date,
                                                            target=row['input'],
-                                                           isp='cantv',
+                                                           isp=dns_isp,
                                                            region='CCS',
-                                                           medicion=row['id'],
+                                                           ip=dns_name,
                                                            type_med='DNS')
-                                flag.save(using='default')
+                                flag.save(using='default')                               
+
+                        else:
+
+                            answers = query['answers']
+
+                            for a in answers:
+                                if a['answer_type'] == 'A':
+                                    dns_result += a['ipv4']
+
+                            # If doesn't match, generate soft flag in measurement #
+                            #if control_resolver != dns_result:
+                            if all(map(lambda v: v in dns_result, control_resolver)):
+
+                                if not Flag.objects.filter(ip=dns_name,
+                                                           medicion=row['id'],
+                                                           type_med='DNS').exists():
+
+                                    flag = Flag.objects.create(ip=dns_name,
+                                                               date=date,
+                                                               target=row['input'],
+                                                               isp=dns_isp,
+                                                               region='CCS',
+                                                               medicion=row['id'],
+                                                               type_med='DNS')
+                                    flag.save(using='default')
 
         return True
 
@@ -174,6 +181,8 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
             tcp_connect = test_key.get_tcp_connect()
 
+            date = row['measurement_start_time']
+
             for tcp in tcp_connect:
 
                 if tcp['status']['blocked']:
@@ -183,7 +192,7 @@ class UpdateFlagView(generic.UpdateView):
                                                type_med='TCP').exists():
 
                         flag = Flag.objects.create(ip=tcp['ip'],
-                                                   date=row['measurement_start_time'],
+                                                   date=date,
                                                    target=row['input'],
                                                    isp='cantv',
                                                    region='CCS',
@@ -200,6 +209,8 @@ class UpdateFlagView(generic.UpdateView):
             # Convert json test_keys into python object
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
+            date = row['measurement_start_time']
+
             if not test_key.get_headers_match() and \
                not test_key.get_body_length_match() or \
                not test_key.get_status_code_match():
@@ -209,7 +220,7 @@ class UpdateFlagView(generic.UpdateView):
                                            type_med='HTTP').exists():
 
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
-                                               date=row['measurement_start_time'],
+                                               date=date,
                                                target=row['input'],
                                                isp='cantv',
                                                region='CCS',

@@ -73,7 +73,8 @@ class Flag(models.Model):
                                 max_length=50,
                                 choices=TYPE_CHOICES,
                                 default=MED)
-    event = models.ForeignKey(Event, null=True, blank=True)
+    event = models.ForeignKey(Event, null=True, blank=True,
+                              related_name='flags')
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.medicion, self.ip, self.type_med)

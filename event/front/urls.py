@@ -8,5 +8,15 @@ urlpatterns = [
         views.CreateEvent.as_view(),
         name='create-event'
     ),
+    url(
+        r'^create-ajax/$',
+        views.FlagsTable.as_view(),
+        name='create-ajax'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/update/$',
+        views.UpdateEvent.as_view(),
+        name='update-event'
+    ),
 
 ]
