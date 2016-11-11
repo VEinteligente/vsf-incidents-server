@@ -2,34 +2,40 @@
 {% load key_value %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-12">
+            <form action="." method="post">
+                {% csrf_token %}
                 {{ form }}
-            </div>
+                <input type="submit" value="Create">
+            </form>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <h3 class=" form-group">Measurements</h3>
-                <div class="responsive-table">
-                    <table id="measurement_id">
-                        <thead>
-                            <th>test</th>
-                            <th>test</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>test1</td>
-                                <td>test2</td>
-                            </tr>
-                            <tr>
-                                <td>tast1</td>
-                                <td>tast2</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <a class="btn btn-default click-me">click me</a>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h3 class=" form-group">Measurements</h3>
+            <div class="responsive-table">
+                <table id="measurement_id">
+                    <thead>
+                        <th>Flag</th>
+                        <th>Measurement</th>
+                        <th>Date</th>
+                        <th>Target</th>
+                        <th>ISP</th>
+                        <th>IP Address</th>
+                        <th>Measurement type</th>
+                    </thead>
+                    <tfoot>
+                        <th>Flag</th>
+                        <th>Measurement</th>
+                        <th>Date</th>
+                        <th>Target</th>
+                        <th>ISP</th>
+                        <th>IP Address</th>
+                        <th>Measurement type</th>
+                    </tfoot>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -39,14 +45,58 @@
 <script>
     $(document).ready(function () {
 
-        var table = $('#measurement_id').DataTable();
+        $( '#id_flags' ).val('');
 
-        $('#measurement_id tbody').on('click', 'tr', function () {
-            $(this).toggleClass('selected');
+        var table = $('#measurement_id').DataTable({
+            "order": [[ 0, "desc" ]],
+            "bPaginate": true,
+            "sPaginationType": "full_numbers",
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": "/events/create-ajax/",
+            "aoColumns": [
+                { "mData": "Flag",  "mRender": function ( data ) {
+                        if (data){
+                            return '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>';
+                        }
+                        else{
+                            return '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>';
+
+                        }
+                    }
+                },
+                { "mData": "Measurement" },
+                { "mData": 'Date' },
+                { "mData": 'Target' },
+                { "mData": 'ISP' },
+                { "mData": "IP Address" },
+                { "mData": "Measurement type" }
+
+            ]
         });
 
-        $('.click-me').on('click', function () {
-            console.log(table.rows('.selected').data());
+        $('#measurement_id tbody').on('click', 'tr', function () {
+
+            var flags = $( '#id_flags' );
+            var measurement = $( this ).context.firstChild.firstChild.data;
+
+            $(this).toggleClass('selected');
+
+            if( $( this ).hasClass( 'selected' ) ){
+                flags.val( flags.val() + measurement + ' ' );
+            }else{
+                var flag_index = flags.val().indexOf(measurement);
+                flags.val(
+                        flags.val().substring(
+                                0,
+                                flag_index
+                        ) +
+                        flags.val().substring(
+                                flag_index + measurement.length + 1,
+                                flags.val().length
+                        )
+                );
+            }
         });
 
     })
