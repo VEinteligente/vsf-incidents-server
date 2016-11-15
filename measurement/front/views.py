@@ -441,7 +441,7 @@ class TCPTableView(generic.TemplateView):
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, probe_cc, probe_ip, "
             query += "measurement_start_time "
-            query += "from metrics where test_name='web_connectivity' "
+            query += "from metrics where test_name='web_connectivity' LIMIT 5"
 
             result = database.db_execute(query)
 
@@ -595,6 +595,11 @@ class HTTPListDatatablesView(DatatablesView):
                 a['title_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
                                      '<span class="hide">No</span>'
 
+            a['flag'] = 'no flag'
+            if Flag.objects.filter(medicion=a['id'], type_med='HTTP').exists():
+                f = Flag.objects.filter(
+                    medicion=a['id'], type_med='HTTP').last()
+                a['flag'] = f.flag
             return a
         else:
             return [text_type(field).format(**row) if RE_FORMATTED.match(field)
