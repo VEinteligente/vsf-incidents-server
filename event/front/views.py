@@ -66,7 +66,7 @@ class UpdateEvent(generic.UpdateView):
     form_class = EventForm
     model = Event
     success_url = 'http://google.com'
-    template_name = 'create_event.html'
+    template_name = 'update_event.html'
 
     def get_context_data(self, **kwargs):
 
