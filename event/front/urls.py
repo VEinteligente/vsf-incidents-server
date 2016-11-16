@@ -19,6 +19,11 @@ urlpatterns = [
         name='update-event'
     ),
     url(
+        r'^update-ajax/$',
+        views.UpdateFlagsTable.as_view(),
+        name='update-ajax'
+    ),
+    url(
         r'^$',
         views.ListEvent.as_view(),
         name='list-event'

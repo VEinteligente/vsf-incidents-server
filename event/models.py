@@ -11,4 +11,5 @@ class Event(models.Model):
     end_date = models.DateTimeField(null=True, blank=True)
     target = models.CharField(max_length=25)  # input in metrics
     identification = models.CharField(max_length=50)
+    # draft = models.BooleanField(default=True)
     # case = models.ForeignKey(Case)

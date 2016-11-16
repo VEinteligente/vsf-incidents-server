@@ -9,7 +9,7 @@
                 {% csrf_token %}
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Create New Event</h3>
+                        <h3 class="box-title">Update Event</h3>
                     </div>
                     <div class="box-body">
                         {% if form.non_field_errors %}
@@ -57,7 +57,7 @@
             </div>
                     </div>
                     <div class="box-footer text-right">
-                        <input class="btn btn-flat btn-primary" type="submit" value="Create">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Update">
                     </div>
                 </div>
             </form>
@@ -75,7 +75,7 @@
 <script>
     $(document).ready(function () {
 
-        $( '#id_flags' ).val('');
+        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');
 
         var table = $('#measurement_id').DataTable({
             "order": [[ 0, "desc" ]],
@@ -83,7 +83,10 @@
             "sPaginationType": "full_numbers",
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": "{% url 'events:event_front:create-ajax'%}",
+            "sAjaxSource": "{% url 'events:event_front:update-ajax'%}",
+            "fnServerParams": function ( aoData ) {
+                aoData.push( { "name": "pk", "value": {{ event.id }} } );
+            },
             "aoColumns": [
                 { "mData": "Measurement" },
                 { "mData": "Flag",  "mRender": function ( data ) {
@@ -103,6 +106,13 @@
                 { "mData": "Measurement type" }
 
             ]
+        });
+
+        $('#measurement_id  tbody').load( function () {
+            var flags = $('#id_flags');
+            var measurement = $( this ).context.firstChild.firstChild.data;
+
+            $(this).toggleClass('selected');
         });
 
         $('#measurement_id tbody').on('click', 'tr', function () {
