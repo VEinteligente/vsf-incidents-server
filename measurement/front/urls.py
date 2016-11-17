@@ -8,6 +8,11 @@ urlpatterns = [
         name='measurement-table'
     ),
     url(
+        r'^measurement-ajax/$',
+        views.MeasurementAjaxView.as_view(),
+        name='measurement-ajax'
+    ),
+    url(
         r'^dns-table/$',
         views.DNSTableView.as_view(),
         name='dns-table'

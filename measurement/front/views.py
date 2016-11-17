@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.views import generic
 from django.db import connections
@@ -259,28 +259,58 @@ class MeasurementTableView(PageTitleMixin, generic.TemplateView):
         context = super(MeasurementTableView, self).get_context_data(**kwargs)
 
         # Create database object #
+        #database = DBconnection('titan_db')
+        #query = "select identifier, test_keys from metrics LIMIT 5"
+
+        #result = database.db_execute(query)
+        # context['rows'] = {}
+        # context['columns'] = {}
+
+        # if result:
+        #     # Search every metric with flag in DB
+        #     flags = Flag.objects.all().values('medicion', 'flag')
+        #     # Add Column Flag and his value in every row in Rows dictionary
+        #     result['columns'].insert(0, "flag")
+        #     for row in result['rows']:
+        #         flag_value = "not"
+        #         for flag in flags:
+        #             if (str(flag['medicion']) == str(row['id'])):
+        #                 flag_value = flag['flag']
+        #         row.update({'flag': flag_value})
+        #     context['rows'] = result['rows']
+        #     context['columns'] = result['columns']
+        context['columns'] = ['flag','id']
+
+        return context
+
+
+class MeasurementAjaxView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+
+        # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics LIMIT 5"
+        query = "select id from metrics LIMIT 5"
 
         result = database.db_execute(query)
-        context['rows'] = {}
-        context['columns'] = {}
 
         if result:
             # Search every metric with flag in DB
             flags = Flag.objects.all().values('medicion', 'flag')
-            # Add Column Flag and his value in every row in Rows dictionary
-            result['columns'].insert(0, "flag")
             for row in result['rows']:
                 flag_value = "not"
                 for flag in flags:
                     if (str(flag['medicion']) == str(row['id'])):
                         flag_value = flag['flag']
                 row.update({'flag': flag_value})
-            context['rows'] = result['rows']
-            context['columns'] = result['columns']
 
-        return context
+        return HttpResponse(json.dumps([{'flag':True, 'id':1}]))
+
+    def json_response(self, data):
+        print json.dumps(data, cls=DjangoJSONEncoder)
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder)
+        )
 
 
 class DNSTableView(generic.TemplateView):

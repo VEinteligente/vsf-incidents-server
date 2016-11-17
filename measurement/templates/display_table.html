@@ -3,7 +3,7 @@
 {% load prettyjson %}
 
 {% block content %}
-    <div class="table-responsive">
+    <!-- <div class="table-responsive">
         <table role="grid" id="content1" class="table table-bordered table-striped table-hover dataTable">
             <thead>
                 <tr>
@@ -48,14 +48,29 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
+    </div> -->
+    <div class="table-responsive">
+    <table id="my-table">
+        <thead>
+            {% for item in columns %}
+                <th>{{ item }}</th>
+            {% endfor %}
+        </thead>
+        <tfoot>
+            {% for item in columns %}
+                <th>{{ item }}</th>
+            {% endfor %}
+        </tfoot>
+        <tbody></tbody>
+    </table>
+</div>
 {% endblock %}
 
 {% block extrajs %}
 {% prettyjson_setup jquery=False %}
 <script>
 
-$(function () {
+/*$(function () {
     $('#content1').DataTable({
 
         initComplete: function () {
@@ -109,6 +124,39 @@ $(function () {
 
     });
     
+})*/
+$(function () {
+
+    $('#my-table').DataTable({
+        "order": [[ 1, "desc" ]],
+        "bPaginate": true,
+        "sPaginationType": "full_numbers",
+        "bProcessing": true,
+        "bServerSide": true,
+        "sAjaxSource": "/measurements/measurement-ajax/",
+        "aoColumns": [
+              /*{ "mData": "test_keys" },*/
+              { "mData": "id" },      
+              { "mData": 'flag',
+                       "mRender": function ( data ) {
+                            flag_icon = ""
+                            if (data == true){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+
+                           return flag_icon;
+                       }
+            }        
+            
+        ]
+    });
+
 })
 
 </script>
