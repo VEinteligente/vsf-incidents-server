@@ -1,12 +1,13 @@
-from django.shortcuts import render
+# -*- encoding: utf-8 -*-
 from django.views import generic
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag
+from django.db.models import Q
 from .forms import EventForm
 from event.models import Event
-from django.utils.six import text_type
 import json
 import re
 
@@ -30,7 +31,7 @@ class ListEvent(PageTitleMixin, generic.ListView):
 class CreateEvent(PageTitleMixin, generic.CreateView):
     """CreateEvent: CreateView than
     create a new Event object in DB"""
-    form_class = EventForm    
+    form_class = EventForm
     page_header = "New Event"
     page_header_description = ""
     breadcrumb = ["Events", "New Event"]
@@ -43,7 +44,6 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         """
 
         flags = form.cleaned_data['flags'].split(' ')
-        print flags
         flags = Flag.objects.filter(medicion__in=flags)
 
         self.object = form.save(commit=False)
@@ -57,18 +57,26 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
 
         self.object.save()
 
+        self.object.flags = flags
+
+        self.object.save()
+
         flags.update(event=self.object)
 
         return HttpResponseRedirect(self.get_success_url())
 
 
-class UpdateEvent(generic.UpdateView):
+class UpdateEvent(PageTitleMixin, generic.UpdateView):
     """UpdateEvent: UpdateView than
     update an Event object in DB"""
     form_class = EventForm
+    context_object_name = 'event'
+    page_header = "Update Event"
+    page_header_description = ""
+    breadcrumb = ["Events", "Edit Event"]
     model = Event
     success_url = reverse_lazy('events:event_front:list-event')
-    template_name = 'create_event.html'
+    template_name = 'update_event.html'
 
     def get_context_data(self, **kwargs):
 
@@ -105,16 +113,44 @@ class UpdateEvent(generic.UpdateView):
 
         if not form.cleaned_data['open_ended']:
             self.object.end_date = flags.latest('date').date
+        else:
+            self.object.end_date = None
 
         self.object.start_date = flags.earliest('date').date
         self.object.isp = flags[0].isp
         self.object.target = flags[0].target
+        self.object.save()
+
+        self.object.flags = flags
 
         self.object.save()
 
         flags.update(event=self.object)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class ChangeEventStatus(generic.UpdateView):
+    """ChangeEventStatus: Change Event status.
+    It can be Public or Draft. Draft for default"""
+    model = Event
+    success_url = reverse_lazy('events:event_front:list-event')
+
+    def get(self, request, *args, **kwargs):
+        event = self.model.objects.get(id=kwargs['pk'])
+
+        if event.draft:
+            event.draft = False
+            msg = u'Se ha actualizado el estado del evento a Público'
+        else:
+            event.draft = True
+            msg = u'Se ha actualizado el estado del evento a Borrador'
+
+        event.save(update_fields=['draft'])
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.success_url)
 
 
 class FlagsTable(DatatablesView):
@@ -131,6 +167,37 @@ class FlagsTable(DatatablesView):
         'IP Address': 'ip',
         'Measurement type': 'type_med'
     }
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
+
+
+class UpdateFlagsTable(DatatablesView):
+    """UpdateFlagsTable: DatatablesView used to display
+    a list of metrics with flags of an event to be updated.
+    This View is summoned by AJAX"""
+    model = Flag
+    fields = {
+        'Flag': 'flag',
+        'Measurement': 'medicion',
+        'Date': 'date',
+        'Target': 'target',
+        'ISP': 'isp',
+        'IP Address': 'ip',
+        'Measurement type': 'type_med'
+    }
+
+    def get_queryset(self):
+
+        pk = self.request.GET.get('pk')
+
+        if pk:
+            queryset = Flag.objects.filter(Q(event=None) |
+                                           Q(event=Event.objects.get(id=pk)))
+
+        return queryset
 
     def json_response(self, data):
         return HttpResponse(
