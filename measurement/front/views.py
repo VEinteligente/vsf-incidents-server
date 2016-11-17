@@ -260,7 +260,7 @@ class MeasurementTableView(PageTitleMixin, generic.TemplateView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select * from metrics LIMIT 5"
+        query = "select * from metrics"
 
         result = database.db_execute(query)
         context['rows'] = {}

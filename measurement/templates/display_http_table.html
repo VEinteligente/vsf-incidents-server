@@ -36,7 +36,8 @@
 
 $(function () {
 
-    $('#my-table').dataTable({
+    $('#my-table').DataTable({
+        'deferRender': true,
         "order": [[ 0, "desc" ]],
         "bPaginate": true,
         "sPaginationType": "full_numbers",

@@ -53,6 +53,7 @@
 $(function () {
         $('#content1').DataTable({
 
+            'deferRender': true,
 
             initComplete: function () {
             this.api().columns().every( function () {
