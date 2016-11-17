@@ -37,4 +37,8 @@ urlpatterns = [
         views.PruebaDataTable.as_view(),
         name='test'
     ),
+    url(
+        r'^prueba-ajax/$',
+        views.PruebaDataTableAjax.as_view()
+    ),
 ]
