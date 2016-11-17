@@ -65,8 +65,8 @@
     </div>
     <div class="row">
         <div class="col-md-12">
-            
-            
+
+
         </div>
     </div>
 {% endblock %}
@@ -83,7 +83,7 @@
             "sPaginationType": "full_numbers",
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": "/events/create-ajax/",
+            "sAjaxSource": "{% url 'events:event_front:create-ajax'%}",
             "aoColumns": [
                 { "mData": "Measurement" },
                 { "mData": "Flag",  "mRender": function ( data ) {
@@ -108,12 +108,16 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
+            var children_values = $( this ).context.innerText;
             var measurement = $( this ).context.firstChild.firstChild.data;
+            var contactId = measurement[3];
+
+            console.log("ELEMENT", children_values);
 
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + ' ' );
+                flags.val( flags.val() + measurement + ' ');
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(

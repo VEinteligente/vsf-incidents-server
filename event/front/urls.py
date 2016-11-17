@@ -19,6 +19,16 @@ urlpatterns = [
         name='update-event'
     ),
     url(
+        r'^(?P<pk>[0-9]+)/change-status/$',
+        views.ChangeEventStatus.as_view(),
+        name='change-event-status'
+    ),
+    url(
+        r'^update-ajax/$',
+        views.UpdateFlagsTable.as_view(),
+        name='update-ajax'
+    ),
+    url(
         r'^$',
         views.ListEvent.as_view(),
         name='list-event'

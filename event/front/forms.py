@@ -4,8 +4,10 @@ from measurement.models import Flag
 
 
 class EventForm(forms.ModelForm):
-    open_ended = forms.BooleanField(widget=forms.CheckboxInput(), required=False)
-    flags = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden'}), required=True, label="")
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+    flags = forms.CharField(widget=forms.TextInput(attrs={'class': 'show'}),
+                            required=True, label="")
 
     class Meta:
         model = Event

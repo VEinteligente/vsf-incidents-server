@@ -63,19 +63,13 @@
             </form>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            
-            
-        </div>
-    </div>
 {% endblock %}
 
 {% block extrajs %}
 <script>
     $(document).ready(function () {
 
-        $( '#id_flags' ).val('');
+        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');
 
         var table = $('#measurement_id').DataTable({
             "order": [[ 0, "desc" ]],
@@ -83,7 +77,10 @@
             "sPaginationType": "full_numbers",
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": "/events/create-ajax/",
+            "sAjaxSource": "{% url 'events:event_front:update-ajax'%}",
+            "fnServerParams": function ( aoData ) {
+                aoData.push( { "name": "pk", "value": {{ event.id }} } );
+            },
             "aoColumns": [
                 { "mData": "Measurement" },
                 { "mData": "Flag",  "mRender": function ( data ) {
@@ -113,7 +110,7 @@
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + ' ' );
+                flags.val( flags.val() + measurement + ' ');
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(
