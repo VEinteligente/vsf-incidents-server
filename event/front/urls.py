@@ -24,6 +24,11 @@ urlpatterns = [
         name='change-event-status'
     ),
     url(
+        r'^(?P<pk>[0-9]+)/delete/$',
+        views.DeleteEvent.as_view(),
+        name='delete-event'
+    ),
+    url(
         r'^update-ajax/$',
         views.UpdateFlagsTable.as_view(),
         name='update-ajax'
