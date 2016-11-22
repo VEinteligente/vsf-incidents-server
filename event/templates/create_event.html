@@ -108,11 +108,10 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
-            var children_values = $( this ).context.innerText;
+            var children_values = $( this ).context.innerText.split(' ');
             var measurement = $( this ).context.firstChild.firstChild.data;
-            var contactId = measurement[3];
 
-            console.log("ELEMENT", children_values);
+            //console.log("ELEMENT", $( this ));
 
             $(this).toggleClass('selected');
 

@@ -120,7 +120,8 @@ class UpdateFlagView(generic.UpdateView):
 
                     # Get control resolver from answer_type A #
                     for a in answers:
-                        if a['answer_type'] == 'A':
+                        if a['answer_type'] == 'A' and \
+                           a['ipv4'] not in control_resolver:
                             control_resolver += a['ipv4']
 
                     # Verify each result from queries with control resolver #
@@ -151,12 +152,13 @@ class UpdateFlagView(generic.UpdateView):
                             answers = query['answers']
 
                             for a in answers:
-                                if a['answer_type'] == 'A':
+                                if a['answer_type'] == 'A' and \
+                                   a['ipv4'] not in dns_result:
                                     dns_result += a['ipv4']
 
                             # If doesn't match, generate soft flag in measurement #
                             #if control_resolver != dns_result:
-                            if all(map(lambda v: v in dns_result, control_resolver)):
+                            if not all(map(lambda v: v in control_resolver, dns_result)):
 
                                 if not Flag.objects.filter(ip=dns_name,
                                                            medicion=row['id'],

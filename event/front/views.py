@@ -63,6 +63,10 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
 
         flags.update(event=self.object)
 
+        msg = 'Se ha creado el evento'
+
+        messages.success(self.request, msg)
+
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -151,6 +155,36 @@ class ChangeEventStatus(generic.UpdateView):
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.success_url)
+
+class DeleteEvent(generic.DeleteView):
+    """DeleteEvent: Delete event and make its measurements
+    availables for others events"""
+    model = Event
+    template_name = 'list_event.html'
+    success_url = reverse_lazy('events:event_front:list-event')
+
+    def delete(self, request, *args, **kwargs):
+
+        event = self.get_object()
+        flags = event.flags.all()
+
+        for f in flags:
+            f.event = None
+            f.save(update_fields=['event'])
+
+        event.flags.remove()
+
+        event.delete()
+
+        msg = 'Se ha eliminado el evento elegido'
+
+        messages.success(request, msg)
+
+        return HttpResponseRedirect(self.success_url)
+
+    def get(self, request, *args, **kwargs):
+
+        return self.delete(request, *args, **kwargs)
 
 
 class FlagsTable(DatatablesView):

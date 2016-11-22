@@ -377,7 +377,7 @@ class DNSTableView(generic.TemplateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get sonda isp and public DNS #
-            dns_isp = 'cantv' #VALOR MIENTRAS SE HCE TABLA DE SONDA
+            dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
@@ -391,11 +391,14 @@ class DNSTableView(generic.TemplateView):
 
                     # Get answers #
                     answers = queries[0]['answers']
+                    control_resolver = []
+                    dns_result = []
 
                     # Get control resolver from answer_type A #
                     for a in answers:
-                        if a['answer_type'] == 'A':
-                            control_resolver = a['ipv4']
+                        if a['answer_type'] == 'A' and \
+                           a['ipv4'] not in control_resolver:
+                            control_resolver += [a['ipv4']]
 
                     # Verify each result from queries with control resolver #
                     for query in queries:
@@ -413,15 +416,16 @@ class DNSTableView(generic.TemplateView):
                         # match is False #
 
                         if query['failure']:
-                            dns_result = query['failure']
+                            dns_result += query['failure']
 
                         answers = query['answers']
 
                         for a in answers:
-                            if a['answer_type'] == 'A':
-                                dns_result = a['ipv4']
+                            if a['answer_type'] == 'A' and \
+                               a['ipv4'] not in dns_result:
+                                dns_result += [a['ipv4']]
 
-                        if control_resolver == dns_result:
+                        if all(map(lambda v: v in control_resolver, dns_result)):
                             match = True
                         else:
                             # Search flag #
@@ -448,10 +452,12 @@ class DNSTableView(generic.TemplateView):
                         else:
                             dns_table_name = dns_name
 
+                        #print control_resolver
+                        #print sdns_result
                         # Formating the answers #
                         ans += [[flag_status, row['id'], row['input'],
-                                match, dns_isp, control_resolver,
-                                dns_table_name, dns_result,
+                                match, dns_isp,','.join(control_resolver),
+                                dns_table_name,','.join(dns_result),
                                 row['measurement_start_time']]]
 
         return ans
