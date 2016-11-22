@@ -292,8 +292,9 @@ class MeasurementAjaxView(generic.View):
         database = DBconnection('titan_db')
         query = "select * from metrics"
 
+        print "antes"
         result = database.db_execute(query)
-
+        print "despues"
         if result:
             # Search every metric with flag in DB
             flags = Flag.objects.all().values('medicion', 'flag')
@@ -328,7 +329,7 @@ class DNSTableView(generic.TemplateView):
             # Create database object #
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, measurement_start_time "
-            query += "from metrics where test_name='dns_consistency' "
+            query += "from metrics where test_name='dns_consistency' LIMIT 5"
 
             result = database.db_execute(query)
             rows = {}
@@ -346,10 +347,12 @@ class DNSTableView(generic.TemplateView):
                               'dns name', 'dns result']
             columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
-
+            print "rows"
+            print rows
             # Answers
             ans = self.get_answers(rows)
-
+            print "ans"
+            print ans
             # Context data variables #
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
