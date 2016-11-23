@@ -44,7 +44,18 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         """
 
         flags = form.cleaned_data['flags'].split(' ')
-        flags = Flag.objects.filter(medicion__in=flags)
+        ids = []
+
+        for f in flags:
+            split = f.split('/')
+            flag = Flag.objects.filter(medicion=split[0],
+                                       target=split[1],
+                                       isp=split[2],
+                                       ip=split[3],
+                                       type_med=split[4])
+            ids += [flag[0].id]
+
+        flags = Flag.objects.filter(id__in=ids)
 
         self.object = form.save(commit=False)
 
@@ -84,13 +95,19 @@ class UpdateEvent(PageTitleMixin, generic.UpdateView):
 
     def get_context_data(self, **kwargs):
 
-        context = super(UpdateEvent,self).get_context_data(**kwargs)
+        context = super(UpdateEvent, self).get_context_data(**kwargs)
 
         form = self.get_form_class()
 
         event = self.object
-        flags = event.flags.values_list('medicion', flat=True)
-        flags_str = " ".join(flags)
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags)
+
+        flags_str = ''
+
+        for f in flags:
+            flags_str += f.medicion + '/' + f.target + '/' + \
+                         f.isp + '/' + f.ip + '/' + f.type_med + ' '
 
         open_ended = False
 
@@ -111,7 +128,18 @@ class UpdateEvent(PageTitleMixin, generic.UpdateView):
         """
 
         flags = form.cleaned_data['flags'].split(' ')
-        flags = Flag.objects.filter(medicion__in=flags)
+        ids = []
+
+        for f in flags:
+            split = f.split('/')
+            flag = Flag.objects.filter(medicion=split[0],
+                                       target=split[1],
+                                       isp=split[2],
+                                       ip=split[3],
+                                       type_med=split[4])
+            ids += [flag[0].id]
+
+        flags = Flag.objects.filter(id__in=ids)
 
         self.object = form.save(commit=False)
 
@@ -155,6 +183,7 @@ class ChangeEventStatus(generic.UpdateView):
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.success_url)
+
 
 class DeleteEvent(generic.DeleteView):
     """DeleteEvent: Delete event and make its measurements

@@ -108,15 +108,17 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
-            var children_values = $( this ).context.innerText.split(' ');
+            var target = $( this ).context.childNodes[3].innerText;
+            var isp = $( this ).context.childNodes[4].innerText;
+            var ip = $( this ).context.childNodes[5].innerText;
+            var type = $( this ).context.childNodes[6].innerText;
             var measurement = $( this ).context.firstChild.firstChild.data;
-
-            //console.log("ELEMENT", $( this ));
 
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + ' ');
+                flags.val( flags.val() + measurement + '/' + target + '/' + isp + '/' +
+                           ip + '/' + type + ' ');
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(
@@ -125,10 +127,13 @@
                                 flag_index
                         ) +
                         flags.val().substring(
-                                flag_index + measurement.length + 1,
+                                flag_index + measurement.length + 
+                                target.length + isp.length + 
+                                ip.length + type.length + 5,
                                 flags.val().length
                         )
                 );
+                flags.val().replace(" ", "");
             }
         });
 

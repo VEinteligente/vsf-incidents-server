@@ -69,7 +69,7 @@
 <script>
     $(document).ready(function () {
 
-        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');
+        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');        
 
         var table = $('#measurement_id').DataTable({
             "order": [[ 0, "desc" ]],
@@ -80,6 +80,21 @@
             "sAjaxSource": "{% url 'events:event_front:update-ajax'%}",
             "fnServerParams": function ( aoData ) {
                 aoData.push( { "name": "pk", "value": {{ event.id }} } );
+            },
+            "rowCallback": function( row, data, index ) {
+
+                $('#id_flags').each(function(){
+
+                    $.each($(this).val().split(' '), function(){
+
+                        var split = this.split('/');
+
+                        if (data['Measurement'] == split[0] && data['Target'] == split[1] && data['ISP'] == split[2] && data['IP Address'] == split[3] && data['Measurement type'] == split[4]) 
+                        {
+                            $(row).addClass('selected');
+                        }
+                    });
+                });
             },
             "aoColumns": [
                 { "mData": "Measurement" },
@@ -105,12 +120,17 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
+            var target = $( this ).context.childNodes[3].innerText;
+            var isp = $( this ).context.childNodes[4].innerText;
+            var ip = $( this ).context.childNodes[5].innerText;
+            var type = $( this ).context.childNodes[6].innerText;
             var measurement = $( this ).context.firstChild.firstChild.data;
 
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + ' ');
+                flags.val( flags.val() + measurement + '/' + target + '/' + isp + '/' +
+                           ip + '/' + type + ' ');
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(
@@ -119,10 +139,13 @@
                                 flag_index
                         ) +
                         flags.val().substring(
-                                flag_index + measurement.length + 1,
+                                flag_index + measurement.length + 
+                                target.length + isp.length + 
+                                ip.length + type.length + 5,
                                 flags.val().length
                         )
                 );
+                flags.val().replace(" ", "");
             }
         });
 
