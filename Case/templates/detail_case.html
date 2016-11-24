@@ -1,0 +1,181 @@
+{% extends 'dashboard/layout.html' %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-xs-10">
+            <div class="box box-solid box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            {% if not case.end_date %}
+                                 Open Case:
+                            {% else %}
+                                Case:
+                             {% endif %} 
+                             {{case.title}}
+                            <b>
+                            {% if case.draft %}
+                                Draft
+                            {% else %}
+                                Published
+                            {% endif %}
+                            </b>
+                    </h3>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered table-hover dataTable" style="margin-bottom: 20px">
+                        <thead>
+                            <th>Start Date</th>
+                            
+                            <th>End Date</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    {{case.start_date.date}}
+                                </td>
+                                <td>
+                                {% if case.end_date %}
+                                    {{case.end_date.date}}
+                                {% else %}
+                                    Open Case....
+                                {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p><b>Description:</b></p>
+                    <p>{{case.description}}</p>
+                </div>
+
+            </div>
+            <div class="box box-solid box-success">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">
+                                    Event(s) associated
+                            </h3>
+                        </div>
+                        <div class="box-body">
+                            <table id="event-list" class="table table-bordered table-hover">
+                                <thead>
+                                    <th>Identification</th>
+                                    <th>ISP</th>
+                                    <th>Target</th>
+                                    <th>start_date</th>
+                                    <th>end_date</th>
+                                    <th></th>
+                                </thead>
+                                <tbody>
+                                    {% for event in case.events.all %}
+                                    <tr>
+                                        <td>{{event.identification}}</td>
+                                        <td>{{event.isp}}</td>
+                                        <td>{{event.target}}</td>
+                                        <td>{{event.start_date}}</td>
+                                        <td>
+                                            {% if event.end_date %}
+                                                {{event.end_date}}
+                                            {% else %}
+                                                Open event ...
+                                            {% endif %}
+                                        </td>
+                                        <td>   
+                                            <a href="" class="btn btn-success btn-flat">Check Event</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+        </div>
+        <div class="col-xs-2">
+            <div class="box box-solid box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Actions
+                    </h3>
+                </div>
+                <div class="box-body">
+                    <table width="100%">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a href="{% url 'cases:case_front:change-case-status-detail' case.id%}" class="btn btn-primary btn-flat actionButton">
+                                        {% if case.draft %}
+                                        Publish Case
+                                        {% else %}
+                                        Draft Case
+                                        {% endif %}
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="" class="btn btn-primary btn-flat actionButton">Edit Case</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="" class="btn btn-danger btn-flat actionButton delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{case.id}}">Delete Case</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Case</h4>
+                </div>
+                <form id="case-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this case?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <input type="submit" class="btn btn-danger" value="Confirm" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/cases/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#case-delete-form').attr('action', url);
+            });
+
+            $('#event-list').DataTable({
+                "paging": false,
+                "aoColumnDefs": [
+                    { "bSearchable": false, "aTargets": [ 5 ] },
+                    { "asSorting": false, "aTargets": [5] }
+                ],
+            }
+            );        
+        })
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    <style>
+        .actionButton{
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock extracss %}

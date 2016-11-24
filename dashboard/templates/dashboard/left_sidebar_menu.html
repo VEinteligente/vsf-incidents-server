@@ -21,6 +21,16 @@
         <li><a href="{% url 'events:event_front:create-event' %}"><span class="opt-name">New Event</span></a></li>
     </ul>
 </li>
+<li class="treeview">
+    <a href="#">
+        <span class="opt-name">Cases</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+    </a>
+    <ul class="treeview-menu">
+        <li><a href="{% url 'cases:case_front:list-case' %}"><span class="opt-name">List Cases</span></a></li>
+        <li><a href="{% url 'cases:case_front:create-case' %}"><span class="opt-name">New Case</span></a></li>
+    </ul>
+</li>
 <!-- <li class="treeview">
     <a href="#">
         <i class="fa fa-fw fa-flask"></i> <span class="opt-name">Medicamentos</span>

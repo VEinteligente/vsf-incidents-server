@@ -1,0 +1,120 @@
+{% extends 'dashboard/layout.html' %}
+{% load bootstrap3 %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <form action="." method="post">
+                {% csrf_token %}
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Create New Case</h3>
+                    </div>
+                    <div class="box-body">
+                        {% bootstrap_form form %}
+                        <div class="box box-solid box-primary">
+                            <div class="box-header with-border">
+                                <h3 class="box-title"> Select Event(s)</h3>
+                            </div>
+                            <div class="box-body">
+                                <div class="responsive-table">
+                                    <table id="event_id" class="table table-bordered table-hover dataTable">
+                                        <thead>
+                                            <th>ID</th>
+                                            <th>Identification</th>
+                                            <th>ISP</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                        </thead>
+                                        <tfoot>
+                                            <th>ID</th>
+                                            <th>Identification</th>
+                                            <th>ISP</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                        </tfoot>
+                                        <tbody>
+                                            {% for event in events %}
+                                            <tr>
+                                                <td>{{event.id}}</td>
+                                                <td>{{event.identification}}</td>
+                                                <td>{{event.isp}}</td>
+                                                <td>{{event.start_date.date}}</td>
+                                                <td>
+                                                    {% if event.end_date %}
+                                                        {{event.end_date.date}}
+                                                    {% else %}
+                                                        Open Event
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer text-right">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Create" id="create">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    $(document).ready(function () {
+        $('#id_start_date').datepicker({
+        });
+        $('#id_end_date').datepicker({
+        });
+        var table = $('#event_id').DataTable({
+            initComplete: function () {
+            this.api().columns().every( function () {
+                var column = this;
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.footer()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+
+                column.data().unique().sort().each( function ( d, j ) {
+                    if(column.search() === '^'+d+'$'){
+                        select.append( '<option value="'+d+'" selected="selected">'+d+'</option>' )
+                    } else {
+                        select.append( '<option value="'+d+'">'+d+'</option>' )
+                    }
+                    } );
+                } );
+            }
+        });
+        $( '#id_events' ).val('');
+
+        $('#event_id tbody').on('click', 'tr', function () {
+            $(this).toggleClass('selected');
+        });
+
+        $('#create').click(function(e) {
+                /* Act on the event */
+                var event = [];
+                table.rows('.selected').eq(0).each(function(index) {
+                    var row = table.row(index);
+                    var id = row.data()[0];
+                    event.push(id);
+                });
+                $('input[name="events"]').val(event);
+            });
+
+    })
+</script>
+{% endblock %}

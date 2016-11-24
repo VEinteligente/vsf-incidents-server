@@ -1,0 +1,143 @@
+{% extends 'dashboard/layout.html' %}
+{% load staticfiles %}
+{% block content %}
+<div class="row">
+    <div class="col-xs-12">
+        <a  href="{% url 'cases:case_front:create-case' %}" class="btn btn-default btn-flat" style="margin-bottom:20px;">
+            Create new Case
+        </a>
+    </div>
+</div>
+                    
+
+    {% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Case List</h3>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        <div class="table">
+            <table id="case-list" class="table table-bordered table-hover dataTable">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Category</th>
+                        <th>Draft</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Title</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Category</th>
+                        <th>Draft</th>
+                        <th>Actions</th>
+                    </tr>
+                </tfoot>
+                {% for case in cases %}
+                    <tr>
+                        <td>{{case.title}}</td>
+                        <td>{{case.start_date}}</td>
+                        <td>{{case.end_date}}</td>
+                        <td>{{case.category}}</td>
+                        <td>{% if case.draft %} sketch {% else %}
+                        Published {% endif %}</td>
+                        <td>
+                            <div class="btn-group ">
+                                <button type="button" class="btn btn-primary btn-flat">Actions</button>
+                                <button type="button" class="btn btn-primary btn-flat dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="{% url 'cases:case_front:detail-case' case.id %}">Detail</a></li>
+                                    <li><a href=>Edit</a></li>
+                                    <li><a href="{% url 'cases:case_front:change-case-status' case.id%}">{% if case.draft %}Publish Case{% else %}Draft Case{% endif %}</a></li>
+                                    <li><a href="" style="color:red;" class="delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{case.id}}">Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <!-- /.box-body -->
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Case</h4>
+                </div>
+                <form id="case-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this case?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <input type="submit" class="btn btn-danger" value="Confirm" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/cases/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#case-delete-form').attr('action', url);
+            });
+            $('#case-list').DataTable({
+                "aoColumnDefs": [
+                    { "bSearchable": false, "aTargets": [ 5 ] },
+                    { "asSorting": false, "aTargets": [5] }
+                ],
+            }
+            );        
+        })
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    
+{% endblock extracss %}
