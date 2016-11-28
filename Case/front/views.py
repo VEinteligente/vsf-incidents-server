@@ -95,6 +95,9 @@ class ChangeCaseStatus(generic.UpdateView):
 
 
 class ChangeCaseStatusDetail(ChangeCaseStatus):
+    """ChangeCaseStatusDetail: UpdateView extension of ChangeCaseStatus 
+    than change case status from detail case page.
+    It can be Publish or Sketch. Sketch for default"""
     def set_success_url(self, id):
         self.success_url = reverse_lazy(
             'cases:case_front:detail-case', kwargs={'pk': id})
@@ -229,6 +232,8 @@ class UpdateUpdate(PageTitleMixin, generic.UpdateView):
 
 
 class DeleteUpdate(generic.DeleteView):
+    """DeleteUpdate: DeleteView than
+    delete an update of a specific case"""
     model = Update
     success_url = reverse_lazy('cases:case_front:list-case')
 
