@@ -1,5 +1,5 @@
 from django import forms
-from Case.models import Case
+from Case.models import Case, Update
 
 
 class CaseForm(forms.ModelForm):
@@ -16,3 +16,8 @@ class CaseForm(forms.ModelForm):
             'category', 'open_ended', 'draft', 'events'
         ]
 
+
+class UpdateForm(forms.ModelForm):
+    class Meta:
+        model = Update
+        fields = ['title', 'text', 'category', 'date']

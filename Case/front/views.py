@@ -2,8 +2,9 @@ from django.views import generic
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from .forms import CaseForm
-from Case.models import Case
+from datetime import date
+from .forms import CaseForm, UpdateForm
+from Case.models import Case, Update
 from event.models import Event
 
 from dashboard.mixins import PageTitleMixin
@@ -44,9 +45,6 @@ class CreateCase(PageTitleMixin, generic.CreateView):
 
         events = form.cleaned_data['events'].split(',')
         events = Event.objects.filter(id__in=events)
-
-        if not form.cleaned_data['open_ended']:
-            self.object.end_date = events.latest('end_date').date
 
         self.object.save()
         for event in events:
@@ -105,5 +103,145 @@ class ChangeCaseStatusDetail(ChangeCaseStatus):
 class DeleteCase(generic.DeleteView):
     """DeleteCase: DeleteView than delete an specific case."""
     model = Case
-    template_name = 'list_event.html'
     success_url = reverse_lazy('cases:case_front:list-case')
+
+
+class UpdateCase(PageTitleMixin, generic.UpdateView):
+    """UpdateCase: UpdateView than
+    update an Case object in DB"""
+    form_class = CaseForm
+    context_object_name = 'case'
+    page_header = "Update Case"
+    page_header_description = ""
+    breadcrumb = ["Cases", "Edit Case"]
+    model = Case
+    success_url = reverse_lazy('cases:case_front:list-case')
+    template_name = 'create_case.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateCase, self).get_context_data(**kwargs)
+        events = Event.objects.filter(draft=False)
+        context['events'] = events
+
+        # Initial data for the form
+
+        return context
+
+    def form_valid(self, form):
+
+        self.object = form.save(commit=False)
+
+        events = form.cleaned_data['events'].split(',')
+        events = Event.objects.filter(id__in=events)
+
+        self.object.save()
+        for event in events:
+            self.object.events.add(event)
+
+        msg = 'Se ha editado el caso'
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_form(self, form_class=None):
+        form = super(UpdateCase, self).get_form(form_class)
+        if not self.object.end_date:
+            form.fields['open_ended'].initial = True
+        return form
+
+
+class CreateUpdate(PageTitleMixin, generic.CreateView):
+    """CreateUpdate: CreateView than
+    create a new Update object to a specific Case"""
+    form_class = UpdateForm
+    page_header = ""
+    page_header_description = ""
+    breadcrumb = ["Cases", "New Update"]
+    success_url = reverse_lazy('cases:case_front:list-case')
+    template_name = 'create_update.html'
+
+    def get_context_data(self, **kwargs):
+        case = Case.objects.get(pk=self.kwargs.get('pk', None))
+        self.page_header = "New Update for Case: " + str(case.title)
+        kwargs['case'] = case
+        if 'form' not in kwargs:
+            kwargs['form'] = self.get_form()
+        return super(CreateUpdate, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+
+        self.object = form.save(commit=False)
+
+        case = Case.objects.get(pk=self.kwargs.get('pk', None))
+        self.object.case = case
+        user = None
+        if self.request.user.is_authenticated():
+            user = self.request.user
+        self.object.created_by = user
+        self.object.save()
+
+        msg = 'Se ha creado el update al caso'
+
+        messages.success(self.request, msg)
+        self.success_url = reverse_lazy(
+            'cases:case_front:detail-case', kwargs={'pk': case.id})
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class UpdateUpdate(PageTitleMixin, generic.UpdateView):
+    """UpdateUpdate: UpdateView than
+    update an update of a specific case"""
+    form_class = UpdateForm
+    context_object_name = 'update'
+    page_header = "Edit Update"
+    page_header_description = ""
+    breadcrumb = ["Cases", "Edit Update"]
+    model = Update
+    success_url = reverse_lazy('cases:case_front:list-case')
+    template_name = 'create_update.html'
+
+    def get_context_data(self, **kwargs):
+        self.page_header = "Edit Update in Case: " + str(self.object.case.title)
+        if 'form' not in kwargs:
+            kwargs['form'] = self.get_form()
+        return super(UpdateUpdate, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+
+        self.object = form.save(commit=False)
+        user = None
+        if self.request.user.is_authenticated():
+            user = self.request.user
+        self.object.created_by = user
+        self.object.created = date.today()
+        self.object.save()
+
+        msg = 'Se ha editado el update'
+
+        messages.success(self.request, msg)
+        self.success_url = reverse_lazy(
+            'cases:case_front:detail-case', kwargs={'pk': self.object.case.id})
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class DeleteUpdate(generic.DeleteView):
+    model = Update
+    success_url = reverse_lazy('cases:case_front:list-case')
+
+    def delete(self, request, *args, **kwargs):
+
+        update = self.get_object()
+
+        self.success_url = reverse_lazy(
+            'cases:case_front:detail-case', kwargs={'pk': update.case.id})
+        update.delete()
+
+        msg = 'Se ha eliminado el update elegido'
+
+        messages.success(request, msg)
+
+        return HttpResponseRedirect(self.success_url)

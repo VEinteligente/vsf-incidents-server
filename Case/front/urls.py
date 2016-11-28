@@ -33,4 +33,24 @@ urlpatterns = [
         views.DeleteCase.as_view(),
         name='delete-case'
     ),
+    url(
+        r'^(?P<pk>[0-9]+)/update/$',
+        views.UpdateCase.as_view(),
+        name='update-case'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/create-update/$',
+        views.CreateUpdate.as_view(),
+        name='create-update'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/edit-update/$',
+        views.UpdateUpdate.as_view(),
+        name='update-update'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/delete-update/$',
+        views.DeleteUpdate.as_view(),
+        name='delete-update'
+    ),
 ]

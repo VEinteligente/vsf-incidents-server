@@ -5,7 +5,7 @@
 {% block content %}
     <div class="row">
         <div class="col-xs-10">
-            <div class="box box-solid box-success">
+            <div class="box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
                             {% if not case.end_date %}
@@ -50,48 +50,84 @@
                 </div>
 
             </div>
-            <div class="box box-solid box-success">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">
-                                    Event(s) associated
-                            </h3>
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Update(s) associated
+                    </h3>
+                </div>
+                <div class="box-body">
+                    {% for update in case.updates.all %}
+                    <div style="border-top: #d2d6de solid 2px">
+                        <div class=" pull-left">
+                            <h4>{{update.title}}</h4>
                         </div>
-                        <div class="box-body">
-                            <table id="event-list" class="table table-bordered table-hover">
-                                <thead>
-                                    <th>Identification</th>
-                                    <th>ISP</th>
-                                    <th>Target</th>
-                                    <th>start_date</th>
-                                    <th>end_date</th>
-                                    <th></th>
-                                </thead>
-                                <tbody>
-                                    {% for event in case.events.all %}
-                                    <tr>
-                                        <td>{{event.identification}}</td>
-                                        <td>{{event.isp}}</td>
-                                        <td>{{event.target}}</td>
-                                        <td>{{event.start_date}}</td>
-                                        <td>
-                                            {% if event.end_date %}
-                                                {{event.end_date}}
-                                            {% else %}
-                                                Open event ...
-                                            {% endif %}
-                                        </td>
-                                        <td>   
-                                            <a href="" class="btn btn-success btn-flat">Check Event</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="text-right">
+                            <a href="{% url 'cases:case_front:update-update' update.id %}" class="">Edit</a>
+                            <a href="" class="update-delete-btn" data-toggle="modal" data-target="#modal_update_delete" data-id="{{update.id}}">Delete</a>
                         </div>
                     </div>
+                    <table id="update-list" class="table table-bordered table-hover">
+                        <thead>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Created by</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{update.date.date}}</td>
+                                <td>{{update.category}}</td>
+                                <td>{{update.created_by}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p><b>Description:</b></p>
+                    <p>{{update.text}}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Event(s) associated
+                    </h3>
+                </div>
+                <div class="box-body">
+                    <table id="event-list" class="table table-bordered table-hover">
+                        <thead>
+                            <th>Identification</th>
+                            <th>ISP</th>
+                            <th>Target</th>
+                            <th>start_date</th>
+                            <th>end_date</th>
+                            <th></th>
+                        </thead>
+                        <tbody>
+                            {% for event in case.events.all %}
+                            <tr>
+                                <td>{{event.identification}}</td>
+                                <td>{{event.isp}}</td>
+                                <td>{{event.target}}</td>
+                                <td>{{event.start_date}}</td>
+                                <td>
+                                    {% if event.end_date %}
+                                        {{event.end_date}}
+                                    {% else %}
+                                        Open event ...
+                                    {% endif %}
+                                </td>
+                                <td>   
+                                    <a href="" class="btn btn-primary btn-flat">Check Event</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
         <div class="col-xs-2">
-            <div class="box box-solid box-primary">
+            <div class="box box-solid">
                 <div class="box-header with-border">
                     <h3 class="box-title">
                             Actions
@@ -112,7 +148,10 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="" class="btn btn-primary btn-flat actionButton">Edit Case</a></td>
+                                <td><a href="{% url 'cases:case_front:update-case' case.id %}" class="btn btn-primary btn-flat actionButton">Edit Case</a></td>
+                            </tr>
+                            <tr>
+                                <td><a href="{% url 'cases:case_front:create-update' case.id %}" class="btn btn-primary btn-flat actionButton">Add Update</a></td>
                             </tr>
                             <tr>
                                 <td><a href="" class="btn btn-danger btn-flat actionButton delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{case.id}}">Delete Case</a></td>
@@ -143,6 +182,27 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modal_update_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Update</h4>
+                </div>
+                <form id="update-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this update?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <input type="submit" class="btn btn-danger" value="Confirm" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block extrajs %}
@@ -156,6 +216,15 @@
                 $('#case-delete-form').attr('action', url);
             });
 
+            $(document).on('click', '.update-delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                console.log("holaaaaaaaaaaaaaaaa")
+                var delete_id = $(this).data('id')
+                var url = '/cases/__ID__/delete-update/'.replace('__ID__', delete_id)
+                $('#update-delete-form').attr('action', url);
+            });
+
             $('#event-list').DataTable({
                 "paging": false,
                 "aoColumnDefs": [
@@ -163,7 +232,7 @@
                     { "asSorting": false, "aTargets": [5] }
                 ],
             }
-            );        
+            );         
         })
     </script>
     <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>

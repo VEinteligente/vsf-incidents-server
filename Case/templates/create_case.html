@@ -8,7 +8,11 @@
                 {% csrf_token %}
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Create New Case</h3>
+                        {% if case %}
+                            <h3 class="box-title">Edit Case</h3>
+                        {% else %}
+                            <h3 class="box-title">Create New Case</h3>
+                        {% endif %}
                     </div>
                     <div class="box-body">
                         {% bootstrap_form form %}
@@ -33,6 +37,27 @@
                                             <th>Start Date</th>
                                             <th>End Date</th>
                                         </tfoot>
+                                        {% if case %}  
+                                            <tbody>
+                                            {% for event in events %}
+                                            <tr {% if event in case.events.all %}
+                                                class="selected"
+                                            {% endif %}>
+                                                <td>{{event.id}}</td>
+                                                <td>{{event.identification}}</td>
+                                                <td>{{event.isp}}</td>
+                                                <td>{{event.start_date.date}}</td>
+                                                <td>
+                                                    {% if event.end_date %}
+                                                        {{event.end_date.date}}
+                                                    {% else %}
+                                                        Open Event
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                        {% else %} 
                                         <tbody>
                                             {% for event in events %}
                                             <tr>
@@ -50,13 +75,19 @@
                                             </tr>
                                             {% endfor %}
                                         </tbody>
+                                        {% endif %}
+
                                     </table>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="box-footer text-right">
+                        {% if case %}
+                        <input class="btn btn-flat btn-primary" type="submit" value="Edit" id="create">
+                        {% else %}
                         <input class="btn btn-flat btn-primary" type="submit" value="Create" id="create">
+                        {% endif %}
                     </div>
                 </div>
             </form>
@@ -102,6 +133,7 @@
 
         $('#event_id tbody').on('click', 'tr', function () {
             $(this).toggleClass('selected');
+            $( '#id_events' ).val('');
         });
 
         $('#create').click(function(e) {
