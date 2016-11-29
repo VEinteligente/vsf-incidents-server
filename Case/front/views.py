@@ -40,11 +40,18 @@ class CreateCase(PageTitleMixin, generic.CreateView):
         return super(CreateCase, self).get_context_data(**kwargs)
 
     def form_valid(self, form):
+        if form.cleaned_data['end_date'] is None and form.cleaned_data['open_ended'] is False:
+            form.add_error(None, 'You must give an end date to this case or select open ended')
+            form.add_error('end_date', '')
+            form.add_error('open_ended', '')
+            return self.form_invalid(form)
 
         self.object = form.save(commit=False)
 
-        events = form.cleaned_data['events'].split(',')
-        events = Event.objects.filter(id__in=events)
+        events_ids = form.cleaned_data['events'].split(',')
+        events = []
+        if (str(events_ids[0]) != ''):
+            events = Event.objects.filter(id__in=events_ids)
 
         self.object.save()
         for event in events:
@@ -55,6 +62,12 @@ class CreateCase(PageTitleMixin, generic.CreateView):
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class CreateCaseFromEventsView(CreateCase):
+    model = Case
+    template_name = 'list_events_create_case.html'
+    page_header_description = "Select the event(s) to associate as a New Case"
 
 
 class DetailCase(PageTitleMixin, generic.DetailView):
@@ -132,11 +145,18 @@ class UpdateCase(PageTitleMixin, generic.UpdateView):
         return context
 
     def form_valid(self, form):
+        if form.cleaned_data['end_date'] is None and form.cleaned_data['open_ended'] is False:
+            form.add_error(None, 'You must give an end date to this case or select open ended')
+            form.add_error('end_date', '')
+            form.add_error('open_ended', '')
+            return self.form_invalid(form)
 
         self.object = form.save(commit=False)
 
-        events = form.cleaned_data['events'].split(',')
-        events = Event.objects.filter(id__in=events)
+        events_ids = form.cleaned_data['events'].split(',')
+        events = []
+        if (str(events_ids[0]) != ''):
+            events = Event.objects.filter(id__in=events_ids)
 
         self.object.save()
         for event in events:
@@ -250,3 +270,6 @@ class DeleteUpdate(generic.DeleteView):
         messages.success(request, msg)
 
         return HttpResponseRedirect(self.success_url)
+
+
+

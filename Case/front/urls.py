@@ -53,4 +53,9 @@ urlpatterns = [
         views.DeleteUpdate.as_view(),
         name='delete-update'
     ),
+    url(
+        r'^create_from_events/$',
+        views.CreateCaseFromEventsView.as_view(),
+        name='create-case-from-events'
+    ),
 ]
