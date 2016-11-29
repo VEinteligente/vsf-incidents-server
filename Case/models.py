@@ -1,9 +1,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from event.models import Event
 from django.conf import settings
 from datetime import date as d
+
+from event.models import Event
 
 
 class Case(models.Model):
@@ -42,6 +43,6 @@ class Update(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='updates',
-        null = True, blank=True
+        null=True, blank=True
     )
     created = models.DateField(default=d.today)

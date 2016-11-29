@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
-from event.models import Event
+from event.models import Event, Url
 
 
 class Metric(models.Model):
@@ -63,7 +63,7 @@ class Flag(models.Model):
     medicion = models.CharField(verbose_name='Id de la Medicion',
                                 max_length=40)
     date = models.DateTimeField()
-    target = models.CharField(max_length=100)
+    target = models.ForeignKey(Url)
     isp = models.CharField(max_length=100)
     region = models.CharField(max_length=100, default='CCS')
     ip = models.GenericIPAddressField()
