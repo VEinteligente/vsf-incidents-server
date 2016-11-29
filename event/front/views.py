@@ -42,7 +42,7 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         """
         If the form is valid, save the associated model.
         """
-
+        # Get flags values
         flags = form.cleaned_data['flags'].split(' ')
         ids = []
 
@@ -55,33 +55,42 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
                                        type_med=split[4])
             ids += [flag[0].id]
 
+        # Filter Flag objects for ids
         flags = Flag.objects.filter(id__in=ids)
 
+        # Object to save
         self.object = form.save(commit=False)
+
+        if Event.objects.filter(id=self.object.id).exists():
+            msg = 'Se ha modificado el evento'
+        else:
+            msg = 'Se ha creado el evento'
 
         if not form.cleaned_data['open_ended']:
             self.object.end_date = flags.latest('date').date
+        else:
+            self.object.end_date = None
 
         self.object.start_date = flags.earliest('date').date
-        self.object.isp = flags[0].isp
-        self.object.target = flags[0].target
+        self.object.isp = flags[0].isp  # Flag isp
+        self.object.target = flags[0].target  # Flag target
 
-        self.object.save()
+        self.object.save()  # Save object in the Database
 
-        self.object.flags = flags
+        self.object.flags = flags  # Add flags to object
 
-        self.object.save()
+        self.object.save()  # Save object with flags
 
         flags.update(event=self.object)
-
-        msg = 'Se ha creado el evento'
 
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
 
 
-class UpdateEvent(PageTitleMixin, generic.UpdateView):
+class UpdateEvent(CreateEvent,
+                  PageTitleMixin,
+                  generic.UpdateView):
     """UpdateEvent: UpdateView than
     update an Event object in DB"""
     form_class = EventForm
@@ -94,6 +103,7 @@ class UpdateEvent(PageTitleMixin, generic.UpdateView):
     template_name = 'update_event.html'
 
     def get_context_data(self, **kwargs):
+        '''Initial data for Event form'''
 
         context = super(UpdateEvent, self).get_context_data(**kwargs)
 
@@ -122,45 +132,6 @@ class UpdateEvent(PageTitleMixin, generic.UpdateView):
 
         return context
 
-    def form_valid(self, form):
-        """
-        If the form is valid, save the associated model.
-        """
-
-        flags = form.cleaned_data['flags'].split(' ')
-        ids = []
-
-        for f in flags:
-            split = f.split('/')
-            flag = Flag.objects.filter(medicion=split[0],
-                                       target=split[1],
-                                       isp=split[2],
-                                       ip=split[3],
-                                       type_med=split[4])
-            ids += [flag[0].id]
-
-        flags = Flag.objects.filter(id__in=ids)
-
-        self.object = form.save(commit=False)
-
-        if not form.cleaned_data['open_ended']:
-            self.object.end_date = flags.latest('date').date
-        else:
-            self.object.end_date = None
-
-        self.object.start_date = flags.earliest('date').date
-        self.object.isp = flags[0].isp
-        self.object.target = flags[0].target
-        self.object.save()
-
-        self.object.flags = flags
-
-        self.object.save()
-
-        flags.update(event=self.object)
-
-        return HttpResponseRedirect(self.get_success_url())
-
 
 class ChangeEventStatus(generic.UpdateView):
     """ChangeEventStatus: Change Event status.
@@ -169,6 +140,9 @@ class ChangeEventStatus(generic.UpdateView):
     success_url = reverse_lazy('events:event_front:list-event')
 
     def get(self, request, *args, **kwargs):
+        '''If event.draft is True change it to False.
+        If event.draft is False change it to True'''
+
         event = self.model.objects.get(id=kwargs['pk'])
 
         if event.draft:
@@ -193,6 +167,7 @@ class DeleteEvent(generic.DeleteView):
     success_url = reverse_lazy('events:event_front:list-event')
 
     def delete(self, request, *args, **kwargs):
+        """Delete Event and make its flags availables"""
 
         event = self.get_object()
         flags = event.flags.all()
@@ -232,6 +207,7 @@ class FlagsTable(DatatablesView):
     }
 
     def json_response(self, data):
+        """Json response"""
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
         )
@@ -253,16 +229,13 @@ class UpdateFlagsTable(DatatablesView):
     }
 
     def get_queryset(self):
+        """Flag list"""
 
         pk = self.request.GET.get('pk')
 
+        # Flags of the measurement
         if pk:
             queryset = Flag.objects.filter(Q(event=None) |
                                            Q(event=Event.objects.get(id=pk)))
 
         return queryset
-
-    def json_response(self, data):
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder),
-        )

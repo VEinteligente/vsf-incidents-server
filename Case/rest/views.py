@@ -1,16 +1,11 @@
-from django.shortcuts import render
-from rest_framework import generics, status, exceptions
+from rest_framework import generics
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from serializers import (
     DetailEventCaseSerializer,
     CaseSerializer
 )
 from Case.models import Case
-from django.http import Http404
-
 
 # Create your views here.
 

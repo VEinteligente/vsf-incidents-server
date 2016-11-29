@@ -61,12 +61,9 @@ class DNSTestKey(object):
 
     def get_queries(self):
         """Execute a query in the database.
-
-        Args:
-            query (str): SQL query
-
         Returns:
-            dict: A dictionary with data for columns and rows
+            dict: A list of dicts with data from test_keys
+                  queries
         """
         if self.queries:
             return self.queries
