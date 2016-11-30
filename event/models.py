@@ -19,7 +19,7 @@ class Url(models.Model):
     ip = models.GenericIPAddressField(null=True, blank=True)
 
     def __unicode__(self):
-        return u"%s@%s - ip:%s" % (self.site, self.name, self.ip)
+        return u"%s@%s - ip:%s" % (self.site, self.url, self.ip)
 
 
 class Event(models.Model):
