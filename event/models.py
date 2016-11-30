@@ -2,7 +2,24 @@
 from __future__ import unicode_literals
 
 from django.db import models
-# from Case.models import Case
+
+
+class Site(models.Model):
+
+    name = models.CharField(max_length=100)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
+class Url(models.Model):
+
+    site = models.ForeignKey(Site, null=True, blank=True)
+    url = models.URLField(null=True, blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s@%s - ip:%s" % (self.site, self.url, self.ip)
 
 
 class Event(models.Model):
@@ -20,8 +37,10 @@ class Event(models.Model):
     isp = models.CharField(max_length=25)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
-    target = models.CharField(max_length=25)  # input in metrics
+    target = models.ForeignKey(Url)  # input in metrics
     identification = models.CharField(max_length=50)
     draft = models.BooleanField(default=True)
     type = models.CharField(max_length=100, choices=TYPES)
-    # case = models.ForeignKey(Case)
+
+    def __unicode__(self):
+        return u"%s" % self.type
