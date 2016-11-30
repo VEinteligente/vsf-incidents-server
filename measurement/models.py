@@ -75,6 +75,8 @@ class Flag(models.Model):
                                 default=MED)
     event = models.ForeignKey(Event, null=True, blank=True,
                               related_name='flags')
+    suggested_events = models.ManyToManyField(
+        Event, related_name="suggested_events", blank=True)
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.medicion, self.ip, self.type_med)
