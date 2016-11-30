@@ -4,12 +4,20 @@ from django.shortcuts import render
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
-from .serializers import UrlSerializer
+from .serializers import UrlSerializer, SiteSerializer
 
-from event.models import Event, Url
+from event.models import Event, Url, Site
 
 
 class BlockedDomains(generics.ListAPIView):
+    """
+    Este servicio entrega una lista de
+    dominios(urls) que pertenesen a eventos de
+    tipo bloqueo, o sea, dominios bloqueados.
+    Nota. Todos los dominios bloqueados deberian
+    pertenecer a un sitio.
+    Ej. http://www.midominiobloqueado.com
+    """
 
     permission_classes = (AllowAny,)
 
@@ -17,29 +25,29 @@ class BlockedDomains(generics.ListAPIView):
         Q(type='bloqueo por DPI') |
         Q(type='bloqueo por DNS') |
         Q(type='bloqueo por IP')
-    ).select_related('target')
+    )
     serializer_class = UrlSerializer
 
     def get_queryset(self):
-
         url_list = self.queryset.values('target')
-        queryset = Url.objects.filter(id__in=url_list).distinct()
+        queryset = Url.objects.filter(id__in=url_list)
         return queryset
 
 
-class BlockedSites(generics.ListAPIView):
+class BlockedSites(BlockedDomains):
+    """
+    Este servicio entrega una lista de
+    sitios que pertenesen a eventos de
+    tipo bloqueo.
+    O sea, sitios bloqueados.
+    Ej. Mi Sitio Bloqueado
+    """
 
-    permission_classes = (AllowAny,)
-
-    queryset = Event.objects.filter(
-        Q(type='bloqueo por DPI') |
-        Q(type='bloqueo por DNS') |
-        Q(type='bloqueo por IP')
-    ).select_related('target')
-    serializer_class = UrlSerializer
+    serializer_class = SiteSerializer
 
     def get_queryset(self):
+        queryset = super(BlockedSites, self).get_queryset()
 
-        url_list = self.queryset.values('target')
-        queryset = Url.objects.filter(id__in=url_list).distinct()
+        site_list = queryset.values('site')
+        queryset = Site.objects.filter(id__in=site_list)
         return queryset
