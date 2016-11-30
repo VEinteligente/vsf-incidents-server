@@ -35,6 +35,66 @@ class Metric(models.Model):
         db_table = 'metrics'
 
 
+class Plan(models.Model):
+    name = models.CharField(max_length=100)
+    isp = models.CharField(max_length=100)
+    upload = models.CharField(
+        verbose_name='Velocidad de Carga publicitado',
+        max_length=30)
+    download = models.CharField(
+        verbose_name='Velocidad de Descarga publicitado',
+        max_length=30)
+    comment = models.TextField(null=True, blank=True)
+
+
+class Probe(models.Model):
+    STATES_CHOICES = (
+        ('amazonas', 'Amazonas'),
+        ('anzoategui', 'Anzoategui'),
+        ('apure', 'Apure'),
+        ('aragua', 'Aragua'),
+        ('barinas', 'Barinas'),
+        ('bolivar', 'Bolivar'),
+        ('carabobo', 'Carabobo'),
+        ('cojedes', 'Cojedes'),
+        ('delta_amacuro', 'Delta Amacuro'),
+        ('distrito_capital', 'Distrito Capital'),
+        ('falcon', 'Falcon'),
+        ('guarico', 'Guarico'),
+        ('lara', 'Lara'),
+        ('merida', 'Merida'),
+        ('miranda', 'Miranda'),
+        ('monagas', 'Monagas'),
+        ('nueva_esparta', 'Nueva Esparta'),
+        ('portuguesa', 'Portuguesa'),
+        ('sucre', 'Sucre'),
+        ('tachira', 'Tachira'),
+        ('trujillo', 'Trujillo'),
+        ('vargas', 'Vargas'),
+        ('yaracuy', 'Yaracuy'),
+        ('zulia', 'Zulia')
+    )
+
+    COUNTRIES_CHOICES = (
+        ('venezuela', 'Venezuela'),
+    )
+    identification = models.CharField(max_length=50)
+    region = models.CharField(
+        max_length=50,
+        choices=STATES_CHOICES,
+        default='distrito_capital'
+    )
+    country = models.CharField(
+        max_length=50,
+        choices=COUNTRIES_CHOICES,
+        default='venezuela'
+    )
+    city = models.CharField(max_length=100)
+    isp = models.CharField(max_length=100)
+    plan = models.ForeignKey(
+        Plan, null=True, blank=True, related_name='probes')
+
+
 class DNS(models.Model):
 
     isp = models.CharField(verbose_name='Operadora', max_length=50)
@@ -65,7 +125,8 @@ class Flag(models.Model):
     date = models.DateTimeField()
     target = models.ForeignKey(Url)
     isp = models.CharField(max_length=100)
-    region = models.CharField(max_length=100, default='CCS')
+    probe = models.ForeignKey(
+        Probe, related_name='flags')
     ip = models.GenericIPAddressField()
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
@@ -80,3 +141,7 @@ class Flag(models.Model):
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.medicion, self.ip, self.type_med)
+
+
+
+
