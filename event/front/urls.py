@@ -38,4 +38,9 @@ urlpatterns = [
         views.ListEvent.as_view(),
         name='list-event'
     ),
+    url(
+        r'^suggestions/$',
+        views.ListEventSuggestedFlags.as_view(),
+        name='suggestions-event'
+    ),
 ]

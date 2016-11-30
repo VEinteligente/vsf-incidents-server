@@ -1,0 +1,57 @@
+{% extends 'dashboard/layout.html' %}
+{% load staticfiles %}
+{% block content %}
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Event List</h3>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        <div class="table">
+            <table id="match-list" class="table table-bordered table-hover dataTable">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Current Flags</th>
+                        <th>Suggested Flags</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Event</th>
+                        <th>Current Flags</th>
+                        <th>Suggested Flags</th>
+                    </tr>
+                </tfoot>
+                {% for event in suggestions %}
+                    <tr>
+                        <td>{{event.identification}}</td>
+                        <td>
+                            {% for flag in event.flags.all  %}
+                                {{flag}}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <table style="width:100%">
+                            {% for flag in event.suggested_events.all %}
+                                <tr>
+                                    <td>
+                                        {{flag}} 
+                                    </td>
+                                    <td>
+                                        <a href="">Add to event</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <!-- /.box-body -->
+
+</div>
+{% endblock content %}

@@ -266,3 +266,16 @@ class UpdateFlagsTable(DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
         )
+
+
+class ListEventSuggestedFlags(PageTitleMixin, generic.ListView):
+    """ListEventSuggestedFlags: ListView than
+    display a list of all events with suggested flags"""
+    model = Event
+    template_name = "list_eventflagmatch.html"
+    context_object_name = "suggestions"
+    page_header = "Event Suggestions"
+    page_header_description = "Matches between existing events and hard flags"
+    breadcrumb = ["Events", "Event Suggestions"]
+    queryset = Event.objects.exclude(
+        suggested_events=None).prefetch_related('suggested_events', 'flags')
