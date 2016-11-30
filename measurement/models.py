@@ -35,6 +35,30 @@ class Metric(models.Model):
         db_table = 'metrics'
 
 
+class MutedInput(models.Model):
+
+    MED = 'MED'
+    DNS = 'DNS'
+    TCP = 'TCP'
+    HTTP = 'HTTP'
+
+    TYPE_CHOICES = (
+        (MED, 'Medicion'),
+        (DNS, 'Medicion DNS'),
+        (TCP, 'Medicion TCP'),
+        (HTTP, 'Medicion HTTP')
+    )
+    
+    url = models.CharField(max_length=50)
+    type_med = models.CharField(verbose_name='Tipo de Medicion',
+                                max_length=50,
+                                choices=TYPE_CHOICES,
+                                default=MED)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.url, self.type_med)
+        
+
 class DNS(models.Model):
 
     isp = models.CharField(verbose_name='Operadora', max_length=50)

@@ -1,18 +1,27 @@
 from django.shortcuts import render
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
 from eztables.views import DatatablesView
 from django.utils.six import text_type
-from measurement.models import DNS, Flag, Metric
+from measurement.models import (
+    DNS, 
+    Flag, 
+    Metric,
+    MutedInput
+)
+from measurement.front.forms import MutedInputForm
 import re
 import json
 
 from dashboard.mixins import PageTitleMixin
+
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -637,6 +646,108 @@ class HTTPListDatatablesView(DatatablesView):
         )
 
 
+# Muted Input CRUD
+
+class ListMutedInput(PageTitleMixin, generic.ListView):
+    """ListMutedInput: ListView than
+    display a list of all muted inputs"""
+    model = MutedInput
+    template_name = "list_muted.html"
+    context_object_name = "mutes"
+    page_header = "Muted Inputs"
+    page_header_description = "List of muted inputs"
+    breadcrumb = ["Muted Inputs"]
+
+
+class CreateMutedInput(PageTitleMixin, generic.CreateView):
+    """CreateMutedInput: CreateView than
+    create a new MutedInput object in DB"""
+    form_class = MutedInputForm
+    page_header = "New Muted Input"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "New Muted Input"]
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+    template_name = 'create_muted.html'
+
+    def get_context_data(self, **kwargs):
+        
+        return super(CreateMutedInput, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+
+        muted = form.save()
+        
+        if muted:
+            msg = 'Se ha creado el muted input'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo crear el muted input'
+            messages.error(self.request, msg)        
+
+        return HttpResponseRedirect(self.success_url)
+
+
+class DetailMutedInput(PageTitleMixin, generic.DetailView):
+    """DetailMutedInput: DetailView than
+    give the details of a specific MutedInput object"""
+    model = MutedInput
+    context_object_name = "mute"
+    template_name = "detail_muted.html"
+    page_header = "Muted Input Details"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "Muted Input Details"]
+
+
+class DeleteMutedInput(generic.DeleteView):
+    """DeleteMutedInput: DeleteView than delete an specific muted input."""
+    model = MutedInput
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+
+class UpdateMutedInput(PageTitleMixin, generic.UpdateView):
+    """UpdateMutedInput: UpdateView than
+    update an MutedInput object in DB"""
+    form_class = MutedInputForm
+    context_object_name = 'muted'
+    page_header = "Update Muted Input"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "Edit Muted Input"]
+    model = MutedInput
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+    template_name = 'create_muted.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateMutedInput, self).get_context_data(**kwargs)
+        muted = self.get_object()
+        form = self.get_form_class()
+
+        # Initial data for the form
+        context['form'] = form(initial={'url': muted.url,
+                                        'type_med': muted.type_med
+                                        })
+
+        return context
+
+    def form_valid(self, form):
+       
+        muted = form.save()
+        
+        if muted:
+            msg = 'Se ha editado el muted input'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo editar el muted input'
+            messages.error(self.request, msg) 
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+######################## PRUEBA ######################################3
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
 class PruebaDataTable(generic.TemplateView):
 
     template_name = 'list.html'
@@ -645,11 +756,6 @@ class PruebaDataTable(generic.TemplateView):
         print "done"
 
         return super(PruebaDataTable, self).get(request, *args, **kwargs)
-
-
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
 
 class PruebaDataTableAjax(APIView):

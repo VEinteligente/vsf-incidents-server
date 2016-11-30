@@ -32,6 +32,16 @@
         <li><a href="{% url 'cases:case_front:create-case-from-events' %}"><span class="opt-name">New Case from events</span></a></li>
     </ul>
 </li>
+<li class="treeview">
+    <a href="#">
+        <span class="opt-name">Muted Inputs</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+    </a>
+    <ul class="treeview-menu">
+        <li><a href="{% url 'measurements:measurement_front:list-muted-input' %}"><span class="opt-name">List Muted Inputs</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:create-muted-input' %}"><span class="opt-name">New Muted Input</span></a></li>
+    </ul>
+</li>
 <!-- <li class="treeview">
     <a href="#">
         <i class="fa fa-fw fa-flask"></i> <span class="opt-name">Medicamentos</span>

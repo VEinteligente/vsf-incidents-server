@@ -99,7 +99,7 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
-            dns_isp = 'cantv'
+            dns_isp = 'cantv' # POR AHORA
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
