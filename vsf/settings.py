@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'bootstrap3',
     'debug_toolbar',
+    'django_extensions',
     'widget_tweaks',
     'dashboard',
     'event',
