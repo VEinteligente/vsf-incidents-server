@@ -10,6 +10,14 @@ from event.models import Event, Url, Site
 
 
 class BlockedDomains(generics.ListAPIView):
+    """
+    Este servicio entrega una lista de
+    dominios(urls) que pertenesen a eventos de
+    tipo bloqueo, o sea, dominios bloqueados.
+    Nota. Todos los dominios bloqueados deberian
+    pertenecer a un sitio.
+    Ej. http://www.midominiobloqueado.com
+    """
 
     permission_classes = (AllowAny,)
 
@@ -21,13 +29,19 @@ class BlockedDomains(generics.ListAPIView):
     serializer_class = UrlSerializer
 
     def get_queryset(self):
-
         url_list = self.queryset.values('target')
         queryset = Url.objects.filter(id__in=url_list)
         return queryset
 
 
 class BlockedSites(BlockedDomains):
+    """
+    Este servicio entrega una lista de
+    sitios que pertenesen a eventos de
+    tipo bloqueo.
+    O sea, sitios bloqueados.
+    Ej. Mi Sitio Bloqueado
+    """
 
     serializer_class = SiteSerializer
 
