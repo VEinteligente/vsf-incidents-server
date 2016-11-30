@@ -8,5 +8,10 @@ urlpatterns = [
         views.BlockedDomains.as_view(),
         name='blocked_domains'
     ),
+    url(
+        r'^blocked_sites/$',
+        views.BlockedSites.as_view(),
+        name='blocked_sites'
+    ),
 
 ]

@@ -1,7 +1,7 @@
 import json
 
 from rest_framework import serializers
-from event.models import Event, Url
+from event.models import Event, Url, Site
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -15,3 +15,9 @@ class UrlSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Url
+
+
+class SiteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Site
