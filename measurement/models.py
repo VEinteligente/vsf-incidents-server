@@ -35,6 +35,36 @@ class Metric(models.Model):
         db_table = 'metrics'
 
 
+class Country(models.Model):
+    name = models.CharField(max_length=50)
+    abbreviation = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        verbose_name = "Country"
+        verbose_name_plural = "Countries"
+
+    def __str__(self):
+        return u'%s' % self.name
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+
+class State(models.Model):
+    name = models.CharField(max_length=50)
+    country = models.ForeignKey(Country, related_name='states')
+
+    class Meta:
+        verbose_name = "State"
+        verbose_name_plural = "States"
+
+    def __str__(self):
+        return u'%s' % self.name
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+
 class Plan(models.Model):
     name = models.CharField(max_length=100)
     isp = models.CharField(max_length=100)
