@@ -33,6 +33,31 @@ urlpatterns = [
         name='http-table-ajax'
     ),
     url(
+        r'^create/$',
+        views.CreateMutedInput.as_view(),
+        name='create-muted-input'
+    ),
+    url(
+        r'^list-muted-input/$',
+        views.ListMutedInput.as_view(),
+        name='list-muted-input'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/detail-muted-input/$',
+        views.DetailMutedInput.as_view(),
+        name='detail-muted-input'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/delete-muted-input/$',
+        views.DeleteMutedInput.as_view(),
+        name='delete-muted-input'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/edit-muted-input/$',
+        views.UpdateMutedInput.as_view(),
+        name='edit-muted-input'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'

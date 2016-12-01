@@ -1,0 +1,209 @@
+{% extends 'dashboard/layout.html' %}
+{% load staticfiles %}
+{% load bootstrap3 %}
+{% block content %}
+
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Event List</h3>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        <div class="responsive-table">
+            <table id="event-list" class="table table-bordered table-hover dataTable">
+                <thead>
+                    <tr>
+                        <td>ID</td>
+                        <th>Identification</th>
+                        <th>ISP</th>
+                        <th>Target</th>
+                        <th>Start</th>
+                        <th>Finish</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>Identification</th>
+                        <th>ISP</th>
+                        <th>Target</th>
+                        <th>Start</th>
+                        <th>Finish</th>
+                        <th>Status</th>
+                    </tr>
+                </tfoot>
+                {% for event in events %}
+                    <tr>
+                        <td>{{event.id}}</td>
+                        <td>{{event.identification}}</td>
+                        <td>{{event.isp}}</td>
+                        <td>{{event.target}}</td>
+                        <td>{{event.start_date.date}}</td>
+                        <td>
+                        {% if event.end_date %}
+                            {{event.end_date.date}}
+                        {% else %}
+                            open event ...
+                        {% endif %}
+                        
+                        </td>
+                        <td>{% if event.draft %} Borrador {% else %}
+                        Público {% endif %}</td>
+                    </tr>
+
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <!-- /.box-body -->
+    <div class="box-footer text-right">
+            <a class="btn btn-primary" data-toggle="modal" data-target="#myModalNorm" id="create">
+                Create New Case
+            </a>
+
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModalNorm"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" 
+                   data-dismiss="modal">
+                       <span aria-hidden="true">&times;</span>
+                       <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    Complete form to create a new case
+                </h4>
+            </div>
+            
+             <form action="." method="post">
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                </div>
+                
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default"
+                            data-dismiss="modal">
+                                Close
+                    </button>
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extrajs %}
+    <script>
+    $(document).ready(function () {
+        var table = $('#event-list').DataTable({
+            initComplete: function () {
+            this.api().columns().every( function () {
+                var column = this;
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.footer()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+
+                column.data().unique().sort().each( function ( d, j ) {
+                    if(column.search() === '^'+d+'$'){
+                        select.append( '<option value="'+d+'" selected="selected">'+d+'</option>' )
+                    } else {
+                        select.append( '<option value="'+d+'">'+d+'</option>' )
+                    }
+                    } );
+                } );
+            }
+        });
+        $( '#id_events' ).val('');
+
+        $('#event-list tbody').on('click', 'tr', function () {
+            $(this).toggleClass('selected');
+            $( '#id_events' ).val('');
+        });
+
+        $('#myModalNorm').on('shown.bs.modal', function() {
+          $('#id_start_date').datepicker({
+            format: "mm/dd/yyyy",
+            startDate: "01-01-2015",
+            endDate: "01-01-2020",
+            todayBtn: "linked",
+            autoclose: true,
+            todayHighlight: true
+          });
+          $('#id_end_date').datepicker({
+            format: "mm/dd/yyyy",
+            startDate: "01-01-2015",
+            endDate: "01-01-2020",
+            todayBtn: "linked",
+            autoclose: true,
+            todayHighlight: true
+          });
+        });
+        $('#create').click(function(e) {
+
+                /* Act on the event */
+                var events = [];
+                var start_dates= [];
+                var end_dates= [];
+                table.rows('.selected').eq(0).each(function(index) {
+                    var row = table.row(index);
+                    var id = row.data()[0];
+                    var start = row.data()[4];
+                    var end = row.data()[5];
+                    events.push(id);
+                    start_dates.push(new Date(start));
+                    if (end == "open event ..."){
+                        end = "12/31/9999";
+                    }
+                    end_dates.push(new Date(end));
+                });
+                $('input[name="events"]').val(events);
+                if (start_dates.length != 0){
+                    var date = start_dates.reduce(function (a, b) { return a < b ? a : b; })
+                    $('input[name="start_date"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear());
+                }
+                if (end_dates.length != 0){
+                    date = end_dates.reduce(function (a, b) { return a > b ? a : b; })
+                    if (date.getTime() === new Date("12/31/9999").getTime()){
+                        $('input[name="open_ended"]').prop('checked', true);
+                        $('input[name="end_date"]').val('');
+                    }else{
+                        $('input[name="open_ended"]').prop('checked', false);
+                        $('input[name="end_date"]').val((date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear());
+                        
+                    }
+                }
+            });
+
+    })
+
+    </script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <style>
+        .datepicker {
+          z-index: 1600 !important; /* has to be larger than 1050 */
+        }
+    </style>
+{% endblock extracss %}

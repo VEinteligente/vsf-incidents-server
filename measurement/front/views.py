@@ -1,18 +1,27 @@
 from django.shortcuts import render
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import logout
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
 from eztables.views import DatatablesView
 from django.utils.six import text_type
-from measurement.models import DNS, Flag, Metric
+from measurement.models import (
+    DNS,
+    Flag,
+    Metric,
+    MutedInput
+)
+from measurement.front.forms import MutedInputForm
 import re
 import json
 
 from dashboard.mixins import PageTitleMixin
+
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -38,6 +47,7 @@ class DBconnection(object):
         try:
             cursor = connections[self.db_name].cursor()
 
+            print "antes"
             cursor.execute(query)
             columns = [col[0].encode("ascii", "ignore")
                        for col in cursor.description]
@@ -51,6 +61,7 @@ class DBconnection(object):
             print e
 
         finally:
+            print "despues"
             connections['titan_db'].close()
 
 
@@ -61,12 +72,9 @@ class DNSTestKey(object):
 
     def get_queries(self):
         """Execute a query in the database.
-
-        Args:
-            query (str): SQL query
-
         Returns:
-            dict: A dictionary with data for columns and rows
+            dict: A list of dicts with data from test_keys
+                  queries
         """
         if self.queries:
             return self.queries
@@ -292,9 +300,8 @@ class MeasurementAjaxView(generic.View):
         database = DBconnection('titan_db')
         query = "select * from metrics"
 
-        print "antes"
         result = database.db_execute(query)
-        print "despues"
+
         if result:
             # Search every metric with flag in DB
             flags = Flag.objects.all().values('medicion', 'flag')
@@ -347,12 +354,10 @@ class DNSTableView(generic.TemplateView):
                               'dns name', 'dns result']
             columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
-            print "rows"
-            print rows
+
             # Answers
             ans = self.get_answers(rows)
-            print "ans"
-            print ans
+
             # Context data variables #
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
@@ -479,7 +484,7 @@ class TCPTableView(generic.TemplateView):
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, probe_cc, probe_ip, "
             query += "measurement_start_time "
-            query += "from metrics where test_name='web_connectivity' LIMIT 5"
+            query += "from metrics where test_name='web_connectivity'"
 
             result = database.db_execute(query)
 
@@ -640,6 +645,108 @@ class HTTPListDatatablesView(DatatablesView):
         )
 
 
+# Muted Input CRUD
+
+class ListMutedInput(PageTitleMixin, generic.ListView):
+    """ListMutedInput: ListView than
+    display a list of all muted inputs"""
+    model = MutedInput
+    template_name = "list_muted.html"
+    context_object_name = "mutes"
+    page_header = "Muted Inputs"
+    page_header_description = "List of muted inputs"
+    breadcrumb = ["Muted Inputs"]
+
+
+class CreateMutedInput(PageTitleMixin, generic.CreateView):
+    """CreateMutedInput: CreateView than
+    create a new MutedInput object in DB"""
+    form_class = MutedInputForm
+    page_header = "New Muted Input"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "New Muted Input"]
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+    template_name = 'create_muted.html'
+
+    def get_context_data(self, **kwargs):
+        
+        return super(CreateMutedInput, self).get_context_data(**kwargs)
+
+    def form_valid(self, form):
+
+        muted = form.save()
+        
+        if muted:
+            msg = 'Se ha creado el muted input'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo crear el muted input'
+            messages.error(self.request, msg)        
+
+        return HttpResponseRedirect(self.success_url)
+
+
+class DetailMutedInput(PageTitleMixin, generic.DetailView):
+    """DetailMutedInput: DetailView than
+    give the details of a specific MutedInput object"""
+    model = MutedInput
+    context_object_name = "mute"
+    template_name = "detail_muted.html"
+    page_header = "Muted Input Details"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "Muted Input Details"]
+
+
+class DeleteMutedInput(generic.DeleteView):
+    """DeleteMutedInput: DeleteView than delete an specific muted input."""
+    model = MutedInput
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+
+class UpdateMutedInput(PageTitleMixin, generic.UpdateView):
+    """UpdateMutedInput: UpdateView than
+    update an MutedInput object in DB"""
+    form_class = MutedInputForm
+    context_object_name = 'muted'
+    page_header = "Update Muted Input"
+    page_header_description = ""
+    breadcrumb = ["Muted Inputs", "Edit Muted Input"]
+    model = MutedInput
+    success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+    template_name = 'create_muted.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateMutedInput, self).get_context_data(**kwargs)
+        muted = self.get_object()
+        form = self.get_form_class()
+
+        # Initial data for the form
+        context['form'] = form(initial={'url': muted.url,
+                                        'type_med': muted.type_med
+                                        })
+
+        return context
+
+    def form_valid(self, form):
+       
+        muted = form.save()
+        
+        if muted:
+            msg = 'Se ha editado el muted input'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo editar el muted input'
+            messages.error(self.request, msg) 
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+######################## PRUEBA ######################################3
+
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
 class PruebaDataTable(generic.TemplateView):
 
     template_name = 'list.html'
@@ -648,11 +755,6 @@ class PruebaDataTable(generic.TemplateView):
         print "done"
 
         return super(PruebaDataTable, self).get(request, *args, **kwargs)
-
-
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
 
 class PruebaDataTableAjax(APIView):
