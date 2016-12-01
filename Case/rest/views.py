@@ -27,3 +27,12 @@ class DetailEventCaseRestView(generics.RetrieveAPIView):
     queryset = Case.objects.filter(draft=False)
     lookup_url_kwarg = 'case_id'
     serializer_class = DetailEventCaseSerializer
+
+
+class ListCaseView(generics.ListAPIView):
+
+    #authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Case.objects.filter(draft=False)
+    serializer_class = CaseSerializer

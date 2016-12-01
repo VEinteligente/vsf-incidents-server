@@ -48,7 +48,7 @@ class MutedInput(models.Model):
         (TCP, 'Medicion TCP'),
         (HTTP, 'Medicion HTTP')
     )
-    
+
     url = models.CharField(max_length=50)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
                                 max_length=50,
@@ -57,7 +57,7 @@ class MutedInput(models.Model):
 
     def __unicode__(self):
         return u"%s - %s" % (self.url, self.type_med)
-        
+
 
 class Plan(models.Model):
     name = models.CharField(max_length=100)

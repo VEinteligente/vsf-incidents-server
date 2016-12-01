@@ -11,8 +11,8 @@ from django.db.models import Q
 from eztables.views import DatatablesView
 from django.utils.six import text_type
 from measurement.models import (
-    DNS, 
-    Flag, 
+    DNS,
+    Flag,
     Metric,
     MutedInput
 )
@@ -47,6 +47,7 @@ class DBconnection(object):
         try:
             cursor = connections[self.db_name].cursor()
 
+            print "antes"
             cursor.execute(query)
             columns = [col[0].encode("ascii", "ignore")
                        for col in cursor.description]
@@ -60,6 +61,7 @@ class DBconnection(object):
             print e
 
         finally:
+            print "despues"
             connections['titan_db'].close()
 
 
@@ -298,9 +300,8 @@ class MeasurementAjaxView(generic.View):
         database = DBconnection('titan_db')
         query = "select * from metrics"
 
-        print "antes"
         result = database.db_execute(query)
-        print "despues"
+
         if result:
             # Search every metric with flag in DB
             flags = Flag.objects.all().values('medicion', 'flag')
@@ -353,12 +354,10 @@ class DNSTableView(generic.TemplateView):
                               'dns name', 'dns result']
             columns_final += columns[len(columns) / 2:]
             columns_final.remove('test_keys')
-            print "rows"
-            print rows
+
             # Answers
             ans = self.get_answers(rows)
-            print "ans"
-            print ans
+
             # Context data variables #
             context['rows'] = [dict(zip(columns_final, row)) for row in ans]
             context['columns'] = columns_final
@@ -485,7 +484,7 @@ class TCPTableView(generic.TemplateView):
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, probe_cc, probe_ip, "
             query += "measurement_start_time "
-            query += "from metrics where test_name='web_connectivity' LIMIT 5"
+            query += "from metrics where test_name='web_connectivity'"
 
             result = database.db_execute(query)
 
