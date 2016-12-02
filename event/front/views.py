@@ -200,7 +200,7 @@ class FlagsTable(DatatablesView):
         'Flag': 'flag',
         'Measurement': 'medicion',
         'Date': 'date',
-        'Target': 'target',
+        'Target': 'target__url',
         'ISP': 'isp',
         'IP Address': 'ip',
         'Measurement type': 'type_med'
@@ -222,7 +222,7 @@ class UpdateFlagsTable(DatatablesView):
         'Flag': 'flag',
         'Measurement': 'medicion',
         'Date': 'date',
-        'Target': 'target',
+        'Target': 'target__url',
         'ISP': 'isp',
         'IP Address': 'ip',
         'Measurement type': 'type_med'

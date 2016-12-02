@@ -58,9 +58,29 @@
                     </div>
                     <div class="box-footer text-right">
                         <input class="btn btn-flat btn-primary" type="submit" value="Update">
+                        <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Event</h4>
+                </div>
+                <form id="event-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure of this action? It will delete all data asociated to {{ event.identification }}</p>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-danger" value="Confirm" />
+                </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -99,13 +119,18 @@
             "aoColumns": [
                 { "mData": "Measurement" },
                 { "mData": "Flag",  "mRender": function ( data ) {
-                        if (data){
-                            return '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>';
+                       var flag_icon = "";
+                        if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
                         }
-                        else{
-                            return '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>';
+                        if (data == false){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                        }
+                        if (data == null){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                        }
 
-                        }
+                        return flag_icon;
                     }
                 },
                 { "mData": 'Date' },
@@ -149,6 +174,16 @@
             }
         });
 
-    })
+    });
+
+    $(function() {
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#event-delete-form').attr('action', url);
+            });
+        })
 </script>
 {% endblock %}

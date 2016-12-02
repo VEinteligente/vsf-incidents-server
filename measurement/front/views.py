@@ -48,7 +48,6 @@ class DBconnection(object):
         try:
             cursor = connections[self.db_name].cursor()
 
-            print "antes"
             cursor.execute(query)
             columns = [col[0].encode("ascii", "ignore")
                        for col in cursor.description]
@@ -62,7 +61,6 @@ class DBconnection(object):
             print e
 
         finally:
-            print "despues"
             connections['titan_db'].close()
 
 
@@ -160,7 +158,7 @@ class DNSTestKey(object):
                 ips_required = [dns.ip
                                 for dns in
                                 DNS.objects.filter(Q(isp='digitel'))]
-            
+
             if list_public_dns:
 
                 self.ignore_data_from_list(list_public_dns)
@@ -289,7 +287,7 @@ class MeasurementTableView(PageTitleMixin, generic.TemplateView):
         #         row.update({'flag': flag_value})
         #     context['rows'] = result['rows']
         #     context['columns'] = result['columns']
-        context['columns'] = ['flag','id']
+        context['columns'] = ['flag','id', 'test_keys']
 
         return context
 
@@ -338,7 +336,7 @@ class DNSTableView(generic.TemplateView):
             # Create database object #
             database = DBconnection('titan_db')
             query = "select id, input, test_keys, measurement_start_time "
-            query += "from metrics where test_name='dns_consistency' LIMIT 5"
+            query += "from metrics where test_name='dns_consistency' "
 
             result = database.db_execute(query)
             rows = {}
@@ -384,11 +382,14 @@ class DNSTableView(generic.TemplateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get sonda isp and public DNS #
-            if row['annotations']:
+            if 'annotation' in row:
                 probe = Probe.objects.get(identification=row['annotation']['probe'])
                 dns_isp = probe.isp
             else:
                 dns_isp = None
+
+            if dns_isp is None:
+                dns_isp = 'Unknown'
 
             # dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
             public_dns = [dns.ip

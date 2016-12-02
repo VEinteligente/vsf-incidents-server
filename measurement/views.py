@@ -13,7 +13,11 @@ from event.models import (
     Url
 )
 from django.db.models import (
-    Q, Count, Case, When, CharField
+    Q,
+    Count,
+    Case,
+    When,
+    CharField
 )
 from measurement.front.views import DBconnection, DNSTestKey
 import json
@@ -113,11 +117,14 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
-            if row['annotations']:
+            if 'annotation' in row:
                 probe = Probe.objects.get(identification=row['annotation']['probe'])
                 dns_isp = probe.isp
             else:
                 dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
 
             # dns_isp = 'cantv' # POR AHORA
             public_dns = [dns.ip
@@ -169,22 +176,15 @@ class UpdateFlagView(generic.UpdateView):
                                     dns_isp = 'Unknown'
                                     flag = None
 
-                                url, created = Url.objects\
-                                                  .get_or_create(
-                                                        first_name='John',
-                                                        last_name='Lennon',
-                                                        defaults={'birthday': date(1940, 10, 9)},
-)
-
                                 flag = Flag.objects.create(medicion=row['id'],
                                                            date=date,
-                                                           target=row['input'],
+                                                           target=url,
                                                            isp=dns_isp,
                                                            region='CCS',
                                                            ip=dns_name,
                                                            flag=flag,
                                                            type_med='DNS')
-                                flag.save(using='default')                               
+                                flag.save(using='default')
 
                         else:
 
@@ -212,7 +212,7 @@ class UpdateFlagView(generic.UpdateView):
                                     flag = Flag.objects.create(ip=dns_name,
                                                                flag=flag,
                                                                date=date,
-                                                               target=row['input'],
+                                                               target=url,
                                                                isp=dns_isp,
                                                                region='CCS',
                                                                medicion=row['id'],
@@ -232,11 +232,14 @@ class UpdateFlagView(generic.UpdateView):
             date = row['measurement_start_time']
             probe = None
 
-            if row['annotations']:
+            if 'annotation' in row:
                 probe = Probe.objects.get(identification=row['annotation']['probe'])
                 dns_isp = probe.isp
             else:
                 dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
 
             for tcp in tcp_connect:
 
@@ -255,8 +258,8 @@ class UpdateFlagView(generic.UpdateView):
                         flag = Flag.objects.create(ip=tcp['ip'],
                                                    flag=flag,
                                                    date=date,
-                                                   target=row['input'],
-                                                   isp='cantv',
+                                                   target=url,
+                                                   isp=dns_isp,
                                                    region='CCS',
                                                    medicion=row['id'],
                                                    type_med='TCP')
@@ -273,11 +276,14 @@ class UpdateFlagView(generic.UpdateView):
 
             date = row['measurement_start_time']
 
-            if row['annotations']:
+            if 'annotation' in row:
                 probe = Probe.objects.get(identification=row['annotation']['probe'])
                 dns_isp = probe.isp
             else:
                 dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
 
             if not test_key.get_headers_match() and \
                not test_key.get_body_length_match() or \
@@ -297,7 +303,7 @@ class UpdateFlagView(generic.UpdateView):
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
                                                flag=flag,
                                                date=date,
-                                               target=row['input'],
+                                               target=url,
                                                isp=dns_isp,
                                                region='CCS',
                                                medicion=row['id'],
@@ -351,14 +357,14 @@ class UpdateFlagView(generic.UpdateView):
             ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
             flags = Flag.objects\
-                    .filter(medicion__in=ids)
+                        .filter(medicion__in=ids)
 
             result = flags\
-                         .values('isp','target','type_med','region')\
-                         .annotate(total_soft=Count(Case(
-                                   When(flag=False, then=1),
-                                   output_field=CharField())))\
-                         .filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+                        .values('isp', 'target', 'type_med', 'region')\
+                        .annotate(total_soft=Count(Case(
+                                  When(flag=False, then=1),
+                                  output_field=CharField())))\
+                        .filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
 
             if result:
 
