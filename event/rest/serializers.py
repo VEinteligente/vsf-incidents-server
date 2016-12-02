@@ -8,6 +8,7 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
+        fields = ('isp', 'start_date', 'end_date', 'target', 'identification', 'type')
 
 
 class UrlSerializer(serializers.ModelSerializer):

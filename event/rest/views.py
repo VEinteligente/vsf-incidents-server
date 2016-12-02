@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
-from .serializers import UrlSerializer, SiteSerializer
+from .serializers import UrlSerializer, SiteSerializer, EventSerializer
 
 from event.models import Event, Url, Site
 
@@ -51,3 +51,11 @@ class BlockedSites(BlockedDomains):
         site_list = queryset.values('site')
         queryset = Site.objects.filter(id__in=site_list)
         return queryset
+
+
+class EventList(generics.ListAPIView):
+
+    permission_classes = (AllowAny,)
+
+    queryset = Event.objects.filter(draft=False)
+    serializer_class = EventSerializer
