@@ -257,4 +257,3 @@ class ListEventSuggestedFlags(PageTitleMixin, generic.ListView):
     breadcrumb = ["Events", "Event Suggestions"]
     queryset = Event.objects.exclude(
         suggested_events=None).prefetch_related('suggested_events', 'flags')
-

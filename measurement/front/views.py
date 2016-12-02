@@ -14,7 +14,8 @@ from measurement.models import (
     DNS,
     Flag,
     Metric,
-    MutedInput
+    MutedInput,
+    Probe
 )
 from measurement.front.forms import MutedInputForm
 import re
@@ -150,15 +151,16 @@ class DNSTestKey(object):
             # Find ip list #
             # from sonda_isp provider #
             # Output: ip list #
-            ips_required = [dns.ip
-                            for dns in
-                            DNS.objects.filter(Q(isp=sonda_isp) |
-                                               Q(isp='digitel'))]
-
-            # Leave only ips from ips_required list #
-            self.left_data_from_list(ips_required)
-
-            # Ignore ips registered as public access #
+            if sonda_isp:
+                ips_required = [dns.ip
+                                for dns in
+                                DNS.objects.filter(Q(isp=sonda_isp) |
+                                                   Q(isp='digitel'))]
+            else:
+                ips_required = [dns.ip
+                                for dns in
+                                DNS.objects.filter(Q(isp='digitel'))]
+            
             if list_public_dns:
 
                 self.ignore_data_from_list(list_public_dns)
@@ -382,7 +384,13 @@ class DNSTableView(generic.TemplateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get sonda isp and public DNS #
-            dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
+            if row['annotations']:
+                probe = Probe.objects.get(identification=row['annotation']['probe'])
+                dns_isp = probe.isp
+            else:
+                dns_isp = None
+
+            # dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 

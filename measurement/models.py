@@ -78,7 +78,7 @@ class MutedInput(models.Model):
         (HTTP, 'Medicion HTTP')
     )
 
-    url = models.CharField(max_length=50)
+    url = models.URLField()
     type_med = models.CharField(verbose_name='Tipo de Medicion',
                                 max_length=50,
                                 choices=TYPE_CHOICES,
@@ -179,7 +179,7 @@ class Flag(models.Model):
     target = models.ForeignKey(Url)
     isp = models.CharField(max_length=100)
     probe = models.ForeignKey(
-        Probe, related_name='flags')
+        Probe, null=True, blank=True, related_name='flags')
     ip = models.GenericIPAddressField()
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
@@ -194,7 +194,6 @@ class Flag(models.Model):
 
     def __unicode__(self):
         return u"%s - %s - %s" % (self.medicion, self.ip, self.type_med)
-
 
 
 
