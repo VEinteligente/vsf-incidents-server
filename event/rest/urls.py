@@ -13,5 +13,10 @@ urlpatterns = [
         views.BlockedSites.as_view(),
         name='blocked_sites'
     ),
+    url(
+        r'^list/$',
+        views.EventList.as_view(),
+        name='list'
+    ),
 
 ]

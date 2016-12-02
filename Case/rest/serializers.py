@@ -6,6 +6,7 @@ from event.rest.serializers import EventSerializer
 
 
 class CaseSerializer(serializers.ModelSerializer):
+    events = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Case

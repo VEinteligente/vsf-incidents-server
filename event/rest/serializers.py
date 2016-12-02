@@ -6,8 +6,11 @@ class EventSerializer(serializers.ModelSerializer):
     """EventSerializer: ModelSerializer
     for serialize a list of events"""
 
+    target = serializers.StringRelatedField()
+
     class Meta:
         model = Event
+        fields = ('isp', 'start_date', 'end_date', 'target', 'identification', 'type')
 
 
 class UrlSerializer(serializers.ModelSerializer):
