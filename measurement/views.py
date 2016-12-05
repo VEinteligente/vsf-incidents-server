@@ -2,9 +2,22 @@ from django.shortcuts import render
 from django.views import generic
 from django.http import HttpResponse
 from datetime import datetime
-from measurement.models import Flag, DNS, Metric
+from measurement.models import (
+    Flag,
+    DNS,
+    Metric,
+    Probe,
+    MutedInput
+)
+from event.models import (
+    Url
+)
 from django.db.models import (
-    Q, Count, Case, When, CharField
+    Q,
+    Count,
+    Case,
+    When,
+    CharField
 )
 from measurement.front.views import DBconnection, DNSTestKey
 import json
@@ -78,10 +91,15 @@ class UpdateFlagView(generic.UpdateView):
             # Update HTTP Flags #
             update_http = self.update_http_flags(rows_tcp)
 
+            # Update Muted Flags #
+            update_muted_flags = self.update_muted_flags()
+
             # Update Hard Flags #
             update_hard_flags = self.update_hard_flags()
 
-            if update_dns and update_tcp and update_http and update_hard_flags:
+            if update_dns and update_tcp and \
+               update_http and update_hard_flags and \
+               update_muted_flags:
 
                 return HttpResponse(status=200)
 
@@ -99,7 +117,16 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
-            dns_isp = 'cantv' # POR AHORA
+            if 'annotation' in row:
+                probe = Probe.objects.get(identification=row['annotation']['probe'])
+                dns_isp = probe.isp
+            else:
+                dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
+
+            # dns_isp = 'cantv' # POR AHORA
             public_dns = [dns.ip
                           for dns in DNS.objects.filter(public=True)]
 
@@ -129,6 +156,11 @@ class UpdateFlagView(generic.UpdateView):
 
                         dns_name = query['resolver_hostname']
 
+                        # If dns_name is in DNS table, find its isp #
+                        if DNS.objects.filter(ip=dns_name).exists():
+                            dns_isp = DNS.objects\
+                                         .get(ip=dns_name).isp
+
                         # If query doesn't has failure, then find dns result #
                         # from answer type A and later compare it with control #
                         # resolver #
@@ -138,14 +170,21 @@ class UpdateFlagView(generic.UpdateView):
                                                        ip=dns_name,
                                                        type_med='DNS').exists():
 
+                                flag = False
+
+                                if dns_isp is None:
+                                    dns_isp = 'Unknown'
+                                    flag = None
+
                                 flag = Flag.objects.create(medicion=row['id'],
                                                            date=date,
-                                                           target=row['input'],
+                                                           target=url,
                                                            isp=dns_isp,
                                                            region='CCS',
                                                            ip=dns_name,
+                                                           flag=flag,
                                                            type_med='DNS')
-                                flag.save(using='default')                               
+                                flag.save(using='default')
 
                         else:
 
@@ -164,9 +203,16 @@ class UpdateFlagView(generic.UpdateView):
                                                            medicion=row['id'],
                                                            type_med='DNS').exists():
 
+                                    flag = False
+
+                                    if dns_isp is None:
+                                        dns_isp = 'Unknown'
+                                        flag = None
+
                                     flag = Flag.objects.create(ip=dns_name,
+                                                               flag=flag,
                                                                date=date,
-                                                               target=row['input'],
+                                                               target=url,
                                                                isp=dns_isp,
                                                                region='CCS',
                                                                medicion=row['id'],
@@ -184,6 +230,16 @@ class UpdateFlagView(generic.UpdateView):
             tcp_connect = test_key.get_tcp_connect()
 
             date = row['measurement_start_time']
+            probe = None
+
+            if 'annotation' in row:
+                probe = Probe.objects.get(identification=row['annotation']['probe'])
+                dns_isp = probe.isp
+            else:
+                dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
 
             for tcp in tcp_connect:
 
@@ -193,10 +249,17 @@ class UpdateFlagView(generic.UpdateView):
                                                medicion=row['id'],
                                                type_med='TCP').exists():
 
+                        flag = False
+
+                        if dns_isp is None:
+                            dns_isp = 'Unknown'
+                            flag = None
+
                         flag = Flag.objects.create(ip=tcp['ip'],
+                                                   flag=flag,
                                                    date=date,
-                                                   target=row['input'],
-                                                   isp='cantv',
+                                                   target=url,
+                                                   isp=dns_isp,
                                                    region='CCS',
                                                    medicion=row['id'],
                                                    type_med='TCP')
@@ -213,6 +276,15 @@ class UpdateFlagView(generic.UpdateView):
 
             date = row['measurement_start_time']
 
+            if 'annotation' in row:
+                probe = Probe.objects.get(identification=row['annotation']['probe'])
+                dns_isp = probe.isp
+            else:
+                dns_isp = None
+
+            url, created = Url.objects\
+                              .get_or_create(url=row['input'])
+
             if not test_key.get_headers_match() and \
                not test_key.get_body_length_match() or \
                not test_key.get_status_code_match():
@@ -221,14 +293,35 @@ class UpdateFlagView(generic.UpdateView):
                                            medicion=row['id'],
                                            type_med='HTTP').exists():
 
+                    flag = False
+
+                    if dns_isp is None:
+                        dns_isp = 'Unknown'
+                        flag = None
+
+
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
+                                               flag=flag,
                                                date=date,
-                                               target=row['input'],
-                                               isp='cantv',
+                                               target=url,
+                                               isp=dns_isp,
                                                region='CCS',
                                                medicion=row['id'],
                                                type_med='HTTP')
                     flag.save(using='default')
+
+        return True
+
+    def update_muted_flags(self):
+
+        muted_list = MutedInput.objects.values_list('url')
+        type_list = MutedInput.objects.values_list('type_med')
+
+        flags = Flag.objects.filter(flag=False,
+                                    target__url__in=muted_list,
+                                    type_med__in=type_list)
+
+        flags.update(flag=None)
 
         return True
 
@@ -264,14 +357,14 @@ class UpdateFlagView(generic.UpdateView):
             ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
             flags = Flag.objects\
-                    .filter(medicion__in=ids)
+                        .filter(medicion__in=ids)
 
             result = flags\
-                         .values('isp','target','type_med','region')\
-                         .annotate(total_soft=Count(Case(
-                                   When(flag=False, then=1),
-                                   output_field=CharField())))\
-                         .filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+                        .values('isp', 'target', 'type_med', 'region')\
+                        .annotate(total_soft=Count(Case(
+                                  When(flag=False, then=1),
+                                  output_field=CharField())))\
+                        .filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
 
             if result:
 

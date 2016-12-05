@@ -200,7 +200,7 @@ class FlagsTable(DatatablesView):
         'Flag': 'flag',
         'Measurement': 'medicion',
         'Date': 'date',
-        'Target': 'target',
+        'Target': 'target__url',
         'ISP': 'isp',
         'IP Address': 'ip',
         'Measurement type': 'type_med'
@@ -222,7 +222,7 @@ class UpdateFlagsTable(DatatablesView):
         'Flag': 'flag',
         'Measurement': 'medicion',
         'Date': 'date',
-        'Target': 'target',
+        'Target': 'target__url',
         'ISP': 'isp',
         'IP Address': 'ip',
         'Measurement type': 'type_med'
@@ -257,4 +257,3 @@ class ListEventSuggestedFlags(PageTitleMixin, generic.ListView):
     breadcrumb = ["Events", "Event Suggestions"]
     queryset = Event.objects.exclude(
         suggested_events=None).prefetch_related('suggested_events', 'flags')
-
