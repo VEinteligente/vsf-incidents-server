@@ -7,7 +7,6 @@ from serializers import (
 )
 from Case.models import Case
 
-# Create your views here.
 
 class DetailCaseRestView(generics.RetrieveAPIView):
 

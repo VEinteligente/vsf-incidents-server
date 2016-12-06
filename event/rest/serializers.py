@@ -21,6 +21,12 @@ class UrlSerializer(serializers.ModelSerializer):
 
 
 class SiteSerializer(serializers.ModelSerializer):
+    domains = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_domains(obj):
+        dm = Url.objects.filter(site=obj)
+        return UrlSerializer(dm, many=True).data
 
     class Meta:
         model = Site
