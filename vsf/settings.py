@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djangojs',
+    'eztables',
     'rest_framework',
     'rest_framework.authtoken',
     'bootstrap3',
