@@ -12,15 +12,26 @@ def suggestedEvents(flag):
         flag: Flag object with a hard flag data
     """
     try:
+        # get all types of event according the hard flag
+        eventTypes = getEventTypes(flag)
+
         # searching for events open ended with same target, same isp,
         # and with associated flags with que same region
 
         # this filter will return a queryset with duplicate events
-        events = Event.objects.filter(
-            isp=flag.isp,
-            target=flag.target,
-            end_date=None,
-            flags__probe__region=flag.probe.region)
+        if eventTypes:
+            events = Event.objects.filter(
+                isp=flag.isp,
+                target=flag.target,
+                end_date=None,
+                type__in=eventTypes,
+                flags__probe__region=flag.probe.region)
+        else:
+            events = Event.objects.filter(
+                isp=flag.isp,
+                target=flag.target,
+                end_date=None,
+                flags__probe__region=flag.probe.region)
 
         # eliminate duplicate events in queryset
         # defining a set with the queryset
@@ -51,17 +62,28 @@ def suggestedFlags(event):
         for flag in event.suggested_events.all():
             regions.append(flag.probe.region)
 
+        # get all types of flags according the event
+        flagTypes = getFlagTypes(event)
+
         # searching for all unassigned hard flags with same target, same isp,
         # and same region in the list of regions
 
         # this filter will return a queryset with duplicate flags
-
-        flags = Flag.objects.filter(
-            flag=True,
-            event=None,
-            target=event.target,
-            isp=event.isp,
-            region__in=regions)
+        if flagTypes:
+            flags = Flag.objects.filter(
+                flag=True,
+                event=None,
+                target=event.target,
+                isp=event.isp,
+                region__in=regions,
+                type_med__in=flagTypes)
+        else:
+            flags = Flag.objects.filter(
+                flag=True,
+                event=None,
+                target=event.target,
+                isp=event.isp,
+                region__in=regions)
 
         # eliminate duplicate flags in queryset
         # defining a set with the queryset
@@ -74,3 +96,45 @@ def suggestedFlags(event):
         return True
     except Exception:
         return False
+
+
+def getFlagTypes(event):
+    """
+    getFlagTypes: Function than return a list with all flag types according
+    to que event (parameter). It can return a empty list[]
+    Args:
+        event: Event object
+    """
+    flagTypes = []
+    if (event.type == 'bloqueo por DNS'):
+        flagTypes.append('DNS')
+    if (event.type == 'bloqueo por IP'):
+        flagTypes.append('TCP')
+    if (event.type == 'falla de dns'):
+        flagTypes.append('DNS')
+        flagTypes.append('TCP')
+    if (event.type == 'Interceptacion de trafico') or (
+        event.type == 'alteracion de trafico por intermediarios'
+    ):
+        flagTypes.append('HTTP')
+    return flagTypes
+
+
+def getEventTypes(flag):
+    """
+    getEventTypes: Function than return a list with all event types according
+    to the flag (parameter). It can return a empty list[]
+    Args:
+        flag: Flag object
+    """
+    eventTypes = []
+    if (flag.type_med == 'DNS'):
+        eventTypes.append('bloqueo por DNS')
+        eventTypes.append('falla de dns')
+    if (flag.type_med == 'TCP'):
+        eventTypes.append('bloqueo por IP')
+        eventTypes.append('falla de dns')
+    if (flag.type_med == 'HTTP'):
+        eventTypes.append('Interceptacion de trafico')
+        eventTypes.append('alteracion de trafico por intermediarios')
+    return eventTypes
