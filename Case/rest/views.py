@@ -10,7 +10,6 @@ from serializers import (
 from Case.models import Case
 from measurement.models import State
 
-# Create your views here.
 
 
 class DetailCaseRestView(generics.RetrieveAPIView):
