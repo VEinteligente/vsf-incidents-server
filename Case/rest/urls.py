@@ -17,4 +17,9 @@ urlpatterns = [
         views.DetailEventCaseRestView.as_view(),
         name='detail-event-case-rest'
     ),
+    url(
+        r'^list/region/$',
+        views.ListRegionCaseView.as_view(),
+        name='list-region-case-rest'
+    ),
 ]

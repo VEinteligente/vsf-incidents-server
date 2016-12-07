@@ -132,15 +132,11 @@ class Probe(models.Model):
         ('venezuela', 'Venezuela'),
     )
     identification = models.CharField(max_length=50)
-    region = models.CharField(
-        max_length=50,
-        choices=STATES_CHOICES,
-        default='distrito_capital'
+    region = models.ForeignKey(
+        State, related_name='probes', default=3479
     )
-    country = models.CharField(
-        max_length=50,
-        choices=COUNTRIES_CHOICES,
-        default='venezuela'
+    country = models.ForeignKey(
+        Country, related_name='probes', default=231
     )
     city = models.CharField(max_length=100)
     isp = models.CharField(max_length=100)
