@@ -85,7 +85,7 @@
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
                                     <li><a href={% url 'events:event_front:change-event-status' event.id %}>{% if event.draft %}Change status to Public{% else %}Change status to Draft{% endif %}</a></li>
-                                    <li> <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a></li>
+                                    <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{event.id}}">Delete</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -100,7 +100,7 @@
                             </div>
                             <form id="event-delete-form" action="" method="post">{% csrf_token %}
                                 <div class="modal-body">
-                                    <p>Are you sure of this action? It will delete all data asociated to {{ event.identification }}</p>
+                                    <p>Are you sure of this action? It will delete all data asociated to this event</p>
                                 </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

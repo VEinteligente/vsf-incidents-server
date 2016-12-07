@@ -88,7 +88,7 @@ class DNSMeasurementSerializer(MeasurementSerializer):
         """
         return "cantv"  # for now
 
-    def get_control_result(self,obj):
+    def get_control_result(self, obj):
         """Get control results
 
         Args:

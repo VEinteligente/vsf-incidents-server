@@ -49,7 +49,7 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         for f in flags:
             split = f.split('/')
             flag = Flag.objects.filter(medicion=split[0],
-                                       target=split[1],
+                                       target__url=split[1],
                                        isp=split[2],
                                        ip=split[3],
                                        type_med=split[4])
@@ -116,7 +116,7 @@ class UpdateEvent(CreateEvent,
         flags_str = ''
 
         for f in flags:
-            flags_str += f.medicion + '/' + f.target + '/' + \
+            flags_str += f.medicion + '/' + f.target.url + '/' + \
                          f.isp + '/' + f.ip + '/' + f.type_med + ' '
 
         open_ended = False
