@@ -5,11 +5,13 @@ from django.db.models import Count
 from serializers import (
     DetailEventCaseSerializer,
     CaseSerializer,
-    RegionCaseSerializer
+    RegionCaseSerializer,
+    CaseFilter
 )
 from Case.models import Case
 from measurement.models import State
 
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class DetailCaseRestView(generics.RetrieveAPIView):
@@ -54,3 +56,14 @@ class ListRegionCaseView(generics.ListAPIView):
         num=Count('probes__flags__event__cases')).filter(
         num__gt=0)
     serializer_class = RegionCaseSerializer
+
+
+class ListCaseFilterView(generics.ListAPIView):
+    """ListCaseFilterView: ListAPIView
+    for displaying a list of cases filtered by
+    title, start date, end date, category and region"""
+    permission_classes = (AllowAny,)
+    queryset = Case.objects.filter(draft=False)
+    serializer_class = CaseSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = CaseFilter

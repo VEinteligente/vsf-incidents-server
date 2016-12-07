@@ -22,4 +22,9 @@ urlpatterns = [
         views.ListRegionCaseView.as_view(),
         name='list-region-case-rest'
     ),
+    url(
+        r'^list-case-filter/$',
+        views.ListCaseFilterView.as_view(),
+        name='list-case-filter-rest'
+    ),
 ]

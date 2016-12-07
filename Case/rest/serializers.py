@@ -5,6 +5,8 @@ from Case.models import Case
 from measurement.models import State
 from event.rest.serializers import EventSerializer
 
+import django_filters
+
 
 class CaseSerializer(serializers.ModelSerializer):
     """CaseSerializer: ModelSerializer
@@ -82,3 +84,18 @@ class RegionCaseSerializer(RegionSerializer):
             events__flags__probe__region=obj)
         cases = set(cases)
         return len(cases)
+
+
+# Django Filter
+
+class CaseFilter(django_filters.FilterSet):
+    region = django_filters.CharFilter(
+        name='events__flags__region',
+        distinct=True
+    )
+    start_date = django_filters.DateFilter()
+    end_date = django_filters.DateFilter()
+
+    class Meta:
+        model = Case
+        fields = ('title', 'category', 'start_date', 'end_date', 'region')
