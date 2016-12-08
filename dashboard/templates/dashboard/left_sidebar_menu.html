@@ -42,6 +42,16 @@
         <li><a href="{% url 'measurements:measurement_front:create-muted-input' %}"><span class="opt-name">New Muted Input</span></a></li>
     </ul>
 </li>
+<li class="treeview">
+    <a href="#">
+        <span class="opt-name">Probes</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+    </a>
+    <ul class="treeview-menu">
+        <li><a href="{% url 'measurements:measurement_front:list-probe' %}"><span class="opt-name">List Probes</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:create-probe' %}"><span class="opt-name">New Probe</span></a></li>
+    </ul>
+</li>
 <!-- <li class="treeview">
     <a href="#">
         <i class="fa fa-fw fa-flask"></i> <span class="opt-name">Medicamentos</span>

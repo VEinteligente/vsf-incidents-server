@@ -58,6 +58,31 @@ urlpatterns = [
         name='edit-muted-input'
     ),
     url(
+        r'^create-probe/$',
+        views.CreateProbe.as_view(),
+        name='create-probe'
+    ),
+    url(
+        r'^list-probe/$',
+        views.ListProbe.as_view(),
+        name='list-probe'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/detail-probe/$',
+        views.DetailProbe.as_view(),
+        name='detail-probe'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/delete-probe/$',
+        views.DeleteProbe.as_view(),
+        name='delete-probe'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/edit-probe/$',
+        views.UpdateProbe.as_view(),
+        name='edit-probe'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
