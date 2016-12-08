@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 from event.models import Event, Url, Site
 
@@ -25,7 +26,15 @@ class SiteSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_domains(obj):
-        dm = Url.objects.filter(site=obj)
+
+        events = Event.objects.filter(
+            Q(type='bloqueo por DPI') |
+            Q(type='bloqueo por DNS') |
+            Q(type='bloqueo por IP')
+        )
+        url_list = events.values('target')
+
+        dm = Url.objects.filter(site=obj, id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
     class Meta:
