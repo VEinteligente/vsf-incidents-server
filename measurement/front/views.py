@@ -757,7 +757,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.query import QuerySet
-from django.db.models import F, CharField, IntegerField, Value, Count
+from django.db.models import F, CharField, BooleanField, IntegerField, Value, Count
 
 
 class PruebaDataTable(generic.TemplateView):
@@ -788,7 +788,7 @@ class PruebaDataTableAjax(DatatablesView):
             print "---hey--"
             queryset = self.queryset
             if isinstance(queryset, QuerySet):
-                queryset = queryset.annotate(toto=F('test_keys').__class__.__name__).all()
+                queryset = queryset.annotate(toto=Value('test_keys__headers_match'), output_field=CharField()).all()
         elif self.model is not None:
             queryset = self.model._default_manager.all()
         else:
