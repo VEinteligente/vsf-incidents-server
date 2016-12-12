@@ -13,6 +13,7 @@ class CaseSerializer(serializers.ModelSerializer):
     for serialize a Case object with an additional attribute isp"""
     events = serializers.StringRelatedField(many=True)
     isp = serializers.SerializerMethodField()
+    region = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -30,6 +31,21 @@ class CaseSerializer(serializers.ModelSerializer):
         for event in obj.events.all():
             isp.append(event.isp)
         return isp
+
+    def get_region(self, obj):
+        """Region List value of a case
+
+        Args:
+            obj: Case object
+
+        Returns:
+            region: list of regions of all events in the case (obj)
+        """
+        region = []
+        for event in obj.events.all():
+            for flag in event.flags.all():
+                region.append(flag.region)
+        return list(set(region))
 
 
 class DetailEventCaseSerializer(serializers.ModelSerializer):
