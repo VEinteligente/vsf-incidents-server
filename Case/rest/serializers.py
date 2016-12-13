@@ -3,7 +3,8 @@ import json
 from rest_framework import serializers
 from Case.models import Case
 from measurement.models import State
-from event.rest.serializers import EventSerializer
+from event.rest.serializers import EventSerializer, UrlSerializer
+from event.models import Url
 
 import django_filters
 
@@ -14,6 +15,7 @@ class CaseSerializer(serializers.ModelSerializer):
     events = serializers.StringRelatedField(many=True)
     isp = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
+    domains = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -46,6 +48,11 @@ class CaseSerializer(serializers.ModelSerializer):
             for flag in event.flags.all():
                 region.append(flag.region)
         return list(set(region))
+
+    def get_domains(self, obj):
+        url_list = obj.events.all().values('target')
+        dm = Url.objects.filter(id__in=url_list)
+        return UrlSerializer(dm, many=True).data
 
 
 class DetailEventCaseSerializer(serializers.ModelSerializer):
@@ -111,7 +118,15 @@ class CaseFilter(django_filters.FilterSet):
     )
     start_date = django_filters.DateFilter()
     end_date = django_filters.DateFilter()
+    domain = django_filters.CharFilter(
+        name='events__target__url',
+        distinct=True
+    )
+    site = django_filters.CharFilter(
+        name='events__target__site__name',
+        distinct=True
+    )
 
     class Meta:
         model = Case
-        fields = ('title', 'category', 'start_date', 'end_date', 'region')
+        fields = ('title', 'category', 'start_date', 'end_date', 'region', 'domain', 'site')
