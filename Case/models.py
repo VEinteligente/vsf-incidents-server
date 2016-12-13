@@ -35,7 +35,7 @@ class Update(models.Model):
         ('positivo', 'Positivo')
     )
 
-    date = models.DateTimeField()
+    date = models.DateField()
     title = models.CharField(max_length=100)
     text = models.TextField()
     category = models.CharField(choices=TYPE, max_length=20)
@@ -46,3 +46,6 @@ class Update(models.Model):
         null=True, blank=True
     )
     created = models.DateField(default=d.today)
+
+    def __unicode__(self):
+        return u"%s" % self.title

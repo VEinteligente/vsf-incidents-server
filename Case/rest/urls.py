@@ -18,6 +18,11 @@ urlpatterns = [
         name='detail-event-case-rest'
     ),
     url(
+        r'^detail_update/(?P<case_id>[0-9]+)/$',
+        views.DetailUpdateCaseRestView.as_view(),
+        name='detail-update-case-rest'
+    ),
+    url(
         r'^list/region/$',
         views.ListRegionCaseView.as_view(),
         name='list-region-case-rest'
