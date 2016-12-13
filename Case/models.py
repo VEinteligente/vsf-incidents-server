@@ -21,8 +21,8 @@ class Case(models.Model):
 
     title = models.CharField(max_length=100)
     description = models.TextField()
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField(null=True, blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
     category = models.CharField(choices=TYPE_CATEGORIES, max_length=20)
     draft = models.BooleanField(default=True)
     events = models.ManyToManyField(Event, related_name="cases")

@@ -11,7 +11,6 @@ from Case.models import Case
 from measurement.models import State
 
 
-
 class DetailCaseRestView(generics.RetrieveAPIView):
     """DetailCaseRestView: RetrieveAPIView
     for displaying a specific case"""

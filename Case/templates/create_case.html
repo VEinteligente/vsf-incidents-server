@@ -2,6 +2,7 @@
 {% load bootstrap3 %}
 
 {% block content %}
+<!-- This html works for create and update a case. For update a case, may create, edit and eliminate all update associated to the case -->
     <div class="row">
         <div class="col-md-12">
             <form action="." method="post">
@@ -16,6 +17,32 @@
                     </div>
                     <div class="box-body">
                         {% bootstrap_form form %}
+                        <!-- Only for Update a case Begin-->
+                        {% if case %}
+                            {{ update_form.management_form }} 
+                            {{ update_form.non_field_errors }}
+                            
+                            <div class="box box-solid box-primary">
+                                 <div class="box-header with-border">
+                                    <h3 class="box-title">Update(s) associated:</h3>
+                                </div>
+                                <div class="box-body">
+                                    <div id="items-form-container">
+                                        {% for update in update_form %}
+                                        <div class='update-form'>
+                                            {% bootstrap_form update %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="box-footer">
+                                    <a href="#" class="add-item">Add Update ..</a>
+                                </div>
+                            </div>
+ 
+                        {% endif %}
+                        <!-- Only for Update a case End-->
+
                         <div class="box box-solid box-primary">
                             <div class="box-header with-border">
                                 <h3 class="box-title"> Select Event(s)</h3>
@@ -37,7 +64,9 @@
                                             <th>Start Date</th>
                                             <th>End Date</th>
                                         </tfoot>
+
                                         {% if case %}  
+                                        <!-- Only for Update a case Begin-->
                                             <tbody>
                                             {% for event in events %}
                                             <tr {% if event in case.events.all %}
@@ -57,7 +86,9 @@
                                             </tr>
                                             {% endfor %}
                                         </tbody>
+                                        <!-- Only for Update a case End-->
                                         {% else %} 
+                                        <!-- Only for Create a case Begin-->
                                         <tbody>
                                             {% for event in events %}
                                             <tr>
@@ -75,6 +106,7 @@
                                             </tr>
                                             {% endfor %}
                                         </tbody>
+                                        <!-- Only for Create a case End-->
                                         {% endif %}
 
                                     </table>
@@ -84,9 +116,13 @@
                     </div>
                     <div class="box-footer text-right">
                         {% if case %}
-                        <input class="btn btn-flat btn-primary" type="submit" value="Edit" id="create">
+                        <!-- Only for Update a case Begin-->
+                        <input class="btn btn-flat btn-primary" type="submit" value="Edit" id="create" name='submit'>
+                        <!-- Only for Update a case End-->
                         {% else %}
+                        <!-- Only for Create a case Begin-->
                         <input class="btn btn-flat btn-primary" type="submit" value="Create" id="create">
+                        <!-- Only for Create a case End-->
                         {% endif %}
                     </div>
                 </div>
@@ -102,6 +138,8 @@
         $('#id_start_date').datepicker({
         });
         $('#id_end_date').datepicker({
+        });
+        $('.update_date').datepicker({
         });
         var table = $('#event_id').DataTable({
             initComplete: function () {
@@ -136,6 +174,11 @@
             $( '#id_events' ).val('');
         });
 
+        $(document).on('click', '.add-item', function () {
+            $('.update_date').datepicker({
+            });
+        });
+
         $('#create').click(function(e) {
                 /* Act on the event */
                 var event = [];
@@ -145,8 +188,37 @@
                     event.push(id);
                 });
                 $('input[name="events"]').val(event);
-            });
+        });
 
+        $('.add-item').click(function(ev) {
+            ev.preventDefault();
+            var count = $('#items-form-container').children().length;
+            var tmplMarkup = $('#item-template').html();
+            var compiledTmpl = tmplMarkup.replace(/__prefix__/g, count);
+            $('div#items-form-container').append(compiledTmpl);
+
+            // update form count
+            $('#id_updates-TOTAL_FORMS').attr('value', count+1);
+        });
     })
 </script>
+<script type="text/html" id="item-template">
+
+    <div id="item-__prefix__">
+        <div class='update-form'>
+        {% bootstrap_form update_form.empty_form %}
+        </div>
+    </div>
+       
+</script>
 {% endblock %}
+
+{% block extracss %}
+    <style>
+        .update-form{
+            border: #3c8dbc 1px solid;
+            padding: 10px;
+            margin-bottom: 5px;
+        }
+    </style>
+{% endblock%}

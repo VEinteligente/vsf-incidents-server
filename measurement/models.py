@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-from django.contrib.postgres.fields import JSONField
 from django.db import models
-
 from event.models import Event, Url
 
 
@@ -27,7 +25,7 @@ class Metric(models.Model):
     measurement_start_time = models.DateTimeField()
     test_runtime = models.FloatField()
     test_helpers = models.TextField()
-    test_keys = JSONField()
+    test_keys = models.TextField()
     software_name = models.CharField(max_length=15)
     software_version = models.CharField(max_length=10)
     test_version = models.CharField(max_length=10)
@@ -35,11 +33,6 @@ class Metric(models.Model):
 
     class Meta:
         db_table = 'metrics'
-
-    @property
-    def get_something(self):
-        return 'Toto'
-
 
 class Country(models.Model):
     name = models.CharField(max_length=50)

@@ -1,4 +1,6 @@
 from django import forms
+from django.forms.models import inlineformset_factory
+from django.forms import DateTimeField
 from Case.models import Case, Update
 
 
@@ -9,6 +11,15 @@ class CaseForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={'class': 'hidden'}), required=False, label="")
 
+    start_date = DateTimeField(
+        widget=forms.widgets.DateTimeInput(
+            format='%m/%d/%Y'))
+
+    end_date = DateTimeField(
+        widget=forms.widgets.DateTimeInput(
+            format='%m/%d/%Y'),
+        required=False)
+
     class Meta:
         model = Case
         fields = [
@@ -18,6 +29,23 @@ class CaseForm(forms.ModelForm):
 
 
 class UpdateForm(forms.ModelForm):
+    # date = forms.DateField(widget=forms.TextInput(
+    #     attrs={'class': 'update_date'}),
+    #     required=True)
+    date = DateTimeField(
+        widget=forms.widgets.DateTimeInput(
+            format='%m/%d/%Y',
+            attrs={'class': 'update_date'}))
+
     class Meta:
         model = Update
         fields = ['title', 'text', 'category', 'date']
+
+
+UpdateFormSet = inlineformset_factory(
+    Case,
+    Update,
+    form=UpdateForm,
+    extra=0,
+    can_delete=True
+)

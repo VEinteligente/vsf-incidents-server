@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from datetime import date
-from .forms import CaseForm, UpdateForm
+from .forms import CaseForm, UpdateForm, UpdateFormSet
 from Case.models import Case, Update
 from event.models import Event
 
@@ -134,22 +134,49 @@ class UpdateCase(PageTitleMixin, generic.UpdateView):
     success_url = reverse_lazy('cases:case_front:list-case')
     template_name = 'create_case.html'
 
+    def get(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        form_class = self.get_form_class()
+        # get case form
+        form = self.get_form(form_class)
+        # get update formset
+        update_forms = UpdateFormSet(instance=self.object)
+
+        # must pass form and update formset to context
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  update_form=update_forms))
+
     def get_context_data(self, **kwargs):
 
         context = super(UpdateCase, self).get_context_data(**kwargs)
         events = Event.objects.filter(draft=False)
         context['events'] = events
-
+        # context['update_form'] = UpdateFormSet(instance=self.object)
         # Initial data for the form
 
         return context
 
-    def form_valid(self, form):
+    def post(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        update_forms = UpdateFormSet(self.request.POST, instance=self.object)
+
+        if (form.is_valid() and update_forms.is_valid()):
+            return self.form_valid(form, update_forms)
+        else:
+            return self.form_invalid(form, update_forms)
+
+    def form_valid(self, form, update_forms):
+        # first save case data in form
         if form.cleaned_data['end_date'] is None and form.cleaned_data['open_ended'] is False:
             form.add_error(None, 'You must give an end date to this case or select open ended')
             form.add_error('end_date', '')
             form.add_error('open_ended', '')
-            return self.form_invalid(form)
+            return self.form_invalid(form, update_forms)
 
         self.object = form.save(commit=False)
 
@@ -162,11 +189,31 @@ class UpdateCase(PageTitleMixin, generic.UpdateView):
         for event in events:
             self.object.events.add(event)
 
+        # Save every posible update in update_forms
+        user = None
+        if self.request.user.is_authenticated():
+            user = self.request.user
+
+        updates = update_forms.save(commit=False)
+        for obj in update_forms.deleted_objects:
+            obj.delete()
+
+        for update in updates:
+            update.created_by = user
+            update.created = date.today()
+            update.save()
+
+        # Success message
         msg = 'Se ha editado el caso'
 
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, update_forms):
+        return self.render_to_response(
+            self.get_context_data(form=form,
+                                  update_form=update_forms))
 
     def get_form(self, form_class=None):
         form = super(UpdateCase, self).get_form(form_class)
