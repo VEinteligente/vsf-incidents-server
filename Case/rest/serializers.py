@@ -1,7 +1,7 @@
 import json
 
 from rest_framework import serializers
-from Case.models import Case
+from Case.models import Case, Update
 from measurement.models import State
 from event.rest.serializers import EventSerializer
 
@@ -10,8 +10,10 @@ import django_filters
 
 class CaseSerializer(serializers.ModelSerializer):
     """CaseSerializer: ModelSerializer
-    for serialize a Case object with an additional attribute isp"""
+    for serialize a Case object with an additional fields events (just ID's),
+    updates (just title) and isp"""
     events = serializers.StringRelatedField(many=True)
+    updates = serializers.StringRelatedField(many=True)
     isp = serializers.SerializerMethodField()
 
     class Meta:
@@ -32,9 +34,28 @@ class CaseSerializer(serializers.ModelSerializer):
         return isp
 
 
-class DetailEventCaseSerializer(serializers.ModelSerializer):
+class UpdateSerializer(serializers.ModelSerializer):
+    """UpdateSerializer: ModelSerializer
+    for serialize a Update object. Excluding fields case and created by"""
+    class Meta:
+        model = Update
+        exclude = ('case', 'created_by')
 
+
+class DetailUpdateCaseSerializer(serializers.ModelSerializer):
+    """DetailUpdateCaseSerializer: ModelSerializer
+    for serialize a case with his updates (including details of the updates)"""
+    updates = UpdateSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Case
+
+
+class DetailEventCaseSerializer(serializers.ModelSerializer):
+    """DetailEventCaseSerializer: ModelSerializer
+    for serialize a case with his events (including details of the events)"""
     events = EventSerializer(many=True, read_only=True)
+    updates = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Case
@@ -67,6 +88,7 @@ class RegionCaseSerializer(RegionSerializer):
             List of cases using CasesSerializer
         """
         cases = Case.objects.filter(
+            draft=False,
             events__flags__probe__region=obj)
         cases = set(cases)
         return CaseSerializer(cases, many=True, read_only=True).data
@@ -81,6 +103,7 @@ class RegionCaseSerializer(RegionSerializer):
             Integer with que number of cases
         """
         cases = Case.objects.filter(
+            draft=False,
             events__flags__probe__region=obj)
         cases = set(cases)
         return len(cases)

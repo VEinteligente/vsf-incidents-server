@@ -206,7 +206,9 @@
 
     <div id="item-__prefix__">
         <div class='update-form'>
+        {% if case %}
         {% bootstrap_form update_form.empty_form %}
+        {% endif %}
         </div>
     </div>
        
