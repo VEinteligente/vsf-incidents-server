@@ -10,7 +10,8 @@ import django_filters
 
 class CaseSerializer(serializers.ModelSerializer):
     """CaseSerializer: ModelSerializer
-    for serialize a Case object with an additional attribute isp"""
+    for serialize a Case object with an additional fields events (just ID's),
+    updates (just title) and isp"""
     events = serializers.StringRelatedField(many=True)
     updates = serializers.StringRelatedField(many=True)
     isp = serializers.SerializerMethodField()
@@ -34,13 +35,16 @@ class CaseSerializer(serializers.ModelSerializer):
 
 
 class UpdateSerializer(serializers.ModelSerializer):
+    """UpdateSerializer: ModelSerializer
+    for serialize a Update object. Excluding fields case and created by"""
     class Meta:
         model = Update
         exclude = ('case', 'created_by')
 
 
 class DetailUpdateCaseSerializer(serializers.ModelSerializer):
-
+    """DetailUpdateCaseSerializer: ModelSerializer
+    for serialize a case with his updates (including details of the updates)"""
     updates = UpdateSerializer(many=True, read_only=True)
 
     class Meta:

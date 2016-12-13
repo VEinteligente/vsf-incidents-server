@@ -18,7 +18,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 class DetailCaseRestView(generics.RetrieveAPIView):
     """DetailCaseRestView: RetrieveAPIView
     for displaying a specific published case"""
-
     #   authentication_classes = (TokenAuthentication, BasicAuthentication)
     #   permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)
@@ -29,7 +28,7 @@ class DetailCaseRestView(generics.RetrieveAPIView):
 
 class DetailEventCaseRestView(generics.RetrieveAPIView):
     """DetailEventCaseRestView: RetrieveAPIView
-    for displaying a list of events of specific case"""
+    for displaying a list of events of specific published case"""
     #   authentication_classes = (TokenAuthentication, BasicAuthentication)
     #   permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)
@@ -39,6 +38,8 @@ class DetailEventCaseRestView(generics.RetrieveAPIView):
 
 
 class DetailUpdateCaseRestView(generics.RetrieveAPIView):
+    """DetailUpdateCaseRestView: RetrieveAPIView
+    for displaying a list of updates of specific published case"""
     #   authentication_classes = (TokenAuthentication, BasicAuthentication)
     #   permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)
