@@ -13,7 +13,6 @@ from measurement.models import State
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-
 class DetailCaseRestView(generics.RetrieveAPIView):
     """DetailCaseRestView: RetrieveAPIView
     for displaying a specific case"""
