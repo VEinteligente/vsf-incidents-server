@@ -17,7 +17,7 @@ from measurement.models import (
     MutedInput,
     Probe
 )
-from measurement.front.forms import MutedInputForm
+from measurement.front.forms import MutedInputForm, ProbeForm
 import re
 import json
 
@@ -677,20 +677,16 @@ class CreateMutedInput(PageTitleMixin, generic.CreateView):
     success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
     template_name = 'create_muted.html'
 
-    def get_context_data(self, **kwargs):
-        
-        return super(CreateMutedInput, self).get_context_data(**kwargs)
-
     def form_valid(self, form):
 
         muted = form.save()
-        
+
         if muted:
             msg = 'Se ha creado el muted input'
             messages.success(self.request, msg)
         else:
             msg = 'No se pudo crear el muted input'
-            messages.error(self.request, msg)        
+            messages.error(self.request, msg)      
 
         return HttpResponseRedirect(self.success_url)
 
@@ -710,6 +706,7 @@ class DeleteMutedInput(generic.DeleteView):
     """DeleteMutedInput: DeleteView than delete an specific muted input."""
     model = MutedInput
     success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
+
 
 class UpdateMutedInput(PageTitleMixin, generic.UpdateView):
     """UpdateMutedInput: UpdateView than
@@ -737,20 +734,117 @@ class UpdateMutedInput(PageTitleMixin, generic.UpdateView):
         return context
 
     def form_valid(self, form):
-       
+
         muted = form.save()
-        
+
         if muted:
             msg = 'Se ha editado el muted input'
             messages.success(self.request, msg)
         else:
             msg = 'No se pudo editar el muted input'
-            messages.error(self.request, msg) 
+            messages.error(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
 
 
-######################## PRUEBA ######################################3
+# Probe CRUD
+
+
+class ListProbe(PageTitleMixin, generic.ListView):
+    """ListProbe: ListView than
+    display a list of all probe"""
+    model = Probe
+    template_name = "list_probe.html"
+    context_object_name = "probes"
+    page_header = "Probes"
+    page_header_description = "List of Probes"
+    breadcrumb = ["Probes"]
+
+
+class CreateProbe(PageTitleMixin, generic.CreateView):
+    """CreateProbe: CreateView than
+    create a new Probe object in DB"""
+    form_class = ProbeForm
+    page_header = "New Probe"
+    page_header_description = ""
+    breadcrumb = ["Probes", "New Probe"]
+    success_url = reverse_lazy('measurements:measurement_front:list-probe')
+    template_name = 'create_probe.html'
+
+    def form_valid(self, form):
+
+        probe = form.save()
+
+        if probe:
+            msg = 'Se ha creado la sonda'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo crear la sonda'
+            messages.error(self.request, msg)
+
+        return HttpResponseRedirect(self.success_url)
+
+
+class DetailProbe(PageTitleMixin, generic.DetailView):
+    """DetailProbe: DetailView than
+    give the details of a specific Probe object"""
+    model = Probe
+    context_object_name = "probe"
+    template_name = "detail_probe.html"
+    page_header = "Probe Details"
+    page_header_description = ""
+    breadcrumb = ["Probes", "Probe Details"]
+
+
+class DeleteProbe(generic.DeleteView):
+    """DeleteProbe: DeleteView for deleting a specific probe."""
+    model = Probe
+    success_url = reverse_lazy('measurements:measurement_front:list-probe')
+
+
+class UpdateProbe(PageTitleMixin, generic.UpdateView):
+    """UpdateProbe: UpdateView for
+    updating a Probe object in DB"""
+    form_class = ProbeForm
+    context_object_name = 'probe'
+    page_header = "Update Probe"
+    page_header_description = ""
+    breadcrumb = ["Probes", "Edit Probe"]
+    model = Probe
+    success_url = reverse_lazy('measurements:measurement_front:list-probe')
+    template_name = 'create_probe.html'
+
+    def get_context_data(self, **kwargs):
+
+        context = super(UpdateProbe, self).get_context_data(**kwargs)
+        probe = self.get_object()
+        form = self.get_form_class()
+
+        # Initial data for the form
+        context['form'] = form(initial={'identification': probe.identification,
+                                        'region': probe.region,
+                                        'country': probe.country,
+                                        'city': probe.city,
+                                        'isp': probe.isp,
+                                        'plan': probe.plan
+                                        })
+        return context
+
+    def form_valid(self, form):
+
+        probe = form.save()
+
+        if probe:
+            msg = 'Se ha editado la sonda'
+            messages.success(self.request, msg)
+        else:
+            msg = 'No se pudo editar la sonda'
+            messages.error(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+######################## PRUEBA ######################################
 
 from eztables.views import DatatablesView
 from django.core.exceptions import ImproperlyConfigured

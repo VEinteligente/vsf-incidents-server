@@ -99,6 +99,9 @@ class Plan(models.Model):
         max_length=30)
     comment = models.TextField(null=True, blank=True)
 
+    def __unicode__(self):
+        return u"%s" % (self.name)
+
 
 class Probe(models.Model):
     STATES_CHOICES = (
