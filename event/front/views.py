@@ -7,6 +7,7 @@ from eztables.views import DatatablesView
 from measurement.models import Flag
 from django.db.models import Q
 from .forms import EventForm
+from .utils import suggestedFlags
 from event.models import Event
 import json
 import re
@@ -49,10 +50,11 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         for f in flags:
             split = f.split('/')
             flag = Flag.objects.filter(medicion=split[0],
-                                       target__url=split[1],
-                                       isp=split[2],
-                                       ip=split[3],
-                                       type_med=split[4])
+                                       isp=split[4],
+                                       ip=split[5],
+                                       type_med=split[6])
+            print 'flag'
+            print flag
             ids += [flag[0].id]
 
         # Filter Flag objects for ids
@@ -82,6 +84,11 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         self.object.save()  # Save object with flags
 
         flags.update(event=self.object)
+
+        # remove all events from the related flag
+        for flag in flags:
+            flag.suggested_events.clear()
+        suggestedFlags(self.object)
 
         messages.success(self.request, msg)
 
