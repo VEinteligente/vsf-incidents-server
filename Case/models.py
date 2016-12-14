@@ -14,7 +14,7 @@ class Case(models.Model):
         ('desconexion', 'Desconexion'),
         ('relentizacion', 'Relentizacion de servicio en Linea'),
         ('conexion', 'Conexion inusualmente lenta'),
-        ('interceptacion', 'Interceptacion de trafico'),
+        ('intercepcion', 'Intercepcion de trafico'),
         ('falla', 'Falla Importante'),
         ('dos', 'DoS')
     )

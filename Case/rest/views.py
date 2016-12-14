@@ -7,8 +7,11 @@ from serializers import (
     CaseSerializer,
     RegionCaseSerializer,
     CaseFilter,
-    DetailUpdateCaseSerializer
+    DetailUpdateCaseSerializer,
+    CategoryCaseSerializer,
+    ISPCaseSerializer
 )
+from event.models import Event
 from Case.models import Case
 from measurement.models import State
 
@@ -69,6 +72,28 @@ class ListRegionCaseView(generics.ListAPIView):
         num=Count('probes__flags__event__cases')).filter(
         num__gt=0)
     serializer_class = RegionCaseSerializer
+
+
+class ListCategoryCaseView(generics.ListAPIView):
+    """ListCategoryCaseView: ListAPIView
+    for displaying a list of categories with his published cases"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Case.objects.filter(
+        draft=False).values('category').order_by('category').distinct()
+    serializer_class = CategoryCaseSerializer
+
+
+class ListISPCaseView(generics.ListAPIView):
+    """ListISPCaseView: ListAPIView
+    for displaying a list of isp with his published cases"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Event.objects.filter(
+        draft=False).values('isp').order_by('isp').distinct()
+    serializer_class = ISPCaseSerializer
 
 
 class ListCaseFilterView(generics.ListAPIView):
