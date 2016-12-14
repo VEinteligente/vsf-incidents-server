@@ -23,9 +23,19 @@ urlpatterns = [
         name='detail-update-case-rest'
     ),
     url(
+        r'^region/$',
+        views.ListRegionView.as_view(),
+        name='region-rest'
+    ),
+    url(
         r'^list/region/$',
         views.ListRegionCaseView.as_view(),
         name='list-region-case-rest'
+    ),
+    url(
+        r'^category/$',
+        views.ListCategoryView.as_view(),
+        name='category-rest'
     ),
     url(
         r'^list/category/$',
