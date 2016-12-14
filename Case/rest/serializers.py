@@ -109,8 +109,27 @@ class RegionCaseSerializer(RegionSerializer):
         return len(cases)
 
 
-class CategoryCaseSerializer(serializers.Serializer):
+class CategorySerializer(serializers.Serializer):
+    """CategorySerializer: Serializer
+    for serialize the categories of the cases"""
     category = serializers.SerializerMethodField()
+
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            value of dict {'category': 'value'}
+        """
+        return obj
+
+
+class CategoryCaseSerializer(CategorySerializer):
+    """CategoryCaseSerializer: Serializer extention of CategorySerializer
+    for serialize the categories of the cases, with all cases of that 
+    category and how many there are"""
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()
 
@@ -123,6 +142,7 @@ class CategoryCaseSerializer(serializers.Serializer):
         Returns:
             value of dict {'category': 'value'}
         """
+        
         return obj['category']
 
     def get_cases(self, obj):
@@ -155,6 +175,9 @@ class CategoryCaseSerializer(serializers.Serializer):
 
 
 class ISPCaseSerializer(serializers.Serializer):
+    """ISPCaseSerializer: Serializer
+    for serialize the ISP of the cases, with all cases with that 
+    ISP and how many there are"""
     isp = serializers.SerializerMethodField()
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()

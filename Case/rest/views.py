@@ -9,7 +9,9 @@ from serializers import (
     CaseFilter,
     DetailUpdateCaseSerializer,
     CategoryCaseSerializer,
-    ISPCaseSerializer
+    ISPCaseSerializer,
+    CategorySerializer,
+    RegionSerializer
 )
 from event.models import Event
 from Case.models import Case
@@ -61,6 +63,17 @@ class ListCaseView(generics.ListAPIView):
     serializer_class = CaseSerializer
 
 
+class ListRegionView(generics.ListAPIView):
+    """ListRegionView: ListAPIView
+    for displaying a list of regions """
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = State.objects.filter(
+        country__name='Venezuela')
+    serializer_class = RegionSerializer
+
+
 class ListRegionCaseView(generics.ListAPIView):
     """ListRegionCaseView: ListAPIView
     for displaying a list of regions with his published cases"""
@@ -72,6 +85,16 @@ class ListRegionCaseView(generics.ListAPIView):
         num=Count('probes__flags__event__cases')).filter(
         num__gt=0)
     serializer_class = RegionCaseSerializer
+
+
+class ListCategoryView(generics.ListAPIView):
+    """ListCategoryView: ListAPIView
+    for displaying a list of categories"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Case._meta.get_field('category').choices
+    serializer_class = CategorySerializer
 
 
 class ListCategoryCaseView(generics.ListAPIView):
