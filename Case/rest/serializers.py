@@ -109,7 +109,99 @@ class RegionCaseSerializer(RegionSerializer):
         return len(cases)
 
 
+class CategoryCaseSerializer(serializers.Serializer):
+    category = serializers.SerializerMethodField()
+    cases = serializers.SerializerMethodField()
+    number_cases = serializers.SerializerMethodField()
+
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            value of dict {'category': 'value'}
+        """
+        return obj['category']
+
+    def get_cases(self, obj):
+        """List of all cases in a specific category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            List of cases using CasesSerializer
+        """
+        cases = Case.objects.filter(
+            draft=False,
+            category=obj['category'])
+        return CaseSerializer(cases, many=True, read_only=True).data
+
+    def get_number_cases(self, obj):
+        """Number of cases in a specific category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            Integer with que number of cases
+        """
+        cases = Case.objects.filter(
+            draft=False,
+            category=obj['category'])
+        return len(cases)
+
+
+class ISPCaseSerializer(serializers.Serializer):
+    isp = serializers.SerializerMethodField()
+    cases = serializers.SerializerMethodField()
+    number_cases = serializers.SerializerMethodField()
+
+    def get_isp(self, obj):
+        """ Name of the isp
+
+        Args:
+            obj: dict {'isp': 'value'}
+
+        Returns:
+           value of dict {'isp': 'value'}
+        """
+        return obj['isp']
+
+    def get_cases(self, obj):
+        """List of all cases in a specific isp
+
+        Args:
+            obj: dict {'isp': 'value'}
+
+        Returns:
+            List of cases using CasesSerializer
+        """
+        cases = Case.objects.filter(
+            draft=False,
+            events__isp=obj['isp'])
+        cases = set(cases)
+        return DetailEventCaseSerializer(cases, many=True, read_only=True).data
+
+    def get_number_cases(self, obj):
+        """Number of cases in a specific isp
+
+        Args:
+            obj: dict {'isp': 'value'}
+
+        Returns:
+            Integer with que number of cases
+        """
+        cases = Case.objects.filter(
+            draft=False,
+            events__isp=obj['isp'])
+        cases = set(cases)
+        return len(cases)
+
 # Django Filter
+
 
 class CaseFilter(django_filters.FilterSet):
     region = django_filters.CharFilter(

@@ -28,6 +28,16 @@ urlpatterns = [
         name='list-region-case-rest'
     ),
     url(
+        r'^list/category/$',
+        views.ListCategoryCaseView.as_view(),
+        name='list-category-case-rest'
+    ),
+    url(
+        r'^list/isp/$',
+        views.ListISPCaseView.as_view(),
+        name='list-isp-case-rest'
+    ),
+    url(
         r'^list-case-filter/$',
         views.ListCaseFilterView.as_view(),
         name='list-case-filter-rest'
