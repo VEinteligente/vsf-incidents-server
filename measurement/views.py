@@ -12,6 +12,9 @@ from measurement.models import (
 from event.models import (
     Url
 )
+from event.front.utils import (
+    suggestedEvents
+)
 from django.db.models import (
     Q,
     Count,
@@ -381,3 +384,5 @@ class UpdateFlagView(generic.UpdateView):
     def soft_to_hard_flag(self, flag):
         flag.flag = True
         flag.save(using='default')
+        suggestedEvents(flag)
+
