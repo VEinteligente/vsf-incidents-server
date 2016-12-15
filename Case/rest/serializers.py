@@ -165,7 +165,7 @@ class CategoryCaseSerializer(CategorySerializer):
         Returns:
             value of dict {'category': 'value'}
         """
-        
+
         return obj['category']
 
     def get_cases(self, obj):
