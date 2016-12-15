@@ -7,8 +7,13 @@ from serializers import (
     CaseSerializer,
     RegionCaseSerializer,
     CaseFilter,
-    DetailUpdateCaseSerializer
+    DetailUpdateCaseSerializer,
+    CategoryCaseSerializer,
+    ISPCaseSerializer,
+    CategorySerializer,
+    RegionSerializer
 )
+from event.models import Event
 from Case.models import Case
 from measurement.models import State
 
@@ -58,6 +63,17 @@ class ListCaseView(generics.ListAPIView):
     serializer_class = CaseSerializer
 
 
+class ListRegionView(generics.ListAPIView):
+    """ListRegionView: ListAPIView
+    for displaying a list of regions """
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = State.objects.filter(
+        country__name='Venezuela')
+    serializer_class = RegionSerializer
+
+
 class ListRegionCaseView(generics.ListAPIView):
     """ListRegionCaseView: ListAPIView
     for displaying a list of regions with his published cases"""
@@ -69,6 +85,38 @@ class ListRegionCaseView(generics.ListAPIView):
         num=Count('probes__flags__event__cases')).filter(
         num__gt=0)
     serializer_class = RegionCaseSerializer
+
+
+class ListCategoryView(generics.ListAPIView):
+    """ListCategoryView: ListAPIView
+    for displaying a list of categories"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Case._meta.get_field('category').choices
+    serializer_class = CategorySerializer
+
+
+class ListCategoryCaseView(generics.ListAPIView):
+    """ListCategoryCaseView: ListAPIView
+    for displaying a list of categories with his published cases"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Case.objects.filter(
+        draft=False).values('category').order_by('category').distinct()
+    serializer_class = CategoryCaseSerializer
+
+
+class ListISPCaseView(generics.ListAPIView):
+    """ListISPCaseView: ListAPIView
+    for displaying a list of isp with his published cases"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Event.objects.filter(
+        draft=False).values('isp').order_by('isp').distinct()
+    serializer_class = ISPCaseSerializer
 
 
 class ListCaseFilterView(generics.ListAPIView):

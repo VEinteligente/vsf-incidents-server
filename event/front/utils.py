@@ -1,5 +1,6 @@
 from event.models import Event
 from measurement.models import Flag
+from django.db.models import Q
 
 
 def suggestedEvents(flag):
@@ -14,7 +15,6 @@ def suggestedEvents(flag):
     try:
         # get all types of event according the hard flag
         eventTypes = getEventTypes(flag)
-
         # searching for events open ended with same target, same isp,
         # and with associated flags with que same region
 
@@ -36,7 +36,6 @@ def suggestedEvents(flag):
         # eliminate duplicate events in queryset
         # defining a set with the queryset
         events = set(events)
-
         # assign every event in the list as a suggested_event of
         # the hard flag
         for event in events:
@@ -59,7 +58,7 @@ def suggestedFlags(event):
     try:
         # get all regions of all flags associated with the event (parameter)
         regions = []
-        for flag in event.suggested_events.all():
+        for flag in event.flags.all():
             regions.append(flag.probe.region)
 
         # get all types of flags according the event
@@ -71,28 +70,42 @@ def suggestedFlags(event):
         # this filter will return a queryset with duplicate flags
         if flagTypes:
             flags = Flag.objects.filter(
-                flag=True,
-                event=None,
-                target=event.target,
-                isp=event.isp,
-                region__in=regions,
-                type_med__in=flagTypes)
+                Q(
+                    flag=True,
+                    event=None,
+                    target=event.target,
+                    isp=event.isp,
+                    region__in=regions,
+                    type_med__in=flagTypes) |
+                Q(
+                    flag=True,
+                    event=None,
+                    target=event.target,
+                    isp=event.isp,
+                    probe__region__in=regions,
+                    type_med__in=flagTypes))
         else:
             flags = Flag.objects.filter(
-                flag=True,
-                event=None,
-                target=event.target,
-                isp=event.isp,
-                region__in=regions)
+                Q(
+                    flag=True,
+                    event=None,
+                    target=event.target,
+                    isp=event.isp,
+                    region__in=regions) |
+                Q(
+                    flag=True,
+                    event=None,
+                    target=event.target,
+                    isp=event.isp,
+                    probe__region__in=regions))
 
         # eliminate duplicate flags in queryset
         # defining a set with the queryset
         flags = set(flags)
-
         # assign every flag in the list as a suggested_event of
         # the event
         for flag in flags:
-            event.suggested_events.add(event)
+                event.suggested_events.add(flag)
         return True
     except Exception:
         return False
