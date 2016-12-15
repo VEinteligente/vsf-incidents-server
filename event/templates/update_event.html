@@ -154,8 +154,8 @@
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + '/' + target + '/' + isp + '/' +
-                           ip + '/' + type + ' ');
+                flags.val( flags.val() + measurement + '&' + target + '&' + isp + '&' +
+                           ip + '&' + type + ' ');
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(

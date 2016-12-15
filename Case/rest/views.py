@@ -82,4 +82,3 @@ class ListCaseFilterView(generics.ListAPIView):
     serializer_class = CaseSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = CaseFilter
-
