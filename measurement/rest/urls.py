@@ -1,8 +1,8 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 from measurement.rest import views
 
 urlpatterns = [
-	url(
+    url(
         r'^measurement_rest/$',
         views.MeasurementRestView.as_view(),
         name='measurement_rest'
