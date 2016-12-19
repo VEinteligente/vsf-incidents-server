@@ -1,29 +1,27 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
-from measurement.rest import serializers
 from measurement.models import Metric
 
+from serializers import (
+    MeasurementSerializer,
+    DNSMeasurementSerializer
+)
 
-class MeasurementRestView(APIView):
+
+class MeasurementRestView(generics.ListAPIView):
     """MeasurementRestView: APIView
     for displaying a list of measurements"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)
-
-    def get(self, request):
-        """List measurements"""
-        serializer = serializers.MeasurementSerializer(Metric.objects.all().first())
-        return Response(serializer.data)
+    queryset = Metric.objects.all()
+    serializer_class = MeasurementSerializer
 
 
-class DNSMeasurementRestView(MeasurementRestView):
+class DNSMeasurementRestView(generics.ListAPIView):
     """DNSMeasurementRestView: MeasurementRestView
     for displaying a list of DNS measurements"""
-
-    def get(self, request):
-        """List DNS measurements"""
-        serializer = serializers.DNSMeasurementSerializer(
-            Metric.objects.filter(test_name='dns_consistency').first())
-        return Response(serializer.data)
+    permission_classes = (AllowAny,)
+    queryset = Metric.objects.filter(test_name='dns_consistency')
+    serializer_class = DNSMeasurementSerializer
