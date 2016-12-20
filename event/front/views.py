@@ -53,8 +53,6 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
                                        isp=split[4],
                                        ip=split[5],
                                        type_med=split[6])
-            print 'flag'
-            print flag
             ids += [flag[0].id]
 
         # Filter Flag objects for ids

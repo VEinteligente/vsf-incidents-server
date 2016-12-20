@@ -246,7 +246,8 @@ class ISPCaseSerializer(serializers.Serializer):
         cases = set(cases)
         return len(cases)
 
-# Django Filter
+
+# Django Filter CaseFilter
 
 
 class CaseFilter(django_filters.FilterSet):

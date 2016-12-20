@@ -18,5 +18,10 @@ urlpatterns = [
         views.EventList.as_view(),
         name='list'
     ),
+    url(
+        r'^list-event-group/$',
+        views.ListEventGroupView.as_view(),
+        name='list-event-group'
+    ),
 
 ]

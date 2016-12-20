@@ -4,9 +4,17 @@ from django.shortcuts import render
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics
-from .serializers import UrlSerializer, SiteSerializer, EventSerializer
+from .serializers import (
+    UrlSerializer,
+    SiteSerializer,
+    EventSerializer,
+    EventGroupSerializer,
+    EventGroupFilter
+)
+from django_filters.rest_framework import DjangoFilterBackend
 
 from event.models import Event, Url, Site
+from datetime import datetime
 
 
 class BlockedDomains(generics.ListAPIView):
@@ -59,3 +67,16 @@ class EventList(generics.ListAPIView):
 
     queryset = Event.objects.filter(draft=False)
     serializer_class = EventSerializer
+
+
+class ListEventGroupView(generics.ListAPIView):
+    """ListEventGroupView: ListAPIView
+    for displaying a list of events filtered by
+    start date, end date and isp"""
+    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
+    #   permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
+    queryset = Event.objects.filter(draft=False)
+    serializer_class = EventGroupSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = EventGroupFilter
