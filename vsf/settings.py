@@ -104,8 +104,8 @@ DATABASES = {
     'titan_db': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'pipeline_db',
-        'USER': 'pipeline_db',
-        'PASSWORD': '70:o}wt2amTr7#Q_FTJRQ',
+        'USER': 'pipeline_access',
+        'PASSWORD': '[$iB:k_Y1j!ZtJ,L4g{-#',
         'HOST': '37.218.242.176',  # titan ip
         'PORT': '5432'
     }
