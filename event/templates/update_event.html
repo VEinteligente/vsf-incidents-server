@@ -107,12 +107,20 @@
 
                     $.each($(this).val().split(' '), function(){
 
-                        var split = this.split('/');
+                        var split = this.split('&');
+
+                        console.log("SPLIT 0", data['Measurement']);
+                        console.log("SPLIT 0", split[0]);
+                        console.log("SPLIT 1", data['Target'] == split[1]);
+                        console.log("SPLIT 2", data['ISP'] == split[2]);
+                        console.log("SPLIT 3", data['IP Address'] == split[3]);
+                        console.log("SPLIT 4", data['Measurement type'] == split[4]);
 
                         if (data['Measurement'] == split[0] && data['Target'] == split[1] && data['ISP'] == split[2] && data['IP Address'] == split[3] && data['Measurement type'] == split[4]) 
                         {
+                            console.log("HOLAAAA");
                             $(row).addClass('selected');
-                        }
+                        } 
                     });
                 });
             },

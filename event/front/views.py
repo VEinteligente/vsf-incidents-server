@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag
+from event.models import Url
 from django.db.models import Q
 from .forms import EventForm
 from .utils import suggestedFlags
@@ -49,10 +50,12 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
 
         for f in flags:
             split = f.split('&')
+            target = Url.objects.get(url=split[1])
             flag = Flag.objects.filter(medicion=split[0],
-                                       isp=split[4],
-                                       ip=split[5],
-                                       type_med=split[6])
+                                       target=target,
+                                       isp=split[2],
+                                       ip=split[3],
+                                       type_med=split[4])
             ids += [flag[0].id]
 
         # Filter Flag objects for ids
@@ -76,6 +79,8 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         self.object.target = flags[0].target  # Flag target
 
         self.object.save()  # Save object in the Database
+
+        #self.object.flags.clear()  # Delete flags asociated
 
         self.object.flags = flags  # Add flags to object
 
@@ -129,6 +134,8 @@ class UpdateEvent(CreateEvent,
         if not event.end_date:
             open_ended = True
 
+        print "FLAGS"
+        print flags
         # Initial data for the form
         context['form'] = form(initial={'identification': event.identification,
                                         'flags': flags_str,
@@ -242,7 +249,6 @@ class UpdateFlagsTable(DatatablesView):
         if pk:
             queryset = Flag.objects.filter(Q(event=None) |
                                            Q(event=Event.objects.get(id=pk)))
-
         return queryset
 
     def json_response(self, data):

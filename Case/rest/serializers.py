@@ -249,19 +249,24 @@ class ISPCaseSerializer(serializers.Serializer):
 
 # Django Filter CaseFilter
 
+class CharInFilter(django_filters.BaseInFilter,
+                   django_filters.CharFilter):
+    """docstring for ClassName"""
+    pass
+
 
 class CaseFilter(django_filters.FilterSet):
-    region = django_filters.CharFilter(
+    region = CharInFilter(
         name='events__flags__region',
         distinct=True
     )
     start_date = django_filters.DateFilter()
     end_date = django_filters.DateFilter()
-    domain = django_filters.CharFilter(
+    domain = CharInFilter(
         name='events__target__url',
         distinct=True
     )
-    site = django_filters.CharFilter(
+    site = CharInFilter(
         name='events__target__site__name',
         distinct=True
     )
