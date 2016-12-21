@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import inlineformset_factory
 from django.forms import DateTimeField
-from Case.models import Case, Update
+from Case.models import Case, Update, Category
 
 
 class CaseForm(forms.ModelForm):
@@ -25,6 +25,15 @@ class CaseForm(forms.ModelForm):
         fields = [
             'title', 'description', 'start_date', 'end_date',
             'category', 'open_ended', 'draft', 'events'
+        ]
+
+
+class CategoryForm(forms.ModelForm):
+
+    class Meta:
+        model = Category
+        fields = [
+            'name', 'display_name'
         ]
 
 
