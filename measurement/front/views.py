@@ -262,37 +262,37 @@ class MeasurementTableView(PageTitleMixin, generic.TemplateView):
     breadcrumb = [""]
     template_name = 'display_table.html'
 
-    def get_context_data(self, **kwargs):
+    # def get_context_data(self, **kwargs):
+    #
+    #     context = super(MeasurementTableView, self).get_context_data(**kwargs)
+    #
+    #     Create database object #
+    #     database = DBconnection('titan_db')
+    #     query = "select identifier, test_keys from metrics LIMIT 5"
+    #
+    #     result = database.db_execute(query)
+    #     context['rows'] = {}
+    #     context['columns'] = {}
+    #
+    #     if result:
+    #         # Search every metric with flag in DB
+    #         flags = Flag.objects.all().values('medicion', 'flag')
+    #         # Add Column Flag and his value in every row in Rows dictionary
+    #         result['columns'].insert(0, "flag")
+    #         for row in result['rows']:
+    #             flag_value = "not"
+    #             for flag in flags:
+    #                 if (str(flag['medicion']) == str(row['id'])):
+    #                     flag_value = flag['flag']
+    #             row.update({'flag': flag_value})
+    #         context['rows'] = result['rows']
+    #         context['columns'] = result['columns']
+    #     context['columns'] = ['flag', 'id', 'test_keys']
+    #
+    #     return context
 
-        context = super(MeasurementTableView, self).get_context_data(**kwargs)
 
-        # Create database object #
-        #database = DBconnection('titan_db')
-        #query = "select identifier, test_keys from metrics LIMIT 5"
-
-        #result = database.db_execute(query)
-        # context['rows'] = {}
-        # context['columns'] = {}
-
-        # if result:
-        #     # Search every metric with flag in DB
-        #     flags = Flag.objects.all().values('medicion', 'flag')
-        #     # Add Column Flag and his value in every row in Rows dictionary
-        #     result['columns'].insert(0, "flag")
-        #     for row in result['rows']:
-        #         flag_value = "not"
-        #         for flag in flags:
-        #             if (str(flag['medicion']) == str(row['id'])):
-        #                 flag_value = flag['flag']
-        #         row.update({'flag': flag_value})
-        #     context['rows'] = result['rows']
-        #     context['columns'] = result['columns']
-        context['columns'] = ['flag','id', 'test_keys']
-
-        return context
-
-
-class MeasurementAjaxView(generic.View):
+class MeasurementAjaxView(DatatablesView):
 
     def get(self, request, *args, **kwargs):
 
@@ -844,62 +844,27 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-######################## PRUEBA ######################################
+######################## PRUEBA #######################################
 
+import json
 from eztables.views import DatatablesView
-from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models.query import QuerySet
-from django.db.models import F, CharField, IntegerField, Value, Count
+from django.db.models.expressions import RawSQL
 
 
 class PruebaDataTable(generic.TemplateView):
 
     template_name = 'list.html'
 
-    def get(self, request, *args, **kwargs):
-        q = Metric.objects.first()
-
-        # print str(q.test_keys)
-
-        return super(PruebaDataTable, self).get(request, *args, **kwargs)
-
 
 class PruebaDataTableAjax(DatatablesView):
 
-    queryset = Metric.objects.all()
     fields = ('id', 'toto')
-
-    def get_queryset(self):
-        """
-        Return the list of items for this view.
-
-        The return value must be an iterable and may be an instance of
-        `QuerySet` in which case `QuerySet` specific behavior will be enabled.
-        """
-        if self.queryset is not None:
-            print "---hey--"
-            queryset = self.queryset
-            if isinstance(queryset, QuerySet):
-                queryset = queryset.annotate(toto=F('test_keys').__class__.__name__).all()
-        elif self.model is not None:
-            queryset = self.model._default_manager.all()
-        else:
-            raise ImproperlyConfigured(
-                "%(cls)s is missing a QuerySet. Define "
-                "%(cls)s.model, %(cls)s.queryset, or override "
-                "%(cls)s.get_queryset()." % {
-                    'cls': self.__class__.__name__
-                }
-            )
-        ordering = self.get_ordering()
-        if ordering:
-            if isinstance(ordering, six.string_types):
-                ordering = (ordering,)
-            queryset = queryset.order_by(*ordering)
-
-        return queryset
+    queryset = Metric.objects.annotate(
+        toto=RawSQL(
+            "test_keys->>'failures'", ()
+        )
+    ).all()
 
     def json_response(self, data):
         return HttpResponse(
