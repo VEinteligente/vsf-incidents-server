@@ -7,7 +7,8 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, F
+from django.db.models.expressions import RawSQL
 from eztables.views import DatatablesView
 from django.utils.six import text_type
 from measurement.models import (
@@ -22,7 +23,6 @@ import re
 import json
 
 from dashboard.mixins import PageTitleMixin
-
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -325,156 +325,176 @@ class DNSTableView(generic.TemplateView):
     display a list of metrics in DB
     with dns_consistency as test_name"""
 
-    template_name = 'display_dns_table.html'
+    # template_name = 'display_dns_table.html'
+    template_name = 'list_dns.html'
 
-    def get_context_data(self, **kwargs):
+    # def get_context_data(self, **kwargs):
 
-        context = super(DNSTableView, self).get_context_data(**kwargs)
+    #     context = super(DNSTableView, self).get_context_data(**kwargs)
 
-        try:
+    #     try:
 
-            # Create database object #
-            database = DBconnection('titan_db')
-            query = "select id, input, test_keys, measurement_start_time "
-            query += "from metrics where test_name='dns_consistency'"
+    #         # Create database object #
+    #         database = DBconnection('titan_db')
+    #         query = "select id, input, test_keys, measurement_start_time "
+    #         query += "from metrics where test_name='dns_consistency'"
 
-            result = database.db_execute(query)
-            rows = {}
-            columns = {}
+    #         result = database.db_execute(query)
+    #         rows = {}
+    #         columns = {}
 
-            if result:
+    #         if result:
 
-                rows = result['rows']
-                columns = result['columns']
+    #             rows = result['rows']
+    #             columns = result['columns']
 
-            # Adding columns
-            columns_final = ['flag'] + columns[:len(columns) / 2]
-            columns_final += ['match', 'dns isp',
-                              'control result',
-                              'dns name', 'dns result']
-            columns_final += columns[len(columns) / 2:]
-            columns_final.remove('test_keys')
+    #         # Adding columns
+    #         columns_final = ['flag'] + columns[:len(columns) / 2]
+    #         columns_final += ['match', 'dns isp',
+    #                           'control result',
+    #                           'dns name', 'dns result']
+    #         columns_final += columns[len(columns) / 2:]
+    #         columns_final.remove('test_keys')
 
-            # Answers
-            ans = self.get_answers(rows)
+    #         # Answers
+    #         ans = self.get_answers(rows)
 
-            # Context data variables #
-            context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-            context['columns'] = columns_final
+    #         # Context data variables #
+    #         context['rows'] = [dict(zip(columns_final, row)) for row in ans]
+    #         context['columns'] = columns_final
 
-        except Exception as e:
-            print e
+    #     except Exception as e:
+    #         print e
 
-        return context
+    #     return context
 
-    def get_answers(self, rows):
-        """ Create from every row a Test Key object to
-        extract the data to display in the list
-        Args:
-            rows: DB rows
-        """
+    # def get_answers(self, rows):
+    #     """ Create from every row a Test Key object to
+    #     extract the data to display in the list
+    #     Args:
+    #         rows: DB rows
+    #     """
 
-        ans = []
+    #     ans = []
 
-        for row in rows:
+    #     for row in rows:
 
-            # Convert json test_keys into python object
-            test_key = DNSTestKey(json.dumps(row['test_keys']))
+    #         # Convert json test_keys into python object
+    #         test_key = DNSTestKey(json.dumps(row['test_keys']))
 
-            # Get sonda isp and public DNS #
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
-            else:
-                dns_isp = None
+    #         # Get sonda isp and public DNS #
+    #         if 'annotation' in row:
+    #             probe = Probe.objects.get(identification=row['annotation']['probe'])
+    #             dns_isp = probe.isp
+    #         else:
+    #             dns_isp = None
 
-            if dns_isp is None:
-                dns_isp = 'Unknown'
+    #         if dns_isp is None:
+    #             dns_isp = 'Unknown'
 
-            # dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
-            public_dns = [dns.ip
-                          for dns in DNS.objects.filter(public=True)]
+    #         # dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
+    #         public_dns = [dns.ip
+    #                       for dns in DNS.objects.filter(public=True)]
 
-            # Ignore data from test_key #
-            if test_key.ignore_data(dns_isp, public_dns):
+    #         # Ignore data from test_key #
+    #         if test_key.ignore_data(dns_isp, public_dns):
 
-                # Get queries #
-                queries = test_key.get_queries()
+    #             # Get queries #
+    #             queries = test_key.get_queries()
 
-                if not queries[0]['failure'] and queries[0]['answers']:
+    #             if not queries[0]['failure'] and queries[0]['answers']:
 
-                    # Get answers #
-                    answers = queries[0]['answers']
-                    control_resolver = []
-                    dns_result = []
+    #                 # Get answers #
+    #                 answers = queries[0]['answers']
+    #                 control_resolver = []
+    #                 dns_result = []
 
-                    # Get control resolver from answer_type A #
-                    for a in answers:
-                        if a['answer_type'] == 'A' and \
-                           a['ipv4'] not in control_resolver:
-                            control_resolver += [a['ipv4']]
+    #                 # Get control resolver from answer_type A #
+    #                 for a in answers:
+    #                     if a['answer_type'] == 'A' and \
+    #                        a['ipv4'] not in control_resolver:
+    #                         control_resolver += [a['ipv4']]
 
-                    # Verify each result from queries with control resolver #
-                    for query in queries:
+    #                 # Verify each result from queries with control resolver #
+    #                 for query in queries:
 
-                        dns_name = query['resolver_hostname']
-                        match = False
-                        flag_status = 'No flag'
+    #                     dns_name = query['resolver_hostname']
+    #                     match = False
+    #                     flag_status = 'No flag'
 
-                        # If query has failure, dns result #
-                        # is a failure response and match is False #
+    #                     # If query has failure, dns result #
+    #                     # is a failure response and match is False #
 
-                        # If query doesn't has failure, then find dns result #
-                        # from answer type A and later compare it with control #
-                        # resolver. If both are the same, match is True otherwise #
-                        # match is False #
+    #                     # If query doesn't has failure, then find dns result #
+    #                     # from answer type A and later compare it with control #
+    #                     # resolver. If both are the same, match is True otherwise #
+    #                     # match is False #
 
-                        if query['failure']:
-                            dns_result += query['failure']
+    #                     if query['failure']:
+    #                         dns_result += query['failure']
 
-                        answers = query['answers']
+    #                     answers = query['answers']
 
-                        for a in answers:
-                            if a['answer_type'] == 'A' and \
-                               a['ipv4'] not in dns_result:
-                                dns_result += [a['ipv4']]
+    #                     for a in answers:
+    #                         if a['answer_type'] == 'A' and \
+    #                            a['ipv4'] not in dns_result:
+    #                             dns_result += [a['ipv4']]
 
-                        if all(map(lambda v: v in control_resolver, dns_result)):
-                            match = True
-                        else:
-                            # Search flag #
+    #                     if all(map(lambda v: v in control_resolver, dns_result)):
+    #                         match = True
+    #                     else:
+    #                         # Search flag #
 
-                            if Flag.objects.filter(ip=dns_name,
-                                                   medicion=row['id'],
-                                                   type_med='DNS').exists():
+    #                         if Flag.objects.filter(ip=dns_name,
+    #                                                medicion=row['id'],
+    #                                                type_med='DNS').exists():
 
-                                f = Flag.objects.get(ip=dns_name,
-                                                     medicion=row['id'],
-                                                     type_med='DNS')
+    #                             f = Flag.objects.get(ip=dns_name,
+    #                                                  medicion=row['id'],
+    #                                                  type_med='DNS')
 
-                                if f.flag:
-                                    flag_status = 'hard'
-                                elif f.flag is False:
-                                    flag_status = 'soft'
-                                elif f.flag is None:
-                                    flag_status = 'muted'
+    #                             if f.flag:
+    #                                 flag_status = 'hard'
+    #                             elif f.flag is False:
+    #                                 flag_status = 'soft'
+    #                             elif f.flag is None:
+    #                                 flag_status = 'muted'
 
-                        # If dns_name is in DNS table, find its name #
-                        if DNS.objects.filter(ip=dns_name).exists():
-                            dns_table_name = DNS.objects\
-                                                .get(ip=dns_name).verbose
-                        else:
-                            dns_table_name = dns_name
+    #                     # If dns_name is in DNS table, find its name #
+    #                     if DNS.objects.filter(ip=dns_name).exists():
+    #                         dns_table_name = DNS.objects\
+    #                                             .get(ip=dns_name).verbose
+    #                     else:
+    #                         dns_table_name = dns_name
 
-                        #print control_resolver
-                        #print sdns_result
-                        # Formating the answers #
-                        ans += [[flag_status, row['id'], row['input'],
-                                match, dns_isp,','.join(control_resolver),
-                                dns_table_name,','.join(dns_result),
-                                row['measurement_start_time']]]
+    #                     #print control_resolver
+    #                     #print sdns_result
+    #                     # Formating the answers #
+    #                     ans += [[flag_status, row['id'], row['input'],
+    #                             match, dns_isp,','.join(control_resolver),
+    #                             dns_table_name,','.join(dns_result),
+    #                             row['measurement_start_time']]]
 
-        return ans
+    #     return ans
+
+
+class DNSTableAjax(DatatablesView):
+
+    fields = ('flag', 'id', 'input')
+    queryset = Metric.objects.filter(test_name='dns_consistency')\
+                             .annotate(
+        # flag=connections['default'].cursor().execute(
+        #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
+        # ,
+        flag=RawSQL(
+            "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
+        )
+    )
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder)
+        )
 
 
 class TCPTableView(generic.TemplateView):
@@ -846,10 +866,10 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
 
 ######################## PRUEBA #######################################
 
+
 import json
 from eztables.views import DatatablesView
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models.expressions import RawSQL
 
 
 class PruebaDataTable(generic.TemplateView):
