@@ -122,7 +122,8 @@ class ListISPCaseView(generics.ListAPIView):
 class ListCaseFilterView(generics.ListAPIView):
     """ListCaseFilterView: ListAPIView
     for displaying a list of cases filtered by
-    title, start date, end date, category and region"""
+    title, start date, end date, domain, site,
+    isp, category and region"""
     #   authentication_classes = (TokenAuthentication, BasicAuthentication)
     #   permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)

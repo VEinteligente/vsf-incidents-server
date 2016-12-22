@@ -251,11 +251,15 @@ class ISPCaseSerializer(serializers.Serializer):
 
 class CharInFilter(django_filters.BaseInFilter,
                    django_filters.CharFilter):
-    """docstring for ClassName"""
+    """CharInFilter: BaseInFilter for a comma separated
+    fields for a CharFilter"""
     pass
 
 
 class CaseFilter(django_filters.FilterSet):
+    """CaseFilter: FilterSet for filter a Case by
+    region, start_date, end_date, domain, site, 
+    isp and category"""
     region = CharInFilter(
         name='events__flags__region',
         distinct=True
