@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 from eztables.views import DatatablesView
 from django.utils.six import text_type
 from measurement.models import (
@@ -584,69 +585,34 @@ class HTTPListDatatablesView(DatatablesView):
     populate a DataTable with all metrics with web_connectivity
     as test_name"""
 
-    model = Metric
-    queryset = Metric.objects.filter(test_name='web_connectivity')
+    queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
+        body_length_match=RawSQL(
+            "test_keys->>'body_length_match'", ()
+        ),
+        body_proportion=RawSQL(
+            "test_keys->>'body_proportion'", ()
+        ),
+        headers_match=RawSQL(
+            "test_keys->>'headers_match'", ()
+        ),
+        status_code_match=RawSQL(
+            "test_keys->>'status_code_match'", ()
+        ),
+        title_match=RawSQL(
+            "test_keys->>'title_match'", ()
+        )
+    )
     fields = {
         'id': 'id',
         'measurement_start_time': 'measurement_start_time',
         'input': 'input',
         'probe_cc': 'probe_cc',
-        'test': 'test_keys'
+        'body_length_match': 'body_length_match',
+        'body_proportion': 'body_proportion',
+        'headers_match': 'headers_match',
+        'status_code_match': 'status_code_match',
+        'title_match': 'title_match',
     }
-
-    def get_row(self, row):
-        '''Format a single row (if necessary)'''
-
-        if isinstance(self.fields, dict):
-            a = dict([
-                (key, text_type(value).format(**row) if RE_FORMATTED.match(value) else row[value])
-                for key, value in self.fields.items()
-            ])
-
-            if a['test']['body_length_match']:
-                a['body_length_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
-                                     '<span class="hide">Yes</span>'
-            else:
-                a['body_length_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
-                                     '<span class="hide">No</span>'
-
-            try:
-                if a['test']['body_proportion']:
-                    a['body_proportion'] = a['test']['body_proportion']
-            except KeyError:
-                a['body_proportion'] = 2
-
-            if a['test']['headers_match']:
-                a['headers_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
-                                     '<span class="hide">Yes</span>'
-            else:
-                a['headers_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
-                                     '<span class="hide">No</span>'
-
-            if a['test']['status_code_match']:
-                a['status_code_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
-                                     '<span class="hide">Yes</span>'
-            else:
-                a['status_code_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
-                                     '<span class="hide">No</span>'
-
-            if a['test']['title_match']:
-                a['title_match'] = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>' \
-                                     '<span class="hide">Yes</span>'
-            else:
-                a['title_match'] = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>' \
-                                     '<span class="hide">No</span>'
-
-            a['flag'] = 'no flag'
-            if Flag.objects.filter(medicion=a['id'], type_med='HTTP').exists():
-                f = Flag.objects.filter(
-                    medicion=a['id'], type_med='HTTP').last()
-                a['flag'] = f.flag
-            return a
-        else:
-            return [text_type(field).format(**row) if RE_FORMATTED.match(field)
-                    else row[field]
-                    for field in self.fields]
 
     def json_response(self, data):
         return HttpResponse(
@@ -845,11 +811,6 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
 
 
 ######################## PRUEBA #######################################
-
-import json
-from eztables.views import DatatablesView
-from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models.expressions import RawSQL
 
 
 class PruebaDataTable(generic.TemplateView):
