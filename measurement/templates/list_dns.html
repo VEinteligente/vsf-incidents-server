@@ -1,0 +1,33 @@
+{% extends 'dashboard/layout.html' %}
+{% load eztables %}
+
+{% block extracss %}
+    {% datatables_bootstrap_css %}
+{% endblock %}
+
+{% block content %}
+<table id="my-table">
+    <thead>
+        <th>flag</th>
+        <th>id</th>
+        <th>input</th>
+    </thead>
+    <tbody></tbody>
+</table>
+{% endblock %}
+
+{% block extrajs %}
+{% datatables_js %}
+{% datatables_bootstrap_js %}
+<script>
+   $(function () {
+
+        $('#my-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": '/measurements/prueba-dns/'
+        });
+
+    })
+</script>
+{% endblock %}

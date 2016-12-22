@@ -91,4 +91,8 @@ urlpatterns = [
         r'^prueba-ajax/$',
         views.PruebaDataTableAjax.as_view()
     ),
+    url(
+        r'^prueba-dns/$',
+        views.DNSTableAjax.as_view()
+    ),
 ]
