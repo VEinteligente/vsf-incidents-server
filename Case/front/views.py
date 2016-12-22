@@ -1,5 +1,6 @@
 from django.views import generic
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 
 from datetime import date
@@ -11,7 +12,7 @@ from dashboard.mixins import PageTitleMixin
 from django.core.urlresolvers import reverse_lazy
 
 
-class ListCase(PageTitleMixin, generic.ListView):
+class ListCase(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListCase: ListView than
     display a list of all cases"""
     model = Case
@@ -22,7 +23,7 @@ class ListCase(PageTitleMixin, generic.ListView):
     breadcrumb = ["Cases"]
 
 
-class CreateCase(PageTitleMixin, generic.CreateView):
+class CreateCase(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateCase: CreateView than
     create a new Case object in DB"""
     form_class = CaseForm
@@ -70,7 +71,7 @@ class CreateCaseFromEventsView(CreateCase):
     page_header_description = "Select the event(s) to associate as a New Case"
 
 
-class DetailCase(PageTitleMixin, generic.DetailView):
+class DetailCase(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     """DetailCase: DetailView than
     give the details of a specific Case object"""
     model = Case
@@ -81,7 +82,7 @@ class DetailCase(PageTitleMixin, generic.DetailView):
     breadcrumb = ["Cases", "Case Details"]
 
 
-class ChangeCaseStatus(generic.UpdateView):
+class ChangeCaseStatus(LoginRequiredMixin, generic.UpdateView):
     """ChangeEventStatus: UpdateView than change case status.
     It can be Publish or Sketch. Sketch for default"""
     model = Case
@@ -116,13 +117,13 @@ class ChangeCaseStatusDetail(ChangeCaseStatus):
             'cases:case_front:detail-case', kwargs={'pk': id})
 
 
-class DeleteCase(generic.DeleteView):
+class DeleteCase(LoginRequiredMixin, generic.DeleteView):
     """DeleteCase: DeleteView than delete an specific case."""
     model = Case
     success_url = reverse_lazy('cases:case_front:list-case')
 
 
-class UpdateCase(PageTitleMixin, generic.UpdateView):
+class UpdateCase(LoginRequiredMixin, PageTitleMixin, generic.UpdateView):
     """UpdateCase: UpdateView than
     update an Case object in DB"""
     form_class = CaseForm
@@ -222,7 +223,7 @@ class UpdateCase(PageTitleMixin, generic.UpdateView):
         return form
 
 
-class CreateUpdate(PageTitleMixin, generic.CreateView):
+class CreateUpdate(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateUpdate: CreateView than
     create a new Update object to a specific Case"""
     form_class = UpdateForm
@@ -261,7 +262,7 @@ class CreateUpdate(PageTitleMixin, generic.CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class UpdateUpdate(PageTitleMixin, generic.UpdateView):
+class UpdateUpdate(LoginRequiredMixin, PageTitleMixin, generic.UpdateView):
     """UpdateUpdate: UpdateView than
     update an update of a specific case"""
     form_class = UpdateForm
@@ -298,7 +299,7 @@ class UpdateUpdate(PageTitleMixin, generic.UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DeleteUpdate(generic.DeleteView):
+class DeleteUpdate(LoginRequiredMixin, generic.DeleteView):
     """DeleteUpdate: DeleteView than
     delete an update of a specific case"""
     model = Update
