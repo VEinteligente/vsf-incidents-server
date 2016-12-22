@@ -260,8 +260,8 @@ class CaseFilter(django_filters.FilterSet):
         name='events__flags__region',
         distinct=True
     )
-    start_date = django_filters.DateFilter()
-    end_date = django_filters.DateFilter()
+    start_date = django_filters.DateFilter(lookup_expr='gte')
+    end_date = django_filters.DateFilter(lookup_expr='lte')
     domain = CharInFilter(
         name='events__target__url',
         distinct=True
@@ -270,7 +270,11 @@ class CaseFilter(django_filters.FilterSet):
         name='events__target__site__name',
         distinct=True
     )
+    isp = CharInFilter(
+        name='events__isp',
+        distinct=True
+    )
 
     class Meta:
         model = Case
-        fields = ('title', 'category', 'start_date', 'end_date', 'region', 'domain', 'site')
+        fields = ('title', 'category', 'start_date', 'end_date', 'region', 'domain', 'site', 'isp')
