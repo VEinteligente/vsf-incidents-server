@@ -278,6 +278,10 @@ class CaseFilter(django_filters.FilterSet):
         name='events__isp',
         distinct=True
     )
+    category = CharInFilter(
+        name='category',
+        distinct=True
+    )
 
     class Meta:
         model = Case
