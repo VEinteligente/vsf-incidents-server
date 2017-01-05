@@ -20,6 +20,11 @@ class UrlSerializer(serializers.ModelSerializer):
         model = Url
 
 
+class UrlFlagSerializer(UrlSerializer):
+    class Meta(UrlSerializer.Meta):
+        exclude = ('id',)
+
+
 class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
