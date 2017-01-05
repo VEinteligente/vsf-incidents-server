@@ -3,8 +3,8 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from datetime import date
-from .forms import CaseForm, UpdateForm, UpdateFormSet
-from Case.models import Case, Update
+from .forms import CaseForm, UpdateForm, UpdateFormSet, CategoryForm
+from Case.models import Case, Update, Category
 from event.models import Event
 
 from dashboard.mixins import PageTitleMixin
@@ -204,7 +204,7 @@ class UpdateCase(PageTitleMixin, generic.UpdateView):
             update.save()
 
         # Success message
-        msg = 'Se ha editado el caso'
+        msg = 'Case modified successfully'
 
         messages.success(self.request, msg)
 
@@ -319,4 +319,35 @@ class DeleteUpdate(generic.DeleteView):
         return HttpResponseRedirect(self.success_url)
 
 
+class ListCategory(PageTitleMixin, generic.ListView):
+    model = Category
+    template_name = "list_category.html"
+    context_object_name = "categories"
+    page_header = "Categories"
+    page_header_description = "List of categories"
+    breadcrumb = ["Cases", "Categories"]
 
+
+class CreateCategory(PageTitleMixin, generic.CreateView):
+    form_class = CategoryForm
+    page_header = "New Category"
+    page_header_description = ""
+    breadcrumb = ["Cases", "Categories", "New Category"]
+    success_url = reverse_lazy('cases:case_front:list-category')
+    template_name = 'create_category.html'
+
+
+class UpdateCategory(PageTitleMixin, generic.UpdateView):
+    form_class = CategoryForm
+    context_object_name = 'category'
+    page_header = "Edit Category"
+    page_header_description = ""
+    model = Category
+    breadcrumb = ["Cases", "Categories", "Edit Category"]
+    success_url = reverse_lazy('cases:case_front:list-category')
+    template_name = 'create_category.html'
+
+
+class DeleteCategory(generic.DeleteView):
+    model = Category
+    success_url = reverse_lazy('cases:case_front:list-category')

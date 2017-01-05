@@ -58,4 +58,24 @@ urlpatterns = [
         views.CreateCaseFromEventsView.as_view(),
         name='create-case-from-events'
     ),
+    url(
+        r'^category/$',
+        views.ListCategory.as_view(),
+        name='list-category'
+    ),
+    url(
+        r'^category/create/$',
+        views.CreateCategory.as_view(),
+        name='create-category'
+    ),
+    url(
+        r'^category/(?P<pk>[0-9]+)/delete/$',
+        views.DeleteCategory.as_view(),
+        name='delete-category'
+    ),
+    url(
+        r'^category/(?P<pk>[0-9]+)/update/$',
+        views.UpdateCategory.as_view(),
+        name='update-category'
+    ),
 ]
