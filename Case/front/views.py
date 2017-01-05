@@ -329,6 +329,8 @@ class ListCategory(PageTitleMixin, generic.ListView):
 
 
 class CreateCategory(PageTitleMixin, generic.CreateView):
+    """CreateCategory: CreateView than
+    create a new Category object in DB"""
     form_class = CategoryForm
     page_header = "New Category"
     page_header_description = ""
@@ -338,6 +340,8 @@ class CreateCategory(PageTitleMixin, generic.CreateView):
 
 
 class UpdateCategory(PageTitleMixin, generic.UpdateView):
+    """UpdateCase: UpdateView than
+    update an Case object in DB"""
     form_class = CategoryForm
     context_object_name = 'category'
     page_header = "Edit Category"
