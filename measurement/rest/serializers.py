@@ -1,8 +1,9 @@
 import json
 
 from rest_framework import serializers
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, Probe, Plan
 from measurement.front.views import DNSTestKey
+from event.rest.serializers import UrlFlagSerializer
 
 
 class MeasurementSerializer(serializers.ModelSerializer):
@@ -151,3 +152,47 @@ class DNSMeasurementSerializer(MeasurementSerializer):
                     if a['answer_type'] == 'A':
                         dns_result = a['ipv4']
         return dns_result
+
+
+class PlanSerializer(serializers.ModelSerializer):
+    """PlanSerializer: ModelSerializer
+    for serialize a plan object"""
+    class Meta:
+        model = Plan
+
+
+class PlanFlagSerializer(PlanSerializer):
+    """PlanFlagSerializer: ModelSerializer extends of PlanSerializer
+    for serialize a plan object excluding id field"""
+    class Meta(PlanSerializer.Meta):
+        exclude = ('id',)
+
+
+class ProbeSerializer(serializers.ModelSerializer):
+    """ProbeSerializer: ModelSerializer
+    for serialize a probe object"""
+    class Meta:
+        model = Probe
+
+
+class ProbeFlagSerializer(ProbeSerializer):
+    """ProbeFlagSerializer: ModelSerializer extends of ProbeSerializer
+    for serialize a probe object excluding id field and adding
+    new field definition for region, country and plan fields"""
+    region = serializers.StringRelatedField()
+    country = serializers.StringRelatedField()
+    plan = PlanFlagSerializer(read_only=True)
+
+    class Meta(ProbeSerializer.Meta):
+        exclude = ('id',)
+
+
+class FlagSerializer(serializers.ModelSerializer):
+    """FlagSerializer: ModelSerializer
+    for serialize a flag object"""
+    probe = ProbeFlagSerializer(read_only=True)
+    target = UrlFlagSerializer(read_only=True)
+
+    class Meta:
+        model = Flag
+        exclude = ('region', 'suggested_events')
