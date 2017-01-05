@@ -34,6 +34,7 @@ class Metric(models.Model):
     class Meta:
         db_table = 'metrics'
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=50, null=True)
