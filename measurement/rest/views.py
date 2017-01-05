@@ -12,8 +12,8 @@ from serializers import (
 class MeasurementRestView(generics.ListAPIView):
     """MeasurementRestView: APIView
     for displaying a list of measurements"""
-    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
-    #   permission_classes = (IsAuthenticated,)
+    # authentication_classes = (TokenAuthentication, BasicAuthentication)
+    # permission_classes = (IsAuthenticated,)
     permission_classes = (AllowAny,)
     queryset = Metric.objects.all()
     serializer_class = MeasurementSerializer
