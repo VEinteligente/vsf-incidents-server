@@ -847,6 +847,8 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
 # Report Views
 
 class ListReportView(PageTitleMixin, generic.ListView):
+    """ListReportView: ListView than
+    display a list of all reports"""
     queryset = Metric.objects.all().values('report_id').distinct()
     template_name = "list_report.html"
     context_object_name = "reports"
@@ -890,6 +892,8 @@ class DetailReportView(PageTitleMixin, generic.DetailView):
 
 
 class ListReportProbeView(ListReportView):
+    """ListReportProbeView: ListView extends of ListReportView than
+    display a list of all reports of a specific probe"""
     def get_queryset(self):
         probe_id = self.kwargs['pk']
         queryset = Metric.objects.annotate(
