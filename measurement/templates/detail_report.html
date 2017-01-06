@@ -1,0 +1,122 @@
+{% extends 'dashboard/layout.html' %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+
+{% block content %}
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+                Report ID: {{report}}
+        </h3>
+    </div>
+    <div class="box-body">
+    
+        <table class="table table-bordered table-hover">
+            <thead>
+                <th>File Name</th>
+            </thead>
+            <tbody>        
+                <tr>
+                    <td>{{report_filename}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <th>Test Name</th>
+                <th>Start Time</th>
+            </thead>
+            <tbody>        
+                <tr>
+                    <td>{{test_name}}</td>
+                    <td>{{test_start_time}}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+    </div>
+</div>
+{% if probe %}
+    
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+                Probe Associated: ID-{{probe.identification}}
+        </h3>
+    </div>
+    <div class="box-body">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <th>Country</th>
+                <th>Region</th>
+                <th>City</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{probe.country.name}}</td>
+                    <td>{{probe.region.name}}</td>
+                    <td>{{probe.city}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <th>ISP</th>
+                <th>Plan</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{probe.isp}}</td>
+                    <td>{{probe.plan}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div> 
+{% endif %}
+   
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">
+                Metrics Associated
+        </h3>
+    </div>
+    <div class="box-body">
+        <table id="metric-list" class="table table-bordered table-hover dataTable">
+            <thead>
+                <th>Metrics</th>
+                <th>Input</th>
+                <th>annotations</th>
+            </thead>
+            <tbody>
+                {% for metric in metrics %}
+                    
+                <tr>
+                    <td>{{metric.id}}</td>
+                    <td>{{metric.input}}</td>
+                    <td>{{metric.annotations}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>                 
+    
+
+{% endblock %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+            $('#metric-list').DataTable(
+            );        
+        })
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    
+{% endblock extracss %}
