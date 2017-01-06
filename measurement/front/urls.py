@@ -83,6 +83,21 @@ urlpatterns = [
         name='edit-probe'
     ),
     url(
+        r'^reports/$',
+        views.ListReportView.as_view(),
+        name='list-report'
+    ),
+    url(
+        r'^reports/(?P<report_id>\w+)/$',
+        views.DetailReportView.as_view(),
+        name='detail-report'
+    ),
+    url(
+        r'^reports/probe/(?P<pk>\w+)$',
+        views.ListReportProbeView.as_view(),
+        name='list-report-probe'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'

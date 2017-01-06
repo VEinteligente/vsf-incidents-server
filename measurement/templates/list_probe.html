@@ -82,6 +82,7 @@
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href="{% url 'measurements:measurement_front:detail-probe' probe.id %}">Detail</a></li>
                                     <li><a href="{% url 'measurements:measurement_front:edit-probe' probe.id %}">Edit</a></li>
+                                    <li><a href="{% url 'measurements:measurement_front:list-report-probe' probe.identification %}">Reports</a></li>
                                     <li><a href="" style="color:red;" class="delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{probe.id}}">Delete</a></li>
                                 </ul>
                             </div>
