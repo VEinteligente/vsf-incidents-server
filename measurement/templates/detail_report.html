@@ -86,7 +86,6 @@
             <thead>
                 <th>Metrics</th>
                 <th>Input</th>
-                <th>annotations</th>
             </thead>
             <tbody>
                 {% for metric in metrics %}
@@ -94,7 +93,6 @@
                 <tr>
                     <td>{{metric.id}}</td>
                     <td>{{metric.input}}</td>
-                    <td>{{metric.annotations}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
