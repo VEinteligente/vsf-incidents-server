@@ -890,16 +890,22 @@ class DetailReportView(PageTitleMixin, generic.DetailView):
 
 
 class ListReportProbeView(ListReportView):
-#     def get_queryset(self):
-#         probe_id = self.kwargs['pk']
-#         print probe_id
-#         queryset = Metric.objects.annotate(val=RawSQL("select  from metrics"))
-#         ordering = self.get_ordering()
-#         if ordering:
-#             if isinstance(ordering, six.string_types):
-#                 ordering = (ordering,)
-#             queryset = queryset.order_by(*ordering)
-#         return queryset
+    def get_queryset(self):
+        probe_id = self.kwargs['pk']
+        queryset = Metric.objects.annotate(
+            val=RawSQL("annotations->>'probe'", ())).filter(
+            val=probe_id).values('report_id').distinct()
+        ordering = self.get_ordering()
+        if ordering:
+            if isinstance(ordering, six.string_types):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ListReportProbeView, self).get_context_data(**kwargs)
+        context['probe_id'] = self.kwargs['pk']
+        return context
 
 
 ######################## PRUEBA ######################################

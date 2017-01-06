@@ -93,9 +93,9 @@ urlpatterns = [
         name='detail-report'
     ),
     url(
-        r'^reports/probe/(?P<pk>[0-9]+)$',
+        r'^reports/probe/(?P<pk>\w+)$',
         views.ListReportProbeView.as_view(),
-        name='list-report'
+        name='list-report-probe'
     ),
     url(
         r'^prueba/$',
