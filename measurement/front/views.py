@@ -293,31 +293,45 @@ class MeasurementTableView(PageTitleMixin, generic.TemplateView):
 
 
 class MeasurementAjaxView(DatatablesView):
-
-    def get(self, request, *args, **kwargs):
-
-        # Create database object #
-        database = DBconnection('titan_db')
-        query = "select * from metrics LIMIT 10"
-
-        result = database.db_execute(query)
-
-        if result:
-            # Search every metric with flag in DB
-            flags = Flag.objects.all().values('medicion', 'flag')
-            for row in result['rows']:
-                flag_value = "not"
-                for flag in flags:
-                    if (str(flag['medicion']) == str(row['id'])):
-                        flag_value = flag['flag']
-                row.update({'flag': flag_value})
-
-        return self.json_response(result['rows'])
+    fields = {
+        'id': 'id',
+        'input': 'input',
+        'report_id': 'report_id',
+        'test_name': 'test_name',
+        'test_start_time': 'test_start_time',
+        'measurement_start_time': 'measurement_start_time'
+    }
+    queryset = Metric.objects.all()
 
     def json_response(self, data):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder)
         )
+
+    # def get(self, request, *args, **kwargs):
+
+    #     # Create database object #
+    #     database = DBconnection('titan_db')
+    #     query = "select * from metrics LIMIT 10"
+
+    #     result = database.db_execute(query)
+
+    #     if result:
+    #         # Search every metric with flag in DB
+    #         flags = Flag.objects.all().values('medicion', 'flag')
+    #         for row in result['rows']:
+    #             flag_value = "not"
+    #             for flag in flags:
+    #                 if (str(flag['medicion']) == str(row['id'])):
+    #                     flag_value = flag['flag']
+    #             row.update({'flag': flag_value})
+
+    #     return self.json_response(result['rows'])
+
+    # def json_response(self, data):
+    #     return HttpResponse(
+    #         json.dumps(data, cls=DjangoJSONEncoder)
+    #     )
 
 
 class DNSTableView(generic.TemplateView):
