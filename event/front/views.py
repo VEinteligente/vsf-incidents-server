@@ -125,8 +125,10 @@ class UpdateEvent(CreateEvent,
         flags = Flag.objects.filter(id__in=flags)
 
         flags_str = ''
+        flags_id = ''
 
         for f in flags:
+            flags_id += f.medicion + ' '
             flags_str += f.medicion + '&' + f.target.url + '&' + \
                          f.isp + '&' + f.ip + '&' + f.type_med + ' '
 
@@ -142,6 +144,7 @@ class UpdateEvent(CreateEvent,
                                         'flags': flags_str,
                                         'open_ended': open_ended
                                         })
+        context['flags_id'] = flags_id
 
         return context
 
