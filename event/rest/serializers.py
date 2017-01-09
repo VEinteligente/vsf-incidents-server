@@ -1,6 +1,8 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework import serializers
 from event.models import Event, Url, Site
+
+import django_filters
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -21,6 +23,11 @@ class UrlSerializer(serializers.ModelSerializer):
         model = Url
 
 
+class UrlFlagSerializer(UrlSerializer):
+    class Meta(UrlSerializer.Meta):
+        exclude = ('id',)
+
+
 class SiteSerializer(serializers.ModelSerializer):
     domains = serializers.SerializerMethodField()
 
@@ -39,3 +46,55 @@ class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
+
+
+class EventGroupSerializer(serializers.ModelSerializer):
+
+    events = serializers.SerializerMethodField()
+    number_events = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_events(obj):
+        """Events of a specific isp and type
+
+        Args:
+            obj: Event
+
+        Returns:
+            List of events of specific isp and type
+        """
+        events = Event.objects.filter(isp=obj.isp,
+                                      type=obj.type)
+
+        return EventSerializer(events, many=True).data
+
+    @staticmethod
+    def get_number_events(obj):
+        """Number of events of a specific isp and type
+
+        Args:
+            obj: Event
+
+        Returns:
+            Integer with que number of events
+        """
+        events = Event.objects.filter(isp=obj.isp,
+                                      type=obj.type)
+        events = set(events)
+        return len(events)
+
+    class Meta:
+        model = Event
+        fields = ('isp', 'type', 'events', 'number_events')
+
+
+# Django Filter EventGroupFilter
+
+class EventGroupFilter(django_filters.FilterSet):
+
+    start_date = django_filters.DateFilter(lookup_expr='gte')
+    end_date = django_filters.DateFilter(lookup_expr='lte')
+
+    class Meta:
+        model = Event
+        fields = ('start_date', 'end_date')

@@ -1,5 +1,13 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from rest_framework.authtoken.models import Token
 
-# Create your models here.
+
+class TokenControl(models.Model):
+    last_used = models.DateTimeField()
+    count = models.PositiveIntegerField(default=0)
+    token = models.ForeignKey(Token)
+
+    def __unicode__(self):
+        return u'%s' % self.token

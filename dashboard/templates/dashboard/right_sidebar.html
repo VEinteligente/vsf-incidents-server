@@ -65,6 +65,11 @@
           </div>
           <!-- /.form-group -->
         </form>
+          {% if user.is_authenticated %}
+            <div class="from-group">
+                <a href="{% url 'dashboard:logout' %}" class="btn btn-xs btn-primary pull-right">Logout <span class="glyphicon glyphicon-log-out"></span></a>
+            </div>
+          {% endif %}
       </div>
       <!-- /.tab-pane -->
     </div>

@@ -7,6 +7,18 @@ from datetime import date as d
 from event.models import Event
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=30)
+    display_name = models.CharField(max_length=50)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+    class Meta:
+        verbose_name = "Category"
+        verbose_name_plural = "Categories"
+
+
 class Case(models.Model):
 
     TYPE_CATEGORIES = (
@@ -23,7 +35,7 @@ class Case(models.Model):
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    category = models.CharField(choices=TYPE_CATEGORIES, max_length=20)
+    category = models.ForeignKey(Category, related_name="cases")
     draft = models.BooleanField(default=True)
     events = models.ManyToManyField(Event, related_name="cases")
 
