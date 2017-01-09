@@ -182,6 +182,7 @@ class Flag(models.Model):
     ip = models.GenericIPAddressField()
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
+    manual_flag = models.BooleanField(default=False)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
                                 max_length=50,
                                 choices=TYPE_CHOICES,
