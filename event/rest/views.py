@@ -1,8 +1,9 @@
 from django.db.models import Q
 
 from django.shortcuts import render
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import BasicAuthentication
+from vsf.vsf_authentication import VSFTokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .serializers import (
     UrlSerializer,
@@ -26,8 +27,8 @@ class BlockedDomains(generics.ListAPIView):
     pertenecer a un sitio.
     Ej. http://www.midominiobloqueado.com
     """
-
-    permission_classes = (AllowAny,)
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
 
     queryset = Event.objects.filter(
         Q(type='bloqueo por DPI') |
@@ -62,8 +63,8 @@ class BlockedSites(BlockedDomains):
 
 
 class EventList(generics.ListAPIView):
-
-    permission_classes = (AllowAny,)
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
 
     queryset = Event.objects.filter(draft=False)
     serializer_class = EventSerializer
@@ -73,9 +74,8 @@ class ListEventGroupView(generics.ListAPIView):
     """ListEventGroupView: ListAPIView
     for displaying a list of events filtered by
     start date, end date and isp"""
-    #   authentication_classes = (TokenAuthentication, BasicAuthentication)
-    #   permission_classes = (IsAuthenticated,)
-    permission_classes = (AllowAny,)
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
     queryset = Event.objects.filter(draft=False)
     serializer_class = EventGroupSerializer
     filter_backends = (DjangoFilterBackend,)
