@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from django.views import generic
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
@@ -19,7 +20,7 @@ from django.core.urlresolvers import reverse_lazy
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
-class ListEvent(PageTitleMixin, generic.ListView):
+class ListEvent(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListEvent: ListView than
     display a list of all events"""
     model = Event
@@ -30,7 +31,7 @@ class ListEvent(PageTitleMixin, generic.ListView):
     breadcrumb = ["Events"]
 
 
-class CreateEvent(PageTitleMixin, generic.CreateView):
+class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateEvent: CreateView than
     create a new Event object in DB"""
     form_class = EventForm
@@ -124,8 +125,10 @@ class UpdateEvent(CreateEvent,
         flags = Flag.objects.filter(id__in=flags)
 
         flags_str = ''
+        flags_id = ''
 
         for f in flags:
+            flags_id += f.medicion + ' '
             flags_str += f.medicion + '&' + f.target.url + '&' + \
                          f.isp + '&' + f.ip + '&' + f.type_med + ' '
 
@@ -141,11 +144,12 @@ class UpdateEvent(CreateEvent,
                                         'flags': flags_str,
                                         'open_ended': open_ended
                                         })
+        context['flags_id'] = flags_id
 
         return context
 
 
-class ChangeEventStatus(generic.UpdateView):
+class ChangeEventStatus(LoginRequiredMixin, generic.UpdateView):
     """ChangeEventStatus: Change Event status.
     It can be Public or Draft. Draft for default"""
     model = Event
@@ -171,7 +175,7 @@ class ChangeEventStatus(generic.UpdateView):
         return HttpResponseRedirect(self.success_url)
 
 
-class DeleteEvent(generic.DeleteView):
+class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
     """DeleteEvent: Delete event and make its measurements
     availables for others events"""
     model = Event
@@ -203,7 +207,7 @@ class DeleteEvent(generic.DeleteView):
         return self.delete(request, *args, **kwargs)
 
 
-class FlagsTable(DatatablesView):
+class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
     model = Flag
@@ -225,7 +229,7 @@ class FlagsTable(DatatablesView):
         )
 
 
-class UpdateFlagsTable(DatatablesView):
+class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     """UpdateFlagsTable: DatatablesView used to display
     a list of metrics with flags of an event to be updated.
     This View is summoned by AJAX"""
@@ -257,7 +261,7 @@ class UpdateFlagsTable(DatatablesView):
         )
 
 
-class ListEventSuggestedFlags(PageTitleMixin, generic.ListView):
+class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListEventSuggestedFlags: ListView than
     display a list of all events with suggested flags"""
     model = Event

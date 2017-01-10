@@ -176,8 +176,12 @@ MEDIA_URL = '/media/'
 # Login redirect url
 
 LOGIN_URL = reverse_lazy('dashboard:login')
+LOGIN_REDIRECT_URL = 'http://google.com'
 
 INTERNAL_IPS = ('127.0.0.1',)
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
+
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025

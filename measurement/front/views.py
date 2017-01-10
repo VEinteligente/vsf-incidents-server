@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import logout
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
@@ -253,7 +252,7 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(PageTitleMixin, generic.TemplateView):
+class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
 
@@ -308,6 +307,8 @@ class MeasurementAjaxView(DatatablesView):
             json.dumps(data, cls=DjangoJSONEncoder)
         )
 
+# class MeasurementAjaxView(LoginRequiredMixin, generic.View):
+
     # def get(self, request, *args, **kwargs):
 
     #     # Create database object #
@@ -334,7 +335,7 @@ class MeasurementAjaxView(DatatablesView):
     #     )
 
 
-class DNSTableView(generic.TemplateView):
+class DNSTableView(LoginRequiredMixin, generic.TemplateView):
     """DNSTableView: TemplateView than
     display a list of metrics in DB
     with dns_consistency as test_name"""
@@ -511,7 +512,7 @@ class DNSTableAjax(DatatablesView):
         )
 
 
-class TCPTableView(generic.TemplateView):
+class TCPTableView(LoginRequiredMixin, generic.TemplateView):
     """TCPTableView: TemplateView than
     display a list of metrics in DB
     with web_connectivity as test_name"""
@@ -605,7 +606,7 @@ class TCPTableView(generic.TemplateView):
         return ans
 
 
-class HTTPTableView(generic.TemplateView):
+class HTTPTableView(LoginRequiredMixin, generic.TemplateView):
     """HTTPTableView: TemplateView than
     display a list of metrics in DB using
     HTTPListDatatablesView"""
@@ -613,7 +614,7 @@ class HTTPTableView(generic.TemplateView):
     template_name = 'display_http_table.html'
 
 
-class HTTPListDatatablesView(DatatablesView):
+class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
     """HTTPListDatatablesView: DatatablesView than
     populate a DataTable with all metrics with web_connectivity
     as test_name"""
@@ -655,7 +656,7 @@ class HTTPListDatatablesView(DatatablesView):
 
 # Muted Input CRUD
 
-class ListMutedInput(PageTitleMixin, generic.ListView):
+class ListMutedInput(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListMutedInput: ListView than
     display a list of all muted inputs"""
     model = MutedInput
@@ -666,7 +667,7 @@ class ListMutedInput(PageTitleMixin, generic.ListView):
     breadcrumb = ["Muted Inputs"]
 
 
-class CreateMutedInput(PageTitleMixin, generic.CreateView):
+class CreateMutedInput(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateMutedInput: CreateView than
     create a new MutedInput object in DB"""
     form_class = MutedInputForm
@@ -690,7 +691,7 @@ class CreateMutedInput(PageTitleMixin, generic.CreateView):
         return HttpResponseRedirect(self.success_url)
 
 
-class DetailMutedInput(PageTitleMixin, generic.DetailView):
+class DetailMutedInput(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     """DetailMutedInput: DetailView than
     give the details of a specific MutedInput object"""
     model = MutedInput
@@ -701,13 +702,13 @@ class DetailMutedInput(PageTitleMixin, generic.DetailView):
     breadcrumb = ["Muted Inputs", "Muted Input Details"]
 
 
-class DeleteMutedInput(generic.DeleteView):
+class DeleteMutedInput(LoginRequiredMixin, generic.DeleteView):
     """DeleteMutedInput: DeleteView than delete an specific muted input."""
     model = MutedInput
     success_url = reverse_lazy('measurements:measurement_front:list-muted-input')
 
 
-class UpdateMutedInput(PageTitleMixin, generic.UpdateView):
+class UpdateMutedInput(LoginRequiredMixin, PageTitleMixin, generic.UpdateView):
     """UpdateMutedInput: UpdateView than
     update an MutedInput object in DB"""
     form_class = MutedInputForm
