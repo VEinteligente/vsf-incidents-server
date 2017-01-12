@@ -1,10 +1,12 @@
 # -*- encoding: utf-8 -*-
 from django.views import generic
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag
+from event.models import Url
 from django.db.models import Q
 from .forms import EventForm
 from .utils import suggestedFlags
@@ -18,7 +20,7 @@ from django.core.urlresolvers import reverse_lazy
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
-class ListEvent(PageTitleMixin, generic.ListView):
+class ListEvent(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListEvent: ListView than
     display a list of all events"""
     model = Event
@@ -29,7 +31,7 @@ class ListEvent(PageTitleMixin, generic.ListView):
     breadcrumb = ["Events"]
 
 
-class CreateEvent(PageTitleMixin, generic.CreateView):
+class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateEvent: CreateView than
     create a new Event object in DB"""
     form_class = EventForm
@@ -48,13 +50,13 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         ids = []
 
         for f in flags:
-            split = f.split('/')
+            split = f.split('&')
+            target = Url.objects.get(url=split[1])
             flag = Flag.objects.filter(medicion=split[0],
-                                       isp=split[4],
-                                       ip=split[5],
-                                       type_med=split[6])
-            print 'flag'
-            print flag
+                                       target=target,
+                                       isp=split[2],
+                                       ip=split[3],
+                                       type_med=split[4])
             ids += [flag[0].id]
 
         # Filter Flag objects for ids
@@ -78,6 +80,8 @@ class CreateEvent(PageTitleMixin, generic.CreateView):
         self.object.target = flags[0].target  # Flag target
 
         self.object.save()  # Save object in the Database
+
+        #self.object.flags.clear()  # Delete flags asociated
 
         self.object.flags = flags  # Add flags to object
 
@@ -121,26 +125,31 @@ class UpdateEvent(CreateEvent,
         flags = Flag.objects.filter(id__in=flags)
 
         flags_str = ''
+        flags_id = ''
 
         for f in flags:
-            flags_str += f.medicion + '/' + f.target.url + '/' + \
-                         f.isp + '/' + f.ip + '/' + f.type_med + ' '
+            flags_id += f.medicion + ' '
+            flags_str += f.medicion + '&' + f.target.url + '&' + \
+                         f.isp + '&' + f.ip + '&' + f.type_med + ' '
 
         open_ended = False
 
         if not event.end_date:
             open_ended = True
 
+        print "FLAGS"
+        print flags
         # Initial data for the form
         context['form'] = form(initial={'identification': event.identification,
                                         'flags': flags_str,
                                         'open_ended': open_ended
                                         })
+        context['flags_id'] = flags_id
 
         return context
 
 
-class ChangeEventStatus(generic.UpdateView):
+class ChangeEventStatus(LoginRequiredMixin, generic.UpdateView):
     """ChangeEventStatus: Change Event status.
     It can be Public or Draft. Draft for default"""
     model = Event
@@ -166,7 +175,7 @@ class ChangeEventStatus(generic.UpdateView):
         return HttpResponseRedirect(self.success_url)
 
 
-class DeleteEvent(generic.DeleteView):
+class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
     """DeleteEvent: Delete event and make its measurements
     availables for others events"""
     model = Event
@@ -198,7 +207,7 @@ class DeleteEvent(generic.DeleteView):
         return self.delete(request, *args, **kwargs)
 
 
-class FlagsTable(DatatablesView):
+class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
     model = Flag
@@ -220,7 +229,7 @@ class FlagsTable(DatatablesView):
         )
 
 
-class UpdateFlagsTable(DatatablesView):
+class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     """UpdateFlagsTable: DatatablesView used to display
     a list of metrics with flags of an event to be updated.
     This View is summoned by AJAX"""
@@ -244,7 +253,6 @@ class UpdateFlagsTable(DatatablesView):
         if pk:
             queryset = Flag.objects.filter(Q(event=None) |
                                            Q(event=Event.objects.get(id=pk)))
-
         return queryset
 
     def json_response(self, data):
@@ -253,7 +261,7 @@ class UpdateFlagsTable(DatatablesView):
         )
 
 
-class ListEventSuggestedFlags(PageTitleMixin, generic.ListView):
+class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     """ListEventSuggestedFlags: ListView than
     display a list of all events with suggested flags"""
     model = Event

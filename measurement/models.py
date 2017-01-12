@@ -34,6 +34,7 @@ class Metric(models.Model):
     class Meta:
         db_table = 'metrics'
 
+
 class Country(models.Model):
     name = models.CharField(max_length=50)
     abbreviation = models.CharField(max_length=50, null=True)
@@ -98,6 +99,9 @@ class Plan(models.Model):
         verbose_name='Velocidad de Descarga publicitado',
         max_length=30)
     comment = models.TextField(null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s" % (self.name)
 
 
 class Probe(models.Model):

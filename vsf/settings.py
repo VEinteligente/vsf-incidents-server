@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'measurement',
     'vsf_user',
     'prettyjson',
+    'modeltranslation',
 ]
 
 MIDDLEWARE = [
@@ -104,8 +105,8 @@ DATABASES = {
     'titan_db': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'pipeline_db',
-        'USER': 'pipeline_db',
-        'PASSWORD': '70:o}wt2amTr7#Q_FTJRQ',
+        'USER': 'pipeline_access',
+        'PASSWORD': '[$iB:k_Y1j!ZtJ,L4g{-#',
         'HOST': '37.218.242.176',  # titan ip
         'PORT': '5432'
     }
@@ -176,8 +177,20 @@ MEDIA_URL = '/media/'
 # Login redirect url
 
 LOGIN_URL = reverse_lazy('dashboard:login')
+LOGIN_REDIRECT_URL = 'http://google.com'
 
 INTERNAL_IPS = ('127.0.0.1',)
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
+
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+
+# Django-modeltranslate setup.
+LANGUAGES = (
+    ('de', 'English'),
+    ('es', 'Spanish'),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'es'

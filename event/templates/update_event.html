@@ -25,6 +25,7 @@
                         {% bootstrap_field form.identification %}
                         {% bootstrap_field form.open_ended %}
                         {% bootstrap_field form.flags %}
+                         <input id="flags_id" type="text" class="hidden" name="flags_id" value="{{ flags_id }}">
                         <div class="box box-solid box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title"> Select Measurement(s)</h3>
@@ -59,6 +60,9 @@
                     <div class="box-footer text-right">
                         <input class="btn btn-flat btn-primary" type="submit" value="Update">
                         <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a>
+                        <button type="button" id="btn" class="btn btn-flat btn-primary" data-clipboard-text="{{ flags_id }}">
+                            Copy Measurements Ids
+                        </button>
                     </div>
                 </div>
             </form>
@@ -89,7 +93,9 @@
 <script>
     $(document).ready(function () {
 
-        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');        
+        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' '); 
+
+        var flags_id = $( '#flags_id' ).val($( '#flags_id' ).val() + ' ');
 
         var table = $('#measurement_id').DataTable({
             "order": [[ 0, "desc" ]],
@@ -107,12 +113,20 @@
 
                     $.each($(this).val().split(' '), function(){
 
-                        var split = this.split('/');
+                        var split = this.split('&');/*
+
+                        console.log("SPLIT 0", data['Measurement']);
+                        console.log("SPLIT 0", split[0]);
+                        console.log("SPLIT 1", data['Target'] == split[1]);
+                        console.log("SPLIT 2", data['ISP'] == split[2]);
+                        console.log("SPLIT 3", data['IP Address'] == split[3]);
+                        console.log("SPLIT 4", data['Measurement type'] == split[4]);*/
 
                         if (data['Measurement'] == split[0] && data['Target'] == split[1] && data['ISP'] == split[2] && data['IP Address'] == split[3] && data['Measurement type'] == split[4]) 
                         {
+                            console.log("HOLAAAA");
                             $(row).addClass('selected');
-                        }
+                        } 
                     });
                 });
             },
@@ -145,6 +159,7 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
+            var flags_id = $( '#flags_id' );
             var target = $( this ).context.childNodes[3].innerText;
             var isp = $( this ).context.childNodes[4].innerText;
             var ip = $( this ).context.childNodes[5].innerText;
@@ -154,8 +169,13 @@
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + '/' + target + '/' + isp + '/' +
-                           ip + '/' + type + ' ');
+                flags.val( flags.val() + measurement + '&' + target + '&' + isp + '&' +
+                           ip + '&' + type + ' ');
+                flags_id.val( flags_id.val() + measurement + ' ');
+
+                var text_flags = flags_id.val();
+                
+                $("#btn").attr("data-clipboard-text", text_flags);
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(
@@ -171,7 +191,57 @@
                         )
                 );
                 flags.val().replace(" ", "");
+
+                var flags_id_index = flags_id.val().indexOf(measurement);
+                flags_id.val(
+                        flags_id.val().substring(
+                                0,
+                                flags_id_index
+                        ) +
+                        flags_id.val().substring(
+                                flags_id_index + measurement.length 
+                        )
+                );
+                flags_id.val().replace(" ", "");
+
+                var text_flags = flags_id.val();
+                
+                $("#btn").attr("data-clipboard-text", text_flags);
             }
+        });
+
+        // Tooltip
+
+        $('button').tooltip({
+          trigger: 'click',
+          placement: 'bottom'
+        });
+
+        function setTooltip(btn, message) {
+          $(btn).tooltip('hide')
+            .attr('data-original-title', message)
+            .tooltip('show');
+        }
+
+        function hideTooltip(btn) {
+          setTimeout(function() {
+            $(btn).tooltip('hide');
+          }, 8000); 
+        }
+
+        // Clipboard
+
+        var btn = document.getElementById('btn');
+        var clipboard = new Clipboard(btn);
+            
+        clipboard.on('success', function(e) {
+            setTooltip(e.trigger, 'Copied!');
+            hideTooltip(e.trigger);
+        });
+
+        clipboard.on('error', function(e) {
+            setTooltip(e.trigger, 'Failed!');
+            hideTooltip(e.trigger);
         });
 
     });

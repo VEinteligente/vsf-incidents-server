@@ -8,7 +8,7 @@ class EventForm(forms.ModelForm):
 
     open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
                                     required=False)
-    flags = forms.CharField(widget=forms.TextInput(attrs={'class': 'show'}),
+    flags = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden'}),
                             required=True, label="")
 
     class Meta:
@@ -36,7 +36,7 @@ class EventForm(forms.ModelForm):
             # and type
 
             for f in flags:
-                split = f.split('/')
+                split = f.split('&')
                 bd_flags += Flag.objects.filter(medicion=split[0],
                                                 target__url=split[1],
                                                 isp=split[2],
