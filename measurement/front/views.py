@@ -320,6 +320,31 @@ class MeasurementAjaxView(LoginRequiredMixin, generic.View):
         )
 
 
+class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
+    model = Metric
+    queryset = Metric.objects.all()
+    slug_url_kwarg = 'id'
+    slug_field = 'id__contains'
+    template_name = 'detail_measurement.html'
+    page_header = "Measurement Detail"
+    page_header_description = ""
+
+    def get_context_data(self, **kwargs):
+        """
+        Insert the single object into the context dict.
+        """
+        context = {}
+        if self.object:
+            try:
+                probe = Probe.objects.get(
+                    identification=self.object.annotations['probe'])
+            except Exception:
+                probe = ""
+            context['probe'] = probe
+        context.update(kwargs)
+        return super(MeasurementDetail, self).get_context_data(**context)
+
+
 class DNSTableView(LoginRequiredMixin, generic.TemplateView):
     """DNSTableView: TemplateView than
     display a list of metrics in DB

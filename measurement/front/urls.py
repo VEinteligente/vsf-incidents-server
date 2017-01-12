@@ -43,6 +43,11 @@ urlpatterns = [
         name='list-muted-input'
     ),
     url(
+        r'^(?P<id>[\w-]+)/detail/$',
+        views.MeasurementDetail.as_view(),
+        name='detail-measurement'
+    ),
+    url(
         r'^(?P<pk>[0-9]+)/detail-muted-input/$',
         views.DetailMutedInput.as_view(),
         name='detail-muted-input'
