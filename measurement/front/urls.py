@@ -83,6 +83,11 @@ urlpatterns = [
         name='edit-probe'
     ),
     url(
+        r'^create-manual-flags/$',
+        views.ManualFlagsView.as_view(),
+        name='create-manual-flags'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'

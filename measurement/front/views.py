@@ -17,7 +17,13 @@ from measurement.models import (
     MutedInput,
     Probe
 )
-from measurement.front.forms import MutedInputForm, ProbeForm
+from measurement.front.forms import (
+    MutedInputForm,
+    ProbeForm,
+    ManualFlagForm
+)
+from event.models import Url
+from measurement.utils import *
 import re
 import json
 
@@ -252,13 +258,15 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
+class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, 
+                           generic.TemplateView, generic.edit.FormMixin):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
 
     page_header = "Measurement List"
     page_header_description = ""
     breadcrumb = [""]
+    form_class = ManualFlagForm
     template_name = 'display_table.html'
 
     # def get_context_data(self, **kwargs):
@@ -293,6 +301,7 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, generic.TemplateV
 
 class MeasurementAjaxView(DatatablesView):
     fields = {
+        'checkbox': 'input',
         'id': 'id',
         'input': 'input',
         'report_id': 'report_id',
@@ -842,6 +851,54 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
             messages.error(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+# Manual Flags View
+
+class ManualFlagsView(generic.FormView):
+    """ManualFlagsView: CreateView for create manual flags
+    in DB"""
+    form_class = ManualFlagForm
+    success_url = reverse_lazy('measurements:measurement_front:measurement-table')
+    template_name = 'display_table.html'
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get metrics values
+        metric_inputs = form.cleaned_data['metrics']
+
+        if metric_inputs.endswith(','):
+            metric_inputs = metric_inputs[:-1]
+
+        print metric_inputs
+
+        # Create database object #
+        database = DBconnection('titan_db')
+
+        query = "select id, input, measurement_start_time "
+        query += "from metrics where id in (" + metric_inputs + ")"
+
+        # Results from execute queries #
+        metrics = database.db_execute(query)
+
+        if metrics:
+            rows_ids = metrics['rows']
+
+            for row in rows_ids:
+                change_to_manual_flag_sql(row)
+
+        print "METRICS"
+        print metrics
+
+        print "ROWS IDS"
+        print rows_ids
+
+        msg = 'Se han agregado los flags manuales'
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())
+
 
 
 ######################## PRUEBA #######################################

@@ -13,6 +13,7 @@
         
         <table id="my-table">
             <thead>
+                <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
                 <th>ID</th>
                 <th>Input</th>
                 <th>Report ID</th>
@@ -21,6 +22,13 @@
                 <th>Measurement Start Time</th>
             </thead>
         </table>
+        <form action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}        
+        <div class="box-footer text-right">
+            <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">
+        </div>
+        </form>
     </div>
     
 {% endblock %}
@@ -35,11 +43,20 @@
 
     $(function () {
 
+        $( '#id_metrics' ).val('');
+
+        $( '#create-manual-flag').toggleClass('disabled');
+
         $('#my-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": '/measurements/measurement-ajax/',
             "aoColumns": [
+                { "mData": "checkbox","bSortable": false, "bSearchable": false,
+                "mRender": function ( data ) {
+                return '<input type="checkbox" name="' + data + '" value="1">'
+            }
+                },
                 { "mData": "id" },
                 { "mData": "input" },
                 { "mData": "report_id",
@@ -54,7 +71,97 @@
                 { "mData": "test_name" },
                 { "mData": "test_start_time" },
                 { "mData": "measurement_start_time" }
-            ]
+            ],
+        });
+
+        // Handle click on "Select all" control
+        $('#example-select-all').on('click', function(){
+            // Get all rows with search applied
+            var rows = $('#my-table').find('tbody').find('tr');
+            // Check/uncheck checkboxes for all rows in the table            
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+            $(rows).each(function() {
+               var checked = $('input[type="checkbox"]', rows).prop('checked');
+               if(checked){
+                $(this).addClass('selected', checked);
+               }else{
+                $(this).removeClass('selected');
+               }
+
+               var metrics = $( '#id_metrics' );
+               var measurement = $( this ).context.childNodes[1].innerText;
+
+               $( '#create-manual-flag').removeClass('disabled');
+
+               if( $( this ).hasClass( 'selected' ) ){
+                $(this).find(":checkbox").prop("checked", true);
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');       
+            }else{
+                $(this).find(":checkbox").prop("checked", false);                
+                var metric_index = metrics.val().indexOf(measurement);
+                metrics.val(
+                        metrics.val().substring(
+                                0,
+                                metric_index - 1
+                        ) +
+                        metrics.val().substring(
+                                metric_index + measurement.length + 2
+                        )
+                );
+                
+                if (!metrics.val().match(/([^,\']+)\w/)){
+                    metrics.val("");
+                    $( '#create-manual-flag').toggleClass('disabled');
+                }
+                       
+            }               
+
+            $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+            $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+            });
+            
+            console.log("METRICS", $("#id_metrics").val());
+
+        });
+
+        $('#my-table tbody').on('click', 'tr', function () {
+
+            var metrics = $( '#id_metrics' );
+            var measurement = $( this ).context.childNodes[1].innerText;
+
+            $( this ).toggleClass('selected');
+
+            $( '#create-manual-flag').removeClass('disabled');
+
+            if( $( this ).hasClass( 'selected' ) ){
+                $(this).find(":checkbox").prop("checked", true);
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');       
+            }else{
+                $(this).find(":checkbox").prop("checked", false);                
+                var metric_index = metrics.val().indexOf(measurement);
+                metrics.val(
+                        metrics.val().substring(
+                                0,
+                                metric_index - 1
+                        ) +
+                        metrics.val().substring(
+                                metric_index + measurement.length + 2
+                        )
+                );
+                
+                if (!metrics.val().match(/([^,\']+)\w/)){
+                    metrics.val("");
+                    $( '#create-manual-flag').toggleClass('disabled');
+                }
+                       
+            }               
+
+            $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+            $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+            
         });
 
     })

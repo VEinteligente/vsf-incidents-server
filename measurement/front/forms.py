@@ -15,3 +15,9 @@ class ProbeForm(forms.ModelForm):
         model = Probe
         fields = ['identification', 'region', 'country', 'city', 
                   'isp', 'plan']
+
+
+class ManualFlagForm(forms.Form):
+
+    metrics = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden', 'required': False}),
+                              label="")
