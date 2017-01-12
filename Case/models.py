@@ -38,6 +38,7 @@ class Case(models.Model):
     category = models.ForeignKey(Category, related_name="cases")
     draft = models.BooleanField(default=True)
     events = models.ManyToManyField(Event, related_name="cases")
+    twitter_search = models.CharField(max_length=400, null=True, blank=True)
 
 
 class Update(models.Model):
