@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'measurement',
     'vsf_user',
     'prettyjson',
+    'modeltranslation',
 ]
 
 MIDDLEWARE = [
@@ -185,3 +186,11 @@ DEBUG_TOOLBAR_CONFIG = {
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 1025
+
+# Django-modeltranslate setup.
+LANGUAGES = (
+    ('de', 'English'),
+    ('es', 'Spanish'),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'es'

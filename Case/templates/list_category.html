@@ -46,6 +46,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Display Name</th>
+                        <th>Display Name [English]</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -53,6 +54,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Display Name</th>
+                        <th>Display Name [English]</th>
                         <th>Actions</th>
                     </tr>
                 </tfoot>
@@ -60,6 +62,12 @@
                     <tr>
                         <td>{{category.name}}</td>
                         <td>{{category.display_name}}</td>
+                        <td>{% if  category.display_name_de%}
+                            {{category.display_name_de}}
+                            {% else %}
+                            No translations available
+                        {% endif %}
+                        </td>
                         <td>
                             <div class="btn-group ">
                                 <button type="button" class="btn btn-primary btn-flat">Actions</button>
@@ -114,8 +122,8 @@
             });
             $('#category-list').DataTable({
                 "aoColumnDefs": [
-                    { "bSearchable": false, "aTargets": [ 2 ] },
-                    { "asSorting": false, "aTargets": [2] }
+                    { "bSearchable": false, "aTargets": [ 3 ] },
+                    { "asSorting": false, "aTargets": [3] }
                 ],
             }
             );        

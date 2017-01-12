@@ -33,11 +33,11 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    {{case.start_date.date}}
+                                    {{case.start_date}}
                                 </td>
                                 <td>
                                 {% if case.end_date %}
-                                    {{case.end_date.date}}
+                                    {{case.end_date}}
                                 {% else %}
                                     Open Case....
                                 {% endif %}
@@ -50,47 +50,66 @@
                 </div>
 
             </div>
-            <div class="box">
+            <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
-                            Update(s) associated
+                            Case Update(s)
                     </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
                 </div>
                 <div class="box-body">
                     {% for update in case.updates.all %}
-                    <div style="border-top: #d2d6de solid 2px">
-                        <div class=" pull-left">
-                            <h4>{{update.title}}</h4>
+                    <div class="box box-default collapsed-box">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">
+                                {{update.title}}
+                            </h3>
+                            <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                    </button>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <a href="{% url 'cases:case_front:update-update' update.id %}" class="">Edit</a>
-                            <a href="" class="update-delete-btn" data-toggle="modal" data-target="#modal_update_delete" data-id="{{update.id}}">Delete</a>
+                        <div class="box-body">
+                            <table id="update-list" class="table table-bordered table-hover">
+                            <thead>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Created by</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{update.date}}</td>
+                                    <td>{{update.category}}</td>
+                                    <td>{{update.created_by}}</td>
+                                </tr>
+                            </tbody>
+                            </table>
+                            <p><b>Description:</b></p>
+                            <p>{{update.text}}</p>
+                        </div>
+                        <div class="box-footer">
+                            <div class="text-right">
+                                <a href="{% url 'cases:case_front:update-update' update.id %}" class="">Edit</a>
+                                <a href="" class="update-delete-btn" data-toggle="modal" data-target="#modal_update_delete" data-id="{{update.id}}">Delete</a>
+                            </div>
                         </div>
                     </div>
-                    <table id="update-list" class="table table-bordered table-hover">
-                        <thead>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Created by</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{{update.date.date}}</td>
-                                <td>{{update.category}}</td>
-                                <td>{{update.created_by}}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p><b>Description:</b></p>
-                    <p>{{update.text}}</p>
+                    
                     {% endfor %}
                 </div>
             </div>
-            <div class="box">
+            <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
                             Event(s) associated
                     </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
                 </div>
                 <div class="box-body">
                     <table id="event-list" class="table table-bordered table-hover">
@@ -123,6 +142,88 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+            </div>
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Translations (Optional)
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    {% if  case.title_de or case.description_de %}
+                    <p><b>English</b></p>
+                    <p><b>Title:</b></p>
+                    <p>{{case.title_de}}</p>
+                    <p><b>Description:</b></p>
+                    <p>{{case.description_de}}</p>
+                    {% else %}
+                    <p><b>No translations available</b></p>
+                    {% endif %}
+                    <div class="box box-default collapsed-box">
+                        <div class="box-header with-border">
+                            <p>
+                                    Case Update(s)
+                            </p>
+                            <div class="box-tools pull-right">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                    </button>
+                            </div>
+                        </div>
+                        <div class="box-body">
+                            {% for update in case.updates.all %}
+                                {% if update.title_de or update.text_de %}
+                                    
+                                <div class="box box-default collapsed-box">
+                                    <div class="box-header with-border">
+                                        <p >
+                                            {{update.title_de}}
+                                        </p>
+                                        <div class="box-tools pull-right">
+                                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                                </button>
+                                        </div>
+                                    </div>
+                                    <div class="box-body">
+                                        <table id="update-list" class="table table-bordered table-hover">
+                                        <thead>
+                                            <th>Date</th>
+                                            <th>Category</th>
+                                            <th>Created by</th>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{update.date}}</td>
+                                                <td>{{update.category}}</td>
+                                                <td>{{update.created_by}}</td>
+                                            </tr>
+                                        </tbody>
+                                        </table>
+                                        <p><b>Description:</b></p>
+                                        <p>{{update.text_de}}</p>
+                                    </div>
+                                    <div class="box-footer">
+                                        <div class="text-right">
+                                            <a href="{% url 'cases:case_front:update-update' update.id %}" class="">Edit</a>
+                                            <a href="" class="update-delete-btn" data-toggle="modal" data-target="#modal_update_delete" data-id="{{update.id}}">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="box box-default">
+                                    <div class="box-header with-border">
+                                        <p><b>No translations available for update "{{update.title}}"</b></p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
