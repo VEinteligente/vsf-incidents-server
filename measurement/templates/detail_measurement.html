@@ -1,6 +1,8 @@
 {% extends 'dashboard/layout.html' %}
 {% load bootstrap3 %}
 {% load staticfiles %}
+{% load key_value %}
+{% load prettyjson %}
 
 {% block content %}
     <div class="row">
@@ -8,25 +10,238 @@
             <div class="box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
-                            Detail of {{ object.input }}
+                            Metric: <b>{{metric.id}}</b>
+                            <button type="button" id="btn" class="btn btn-flat btn-primary" data-clipboard-text={{metric.id}}>
+                            <span class="glyphicon glyphicon-copy"></span>
+                            </button>
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered table-hover" style="margin-bottom: 20px">
+                        <thead>
+                            <th>Input</th>
+                            <th>Measurement Start Time</th>   
+                            <th>Test Runtime</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ metric.input }}</td>
+                                <td>{{ metric.measurement_start_time }}</td>
+                                <td>{{ metric.test_runtime }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered" style="margin-bottom: 20px">
+                        <thead>
+                            <th>Test Keys </th>
+                            <th>Test Helpers</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{% prettyjson metric.test_keys %}</td>
+                                <td>{% prettyjson metric.test_helpers %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered" style="margin-bottom: 20px">
+                        <thead>
+                            <th>Options</th>
+                            <th>Annotations</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{% prettyjson metric.options %}</td>
+                                <td>{% prettyjson metric.annotations %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Metric Report: <b>{{metric.report_id}}</b>
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <th>Report File Name</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{metric.report_filename}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <th>Data Format Version</th>
+                            <th>Software Name</th>
+                            <th>Software Version</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{metric.data_format_version}}</td>
+                                <td>{{metric.software_name}}</td>
+                                <td>{{metric.software_version}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <th>Probe CC</th>
+                            <th>Probe ASN</th>
+                            <th>Probe IP</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{metric.probe_cc}}</td>
+                                <td>{{metric.probe_asn}}</td>
+                                <td>{{metric.probe_ip}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>    
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Metric Probe: <b>ID-{{probe.identification}}</b>
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <p><b>Probe Details:</b></p>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <th>ISP</th>
+                            <th>Region</th>
+                            <th>Country</th>
+                            <th>City</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{probe.isp}}</td>
+                                <td>{{probe.region}}</td>
+                                <td>{{probe.country}}</td>
+                                <td>{{probe.city}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 10px;"><b>Probe Plan Details:</b></p>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <th>Name</th>
+                            <th>ISP</th>
+                            <th>Upload</th>
+                            <th>Download</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{probe.plan.name}}</td>
+                                <td>{{probe.plan.isp}}</td>
+                                <td>{{probe.plan.upload}}</td>
+                                <td>{{probe.plan.download}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {% if  probe.plan.comment %}
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Comment</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{probe.plan.comment}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>       
+        </div>
+        <div class="col-xs-2">
+            <div class="box box-solid">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Actions
                     </h3>
                 </div>
                 <div class="box-body">
-                    {{ metric.id }}<br/>
-                    {{ metric.test_helpers }}<br/>
-                    {{ metric.test_runtime }}<br/>
-                    {{ metric.measurement_start_time }}<br/>
-                    {{ metric.options }}<br/>
-                    {{ metric.annotations.probe }}<br/>
-                    {{ probe.country }}<br/>
-                    {{ probe.region }}<br/>
-                    {{ probe.city }}<br/>
-                    {{ probe.isp }}<br/>
-                </div>
-                <div class="box-footer text-right">
-
-                </div>
-            </div>          
-        </div>        
+                    
+                </div> 
+            </div>
+        </div>       
     </div>
 {% endblock %}
+
+{% block extrajs %}
+{% prettyjson_setup jquery=False %}
+<script>
+    $(document).ready(function () {
+
+        // Tooltip
+
+        $('button').tooltip({
+          trigger: 'click',
+          placement: 'bottom'
+        });
+
+        function setTooltip(btn, message) {
+          $(btn).tooltip('hide')
+            .attr('data-original-title', message)
+            .tooltip('show');
+        }
+
+        function hideTooltip(btn) {
+          setTimeout(function() {
+            $(btn).tooltip('hide');
+          }, 8000); 
+        }
+
+        // Clipboard
+
+        var btn = document.getElementById('btn');
+        var clipboard = new Clipboard(btn);
+            
+        clipboard.on('success', function(e) {
+            setTooltip(e.trigger, 'Copied!');
+            hideTooltip(e.trigger);
+        });
+
+        clipboard.on('error', function(e) {
+            setTooltip(e.trigger, 'Failed!');
+            hideTooltip(e.trigger);
+        });
+       
+
+    })
+</script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    <style>
+        .actionButton{
+            width: 100%;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock extracss %}
