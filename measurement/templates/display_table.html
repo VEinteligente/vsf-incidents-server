@@ -62,7 +62,7 @@
                 { "mData": "report_id",
                    "mRender": function ( data ) {
                         if (data != null){
-                            return '<a href="">' + data + '</a>';
+                            return '<a href="{% url 'measurements:measurement_front:detail-report' report_id=data %}">' + data + '</a>';
                         }else{
                             return '';
                         }
