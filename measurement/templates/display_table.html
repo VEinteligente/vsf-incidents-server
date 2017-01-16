@@ -57,12 +57,24 @@
                 return '<input type="checkbox" name="' + data + '" value="1">'
             }
                 },
-                { "mData": "id" },
+                { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+                },
                 { "mData": "input" },
                 { "mData": "report_id",
                    "mRender": function ( data ) {
                         if (data != null){
-                            return '<a href="{% url 'measurements:measurement_front:detail-report' report_id=data %}">' + data + '</a>';
+                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                            return url_report
                         }else{
                             return '';
                         }

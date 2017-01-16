@@ -915,9 +915,8 @@ class DetailReportView(PageTitleMixin, generic.DetailView):
         metrics = Metric.objects.filter(
             report_id=self.kwargs['report_id'])
         context['metrics'] = metrics.values('id', 'input', 'annotations')
-        context['report_filename'] = metrics.first().report_filename
-        context['test_name'] = metrics.first().test_name
-        context['test_start_time'] = metrics.first().test_start_time
+        report = metrics.first()
+        context['report'] = report
         try:
             if metrics.first().annotations['probe']:
                 context['probe'] = Probe.objects.get(
