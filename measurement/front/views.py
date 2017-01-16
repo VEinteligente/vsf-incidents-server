@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
+from django.core.mail import EmailMessage
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
@@ -952,7 +953,9 @@ class PruebaDataTable(generic.TemplateView):
     template_name = 'list.html'
 
     def get(self, request, *args, **kwargs):
-        q = Metric.objects.first()
+        email = EmailMessage('title', 'body', to=['nestorbracho2207@gmail.com'])
+        email.send()
+        # q = Metric.objects.first()
 
         # print str(q.test_keys)
 
