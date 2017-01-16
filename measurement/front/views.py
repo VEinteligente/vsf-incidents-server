@@ -26,6 +26,7 @@ from event.models import Url
 from measurement.utils import *
 import re
 import json
+from django.db.models.expressions import RawSQL
 
 from dashboard.mixins import PageTitleMixin
 
@@ -342,6 +343,31 @@ class MeasurementAjaxView(DatatablesView):
     #     return HttpResponse(
     #         json.dumps(data, cls=DjangoJSONEncoder)
     #     )
+
+
+class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
+    model = Metric
+    queryset = Metric.objects.all()
+    slug_url_kwarg = 'id'
+    slug_field = 'id__contains'
+    template_name = 'detail_measurement.html'
+    page_header = "Measurement Detail"
+    page_header_description = ""
+
+    def get_context_data(self, **kwargs):
+        """
+        Insert the single object into the context dict.
+        """
+        context = {}
+        if self.object:
+            try:
+                probe = Probe.objects.get(
+                    identification=self.object.annotations['probe'])
+            except Exception:
+                probe = ""
+            context['probe'] = probe
+        context.update(kwargs)
+        return super(MeasurementDetail, self).get_context_data(**context)
 
 
 class DNSTableView(LoginRequiredMixin, generic.TemplateView):
@@ -852,7 +878,78 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+
+# Report Views
+
+
+class ListReportView(PageTitleMixin, generic.ListView):
+    """ListReportView: ListView than
+    display a list of all reports"""
+    queryset = Metric.objects.all().values('report_id').distinct()
+    template_name = "list_report.html"
+    context_object_name = "reports"
+    page_header = "Reports"
+    page_header_description = "List of Reports"
+    breadcrumb = ["Reports"]
+
+
+class DetailReportView(PageTitleMixin, generic.DetailView):
+    """DetailReportView: DetailView than
+    give the details of a specific Report"""
+    model = Metric
+    context_object_name = "report"
+    template_name = "detail_report.html"
+    page_header = "Report Details"
+    page_header_description = ""
+    breadcrumb = ["Reports", "Report Details"]
+    slug_url_kwarg = 'report_id'
+    slug_field = 'report_id'
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.kwargs['report_id']
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        context = super(DetailReportView, self).get_context_data(**kwargs)
+        metrics = Metric.objects.filter(
+            report_id=self.kwargs['report_id'])
+        context['metrics'] = metrics.values('id', 'input', 'annotations')
+        context['report_filename'] = metrics.first().report_filename
+        context['test_name'] = metrics.first().test_name
+        context['test_start_time'] = metrics.first().test_start_time
+        try:
+            if metrics.first().annotations['probe']:
+                context['probe'] = Probe.objects.get(
+                    identification=metrics.first().annotations['probe'])
+        except Exception:
+            pass
+        return context
+
+
+class ListReportProbeView(ListReportView):
+    """ListReportProbeView: ListView extends of ListReportView than
+    display a list of all reports of a specific probe"""
+    def get_queryset(self):
+        probe_id = self.kwargs['pk']
+        queryset = Metric.objects.annotate(
+            val=RawSQL("annotations->>'probe'", ())).filter(
+            val=probe_id).values('report_id').distinct()
+        ordering = self.get_ordering()
+        if ordering:
+            if isinstance(ordering, six.string_types):
+                ordering = (ordering,)
+            queryset = queryset.order_by(*ordering)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ListReportProbeView, self).get_context_data(**kwargs)
+        context['probe_id'] = self.kwargs['pk']
+        return context
+
+
 # Manual Flags View
+
 
 class ManualFlagsView(generic.FormView):
     """ManualFlagsView: CreateView for create manual flags
@@ -894,7 +991,6 @@ class ManualFlagsView(generic.FormView):
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
-
 
 
 ######################## PRUEBA #######################################

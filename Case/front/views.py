@@ -4,8 +4,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 
 from datetime import date
-from .forms import CaseForm, UpdateForm, UpdateFormSet
-from Case.models import Case, Update
+from .forms import CaseForm, UpdateForm, UpdateFormSet, CategoryForm
+from Case.models import Case, Update, Category
 from event.models import Event
 
 from dashboard.mixins import PageTitleMixin
@@ -205,7 +205,7 @@ class UpdateCase(LoginRequiredMixin, PageTitleMixin, generic.UpdateView):
             update.save()
 
         # Success message
-        msg = 'Se ha editado el caso'
+        msg = 'Case modified successfully'
 
         messages.success(self.request, msg)
 
@@ -320,4 +320,39 @@ class DeleteUpdate(LoginRequiredMixin, generic.DeleteView):
         return HttpResponseRedirect(self.success_url)
 
 
+class ListCategory(PageTitleMixin, generic.ListView):
+    model = Category
+    template_name = "list_category.html"
+    context_object_name = "categories"
+    page_header = "Categories"
+    page_header_description = "List of categories"
+    breadcrumb = ["Cases", "Categories"]
 
+
+class CreateCategory(PageTitleMixin, generic.CreateView):
+    """CreateCategory: CreateView than
+    create a new Category object in DB"""
+    form_class = CategoryForm
+    page_header = "New Category"
+    page_header_description = ""
+    breadcrumb = ["Cases", "Categories", "New Category"]
+    success_url = reverse_lazy('cases:case_front:list-category')
+    template_name = 'create_category.html'
+
+
+class UpdateCategory(PageTitleMixin, generic.UpdateView):
+    """UpdateCase: UpdateView than
+    update an Case object in DB"""
+    form_class = CategoryForm
+    context_object_name = 'category'
+    page_header = "Edit Category"
+    page_header_description = ""
+    model = Category
+    breadcrumb = ["Cases", "Categories", "Edit Category"]
+    success_url = reverse_lazy('cases:case_front:list-category')
+    template_name = 'create_category.html'
+
+
+class DeleteCategory(generic.DeleteView):
+    model = Category
+    success_url = reverse_lazy('cases:case_front:list-category')

@@ -3,11 +3,12 @@ django-bootstrap3==7.0.1
 django-debug-toolbar==1.6
 django-extensions==1.7.5
 django-eztables==0.3.2
+django-filter==1.0.1
+django-modeltranslation==0.12
 django-prettyjson==0.2.1
 django-widget-tweaks==1.4.1
 django.js==0.8.1
 djangorestframework==3.4.7
-django-filter==1.0.1
 MySQL-python==1.2.5
 psycopg2==2.6.2
 requests==2.2.1

@@ -43,6 +43,11 @@ urlpatterns = [
         name='list-muted-input'
     ),
     url(
+        r'^(?P<id>[\w-]+)/detail/$',
+        views.MeasurementDetail.as_view(),
+        name='detail-measurement'
+    ),
+    url(
         r'^(?P<pk>[0-9]+)/detail-muted-input/$',
         views.DetailMutedInput.as_view(),
         name='detail-muted-input'
@@ -86,6 +91,21 @@ urlpatterns = [
         r'^create-manual-flags/$',
         views.ManualFlagsView.as_view(),
         name='create-manual-flags'
+    ),
+    url(
+        r'^reports/$',
+        views.ListReportView.as_view(),
+        name='list-report'
+    ),
+    url(
+        r'^reports/(?P<report_id>\w+)/$',
+        views.DetailReportView.as_view(),
+        name='detail-report'
+    ),
+    url(
+        r'^reports/probe/(?P<pk>\w+)$',
+        views.ListReportProbeView.as_view(),
+        name='list-report-probe'
     ),
     url(
         r'^prueba/$',
