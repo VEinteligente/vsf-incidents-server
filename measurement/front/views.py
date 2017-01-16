@@ -885,14 +885,10 @@ class ManualFlagsView(generic.FormView):
         if metrics:
             rows_ids = metrics['rows']
 
+            # For each values in rows_ids
             for row in rows_ids:
+                # Change or create flag to Manual Flag
                 change_to_manual_flag_sql(row)
-
-        print "METRICS"
-        print metrics
-
-        print "ROWS IDS"
-        print rows_ids
 
         msg = 'Se han agregado los flags manuales'
         messages.success(self.request, msg)
