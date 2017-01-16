@@ -184,8 +184,11 @@ DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
 
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'romero.pedro.17@gmail.com'
+# EMAIL_HOST_PASSWORD = 'arkhamasylum'
 
 # Django-modeltranslate setup.
 LANGUAGES = (
