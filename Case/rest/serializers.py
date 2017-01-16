@@ -147,7 +147,7 @@ class CategorySerializer(serializers.Serializer):
         Returns:
             value of dict {'category': 'value'}
         """
-        return obj
+        return obj.name
 
 
 class CategoryCaseSerializer(CategorySerializer):
@@ -157,17 +157,6 @@ class CategoryCaseSerializer(CategorySerializer):
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()
 
-    def get_category(self, obj):
-        """Name of the category
-
-        Args:
-            obj: dict {'category': 'value'}
-
-        Returns:
-            value of dict {'category': 'value'}
-        """
-
-        return obj['category']
 
     def get_cases(self, obj):
         """List of all cases in a specific category
@@ -180,7 +169,7 @@ class CategoryCaseSerializer(CategorySerializer):
         """
         cases = Case.objects.filter(
             draft=False,
-            category=obj['category'])
+            category=obj)
         return CaseSerializer(cases, many=True, read_only=True).data
 
     def get_number_cases(self, obj):
@@ -194,7 +183,7 @@ class CategoryCaseSerializer(CategorySerializer):
         """
         cases = Case.objects.filter(
             draft=False,
-            category=obj['category'])
+            category=obj)
         return len(cases)
 
 
