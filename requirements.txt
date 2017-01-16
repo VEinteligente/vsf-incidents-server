@@ -9,13 +9,8 @@ django-prettyjson==0.2.1
 django-widget-tweaks==1.4.1
 django.js==0.8.1
 djangorestframework==3.4.7
-get==0.0.0
 MySQL-python==1.2.5
-post==0.0.0
 psycopg2==2.6.2
-public==0.0.0
-query-string==0.0.0
-request==0.0.0
 requests==2.2.1
 setupfiles==0.0.13
 six==1.10.0
