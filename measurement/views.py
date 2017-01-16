@@ -24,9 +24,21 @@ from django.db.models import (
 )
 from measurement.front.views import DBconnection, DNSTestKey
 import json
+from django.core.mail import send_mail
 from vsf import conf
 
 # Create your views here.
+
+
+# class send_email_users():
+
+#     send_mail(
+#         'Mensaje Prueba',
+#         'HOLIIIIIIIIII Y CHAO',
+#         'romero.pedro.17@gmail.com',
+#         ['milandre91@gmail.com'],
+#         fail_silently=False,
+#     )
 
 
 class UpdateFlagView(generic.UpdateView):
@@ -333,6 +345,7 @@ class UpdateFlagView(generic.UpdateView):
         # Evaluating first condition for hard flags
         ids = Metric.objects.values_list('report_id',flat=True)
         ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
+        send_email = False
 
         flags = Flag.objects\
                     .filter(medicion__in=ids)
@@ -350,6 +363,8 @@ class UpdateFlagView(generic.UpdateView):
                 flags_to_update = flags.filter(isp=r['isp'],
                                                target=r['target'],
                                                type_med=r['type_med'])
+                if flags_to_update:
+                    send_email = True
 
                 map(self.soft_to_hard_flag, flags_to_update)
 
@@ -377,7 +392,13 @@ class UpdateFlagView(generic.UpdateView):
                                                    type_med=r['type_med'],
                                                    region=r['region'])
 
+                    if flags_to_update:
+                        send_email = True
+
                     map(self.soft_to_hard_flag, flags_to_update)
+
+        # if send_email:
+        #     send_email_users()
 
         return True
 
@@ -385,4 +406,3 @@ class UpdateFlagView(generic.UpdateView):
         flag.flag = True
         flag.save(using='default')
         suggestedEvents(flag)
-
