@@ -18,6 +18,7 @@ class CaseSerializer(serializers.ModelSerializer):
     isp = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
     domains = serializers.SerializerMethodField()
+    category = serializers.StringRelatedField()
 
     class Meta:
         model = Case
