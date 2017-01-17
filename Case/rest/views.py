@@ -15,7 +15,7 @@ from serializers import (
     RegionSerializer
 )
 from event.models import Event
-from Case.models import Case
+from Case.models import Case, Category
 from measurement.models import State
 
 from django_filters.rest_framework import DjangoFilterBackend
@@ -87,7 +87,7 @@ class ListCategoryView(generics.ListAPIView):
     for displaying a list of categories"""
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
-    queryset = Case._meta.get_field('category').choices
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
@@ -96,8 +96,7 @@ class ListCategoryCaseView(generics.ListAPIView):
     for displaying a list of categories with his published cases"""
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
-    queryset = Case.objects.filter(
-        draft=False).values('category').order_by('category').distinct()
+    queryset = Category.objects.all()
     serializer_class = CategoryCaseSerializer
 
 
