@@ -10,7 +10,7 @@ class Metric(models.Model):
     manage = False
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
-
+    id = models.UUIDField(primary_key=True, editable=False)
     input = models.CharField(max_length=50)
     annotations = models.TextField()
     report_id = models.CharField(max_length=100)
@@ -33,6 +33,26 @@ class Metric(models.Model):
 
     class Meta:
         db_table = 'metrics'
+
+
+class MetricFlag(models.Model):
+
+    _DATABASE = 'titan_db'
+    manage = False
+
+    # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
+    flag = models.NullBooleanField(default=False)
+    manual_flag = models.BooleanField(default=False)
+    type_med = models.CharField(verbose_name='Tipo de Medicion',
+                                max_length=25,
+                                null=False,
+                                default='medicion')
+    metric = models.ForeignKey(
+        Metric, related_name='metrics'
+    )
+
+    class Meta:
+        db_table = 'flag'
 
 
 class Country(models.Model):
