@@ -3,7 +3,6 @@ import json
 from rest_framework import serializers
 from measurement.models import Metric, Flag, Probe, Plan
 from measurement.front.views import DNSTestKey
-from event.rest.serializers import UrlFlagSerializer
 
 
 class MeasurementSerializer(serializers.ModelSerializer):
@@ -191,7 +190,7 @@ class FlagSerializer(serializers.ModelSerializer):
     """FlagSerializer: ModelSerializer
     for serialize a flag object"""
     probe = ProbeFlagSerializer(read_only=True)
-    target = UrlFlagSerializer(read_only=True)
+    target = serializers.StringRelatedField()
 
     class Meta:
         model = Flag
