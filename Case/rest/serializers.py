@@ -69,20 +69,27 @@ class UpdateSerializer(serializers.ModelSerializer):
 class DetailUpdateCaseSerializer(serializers.ModelSerializer):
     """DetailUpdateCaseSerializer: ModelSerializer
     for serialize a case with his updates (including details of the updates)"""
-    updates = UpdateSerializer(many=True, read_only=True)
+    updates = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
 
+    def get_updates(self, obj):
+        queryset = obj.updates.all().order_by('-date')
+        return UpdateSerializer(queryset, many=True).data
 
 class DetailEventCaseSerializer(serializers.ModelSerializer):
     """DetailEventCaseSerializer: ModelSerializer
     for serialize a case with his events (including details of the events)"""
-    events = EventSerializer(many=True, read_only=True)
+    events = serializers.SerializerMethodField()
     updates = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Case
+
+    def get_events(self, obj):
+        queryset = obj.events.all().order_by('-start_date')
+        return EventSerializer(queryset, many=True).data
 
 
 class RegionSerializer(serializers.ModelSerializer):

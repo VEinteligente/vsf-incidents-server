@@ -3,17 +3,7 @@ from rest_framework import serializers
 from event.models import Event, Url, Site
 
 import django_filters
-
-
-class EventSerializer(serializers.ModelSerializer):
-    """EventSerializer: ModelSerializer
-    for serialize a list of events"""
-
-    target = serializers.StringRelatedField()
-
-    class Meta:
-        model = Event
-        fields = ('isp', 'start_date', 'end_date', 'target', 'identification', 'type')
+from measurement.rest.serializers import FlagSerializer
 
 
 class UrlSerializer(serializers.ModelSerializer):
@@ -26,6 +16,20 @@ class UrlSerializer(serializers.ModelSerializer):
 class UrlFlagSerializer(UrlSerializer):
     class Meta(UrlSerializer.Meta):
         exclude = ('id',)
+
+
+class EventSerializer(serializers.ModelSerializer):
+    """EventSerializer: ModelSerializer
+    for serialize a list of events"""
+
+    target = UrlFlagSerializer(read_only=True)
+    flags = FlagSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Event
+        fields = (
+            'isp', 'start_date', 'end_date', 'target',
+            'identification', 'type', 'flags')
 
 
 class SiteSerializer(serializers.ModelSerializer):

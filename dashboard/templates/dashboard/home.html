@@ -129,7 +129,6 @@
                     <th>Start</th>
                     <th>Finish</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tfoot>
@@ -140,20 +139,17 @@
                     <th>Start</th>
                     <th>Finish</th>
                     <th>Status</th>
-                    <th>Actions</th>
                 </tr>
             </tfoot>
             {% for event in events %}
                 <tr>
-                    <td>{{event.title}}</td>
+                    <td>{{event.identification}}</td>
+                    <td>{{event.isp}}</td>
+                    <td>{{event.target}}</td>
                     <td>{{event.start_date}}</td>
                     <td>{{event.end_date}}</td>
-                    <td>{{event.category}}</td>
                     <td>{% if event.draft %} sketch {% else %}
                     Published {% endif %}</td>
-                    <td>
-                   		<a href="{% url 'events:event_front:detail-event' event.id %}" class="btn btn-warning btn-flat">Details</a>
-                    </td>
                 </tr>
 
             {% endfor %}
