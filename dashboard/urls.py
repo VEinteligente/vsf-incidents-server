@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import forms
-
+import views
 
 urlpatterns = [
     url(
@@ -84,5 +84,10 @@ urlpatterns = [
             'template_name': 'users_auth/password_reset_complete.html',
         },
         name='password_reset_complete'
+    ),
+    url(
+        r'^$',
+        views.HomeView.as_view(),
+        name='home'
     ),
 ]

@@ -1,0 +1,347 @@
+{% extends 'dashboard/layout.html' %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+
+{% block content %}
+
+<div id="main_dashboard">
+		<table class="table table-bordered" >
+			<thead>
+				<tr>
+					<th class="bg-blue">Metrics</th>
+					<th class="bg-purple">Flags</th>
+					<th class="bg-yellow">Events</th>
+					<th class="bg-green">Cases</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td><p>{{metrics_num}}</p></td>
+					<td><p>{{flags_num}}</p></td>
+					<td><p>{{events_num}}</p></td>
+					<td><p>{{cases_num}}</p></td>
+				</tr>
+			</tbody>
+		</table>
+</div>
+<div class="box box-success box-solid">
+	<div class="box-header">
+		<h3 class="box-title"><b>Cases</b></h3>
+		<div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+            </button>
+        </div>
+	</div>
+	<div class="box-body">
+		<table class="table table-bordered" >
+			<thead>
+				<tr>
+					<th>Total</th>
+					<th>Sketch</th>
+					<th>Publish</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td><p>{{cases_num}}</p></td>
+					<td><p>{{cases_sketch_num}}</p></td>
+					<td><p>{{cases_publish_num}}</p></td>
+				</tr>
+			</tbody>
+		</table>
+		<h4>Last 10 Cases:</h4>
+		<table id="case-list" class="table table-bordered table-hover dataTable">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Category</th>
+                    <th>Draft</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Title</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Category</th>
+                    <th>Draft</th>
+                    <th>Actions</th>
+                </tr>
+            </tfoot>
+            {% for case in cases %}
+                <tr>
+                    <td>{{case.title}}</td>
+                    <td>{{case.start_date}}</td>
+                    <td>{{case.end_date}}</td>
+                    <td>{{case.category}}</td>
+                    <td>{% if case.draft %} sketch {% else %}
+                    Published {% endif %}</td>
+                    <td>
+                   		<a href="{% url 'cases:case_front:detail-case' case.id %}" class="btn btn-success btn-flat">Details</a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </table>
+	</div>
+	<div class="box-footer">
+		<div class="pull-right">
+            <a href="{% url 'cases:case_front:list-case' %}" class="btn btn-success btn-flat">Go to Cases</a>
+        </div>
+	</div>
+</div>
+
+<div class="box box-warning box-solid">
+	<div class="box-header">
+		<h3 class="box-title"><b>Events</b></h3>
+		<div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+            </button>
+        </div>
+	</div>
+	<div class="box-body">
+		<table class="table table-bordered" >
+			<thead>
+				<tr>
+					<th>Total</th>
+					<th>Sketch</th>
+					<th>Publish</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td><p>{{events_num}}</p></td>
+					<td><p>{{events_sketch_num}}</p></td>
+					<td><p>{{events_publish_num}}</p></td>
+				</tr>
+			</tbody>
+		</table>
+		<h4>Last 10 Events:</h4>
+		<table id="event-list" class="table table-bordered table-hover dataTable">
+            <thead>
+                <tr>
+                    <th>Identification</th>
+                    <th>ISP</th>
+                    <th>Target</th>
+                    <th>Start</th>
+                    <th>Finish</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Identification</th>
+                    <th>ISP</th>
+                    <th>Target</th>
+                    <th>Start</th>
+                    <th>Finish</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </tfoot>
+            {% for event in events %}
+                <tr>
+                    <td>{{event.title}}</td>
+                    <td>{{event.start_date}}</td>
+                    <td>{{event.end_date}}</td>
+                    <td>{{event.category}}</td>
+                    <td>{% if event.draft %} sketch {% else %}
+                    Published {% endif %}</td>
+                    <td>
+                   		<a href="{% url 'events:event_front:detail-event' event.id %}" class="btn btn-warning btn-flat">Details</a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </table>
+	</div>
+	<div class="box-footer">
+		<div class="pull-right">
+            <a href="{% url 'events:event_front:list-event' %}" class="btn btn-warning btn-flat">Go to Events</a>
+        </div>
+	</div>
+</div>
+
+<div class="box box-solid">
+	<div class="box-header bg-purple">
+		<h3 class="box-title"><b>Flags</b></h3>
+		<div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+            </button>
+        </div>
+	</div>
+	<div class="box-body">
+		<table class="table table-bordered" >
+			<thead>
+				<tr>
+					<th> <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i> &nbsp Hard Flags</th>
+					<th><i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>&nbsp Soft Flags</th>
+					<th> <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>&nbsp Muted Flags</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td><p>{{flags_hard_num}}</p></td>
+					<td><p>{{flags_soft_num}}</p></td>
+					<td><p>{{flags_muted_num}}</p></td>
+				</tr>
+			</tbody>
+		</table>
+		<h4>Last 10 Flags:</h4>
+		<table id="flag-list" class="table table-bordered table-hover dataTable">
+            <thead>
+                <tr>
+                    <th>Flag</th>
+                    <th>Medicion</th>
+                    <th>Target</th>
+                    <th>ISP</th>
+                    <th>Tipo Medicion</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>Flag</th>
+                    <th>Medicion</th>
+                    <th>Target</th>
+                    <th>ISP</th>
+                    <th>Tipo Medicion</th>
+                </tr>
+            </tfoot>
+            {% for flag in flags %}
+                <tr>
+                    <td>
+						{% if flag.flag is True %}
+                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>
+                        {% elif flag.flag is False %}
+                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                        {% else %}
+                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                        {% endif %}
+                    </td>
+                    <td><a href="{% url 'measurements:measurement_front:detail-measurement' flag.medicion %}">{{flag.medicion}}</a></td>
+                    <td>{{flag.target}}</td>
+                    <td>{{flag.isp}}</td>
+                    <td>{{flag.type_med}}</td>
+                </tr>
+
+            {% endfor %}
+        </table>
+	</div>
+	<div class="box-footer">
+		<div class="pull-right">
+			<a href="{% url 'events:event_front:suggestions-event' %}" class="btn bg-purple btn-flat">Go to Suggested Events</a>
+            <a href="{% url 'measurements:measurement_front:measurement-table' %}" class="btn bg-purple btn-flat">Go to Measurements</a>
+        </div>
+	</div>
+</div>
+
+
+<div class="box box-primary box-solid">
+	<div class="box-header">
+		<h3 class="box-title"><b>Metrics</b></h3>
+		<div class="box-tools pull-right">
+            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+            </button>
+        </div>
+	</div>
+	<div class="box-body">
+		<table class="table table-bordered" >
+			<thead>
+				<tr>
+					<th>Total Metrics</th>
+					<th>Total Probes</th>
+					<th>Total Reports</th>
+				</tr>
+			</thead>
+			<tbody align="center">
+				<tr>
+					<td><p>{{metrics_num}}</p></td>
+					<td><p>{{probes_num}}</p></td>
+					<td><p>{{reports_num}}</p></td>
+				</tr>
+			</tbody>
+		</table>
+		<h4>Last 10 Metrics:</h4>
+		<table id="event-list" class="table table-bordered table-hover dataTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Input</th>
+                    <th>Report ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>ID</th>
+                    <th>Input</th>
+                    <th>Report ID</th>
+                    <th>Actions</th>
+                </tr>
+            </tfoot>
+            {% for metric in metrics %}
+                <tr>
+                    <td>{{metric.id}}</td>
+                    <td>{{metric.input}}</td>
+                    <td><a href="{% url 'measurements:measurement_front:detail-report' metric.report_id %}">{{metric.report_id}}</a></td>
+                    <td>
+                   		<a href="{% url 'measurements:measurement_front:detail-measurement' metric.id %}" class="btn btn-primary btn-flat">Details</a>
+                    </td>
+                </tr>
+
+            {% endfor %}
+        </table>
+	</div>
+	<div class="box-footer">
+		<div class="pull-right">
+            <a href="{% url 'measurements:measurement_front:measurement-table' %}" class="btn btn-primary btn-flat">Go to Measurements</a>
+			<a href="{% url 'measurements:measurement_front:list-probe' %}" class="btn btn-primary btn-flat">Go to Probes</a>
+			<a href="{% url 'measurements:measurement_front:list-report' %}" class="btn btn-primary btn-flat">Go to Reports</a>
+        </div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+            $('#case-list').DataTable({
+            	"paging":   false,
+        		"ordering": false,
+        		"info": false,
+        		"searching": false,
+            }
+            );        
+        })
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+
+<style>
+	#main_dashboard table{
+		background-color: white;
+	}
+	th{
+		text-align: center;
+	}
+
+	#main_dashboard th{
+		
+		font-size:18px;
+	}
+
+	#main_dashboard tr td p{
+        font-size:20px;
+        margin: 0px;
+    }
+</style>
+{% endblock extracss %}
