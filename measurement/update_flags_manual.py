@@ -369,15 +369,15 @@ def update_flags_manual():
 
         print "update 4 Update Muted"
         # Update Muted Flags #
-        update_muted_flags = update_muted_flags()
+        update_muted = update_muted_flags()
 
         print "update 5 Update hard"
         # Update Hard Flags #
-        update_hard_flags = update_hard_flags()
+        update_hard = update_hard_flags()
 
         if update_dns and update_tcp and \
-           update_http and update_hard_flags and \
-           update_muted_flags:
+           update_http and update_hard and \
+           update_muted:
 
             return "200 ok (="
 
