@@ -303,6 +303,8 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
 class MeasurementAjaxView(DatatablesView):
     fields = {
         'checkbox': 'input',
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
         'id': 'id',
         'input': 'input',
         'report_id': 'report_id',
@@ -530,16 +532,23 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
 
 class DNSTableAjax(DatatablesView):
 
-    fields = ('flag', 'id', 'input')
-    queryset = Metric.objects.filter(test_name='dns_consistency')\
-                             .annotate(
-        # flag=connections['default'].cursor().execute(
-        #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
-        # ,
-        flag=RawSQL(
-            "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
-        )
-    )
+    fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
+        'id': 'id',
+        'input': 'input',
+        'measurement_start_time': 'measurement_start_time'
+    }
+    queryset = Metric.objects.filter(test_name='dns_consistency')
+    # queryset = Metric.objects.filter(test_name='dns_consistency')\
+    #                          .annotate(
+    #     # flag=connections['default'].cursor().execute(
+    #     #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
+    #     # ,
+    #     flag=RawSQL(
+    #         "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
+    #     )
+    # )
 
     def json_response(self, data):
         return HttpResponse(
@@ -552,93 +561,138 @@ class TCPTableView(LoginRequiredMixin, generic.TemplateView):
     display a list of metrics in DB
     with web_connectivity as test_name"""
 
-    template_name = 'display_dns_table.html'
+    template_name = 'display_tcp_table.html'
 
-    def get_context_data(self, **kwargs):
+    # def get_context_data(self, **kwargs):
 
-        context = super(TCPTableView, self).get_context_data(**kwargs)
+    #     context = super(TCPTableView, self).get_context_data(**kwargs)
 
-        try:
-            # Create database connection #
-            database = DBconnection('titan_db')
-            query = "select id, input, test_keys, probe_cc, probe_ip, "
-            query += "measurement_start_time "
-            query += "from metrics where test_name='web_connectivity'"
+    #     try:
+    #         # Create database connection #
+    #         database = DBconnection('titan_db')
+    #         query = "select id, input, test_keys, probe_cc, probe_ip, "
+    #         query += "measurement_start_time "
+    #         query += "from metrics where test_name='web_connectivity'"
 
-            result = database.db_execute(query)
+    #         result = database.db_execute(query)
 
-            rows = {}
-            columns = {}
+    #         rows = {}
+    #         columns = {}
 
-            if result:
+    #         if result:
 
-                rows = result['rows']
-                columns = result['columns']
+    #             rows = result['rows']
+    #             columns = result['columns']
 
-            # Adding columns
-            columns_final = ['flag'] + columns[:len(columns) / 2]
-            columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
-            columns_final += columns[len(columns) / 2:]
-            columns_final.remove('test_keys')
+    #         # Adding columns
+    #         columns_final = ['flag'] + columns[:len(columns) / 2]
+    #         columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
+    #         columns_final += columns[len(columns) / 2:]
+    #         columns_final.remove('test_keys')
 
-            # Answers #
-            ans = self.get_answers(rows)
+    #         # Answers #
+    #         ans = self.get_answers(rows)
 
-            # Context data variables #
-            context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-            context['columns'] = columns_final
+    #         # Context data variables #
+    #         context['rows'] = [dict(zip(columns_final, row)) for row in ans]
+    #         context['columns'] = columns_final
 
-        except Exception as e:
+    #     except Exception as e:
 
-            print e
+    #         print e
 
-        return context
+    #     return context
 
-    def get_answers(self, rows):
-        """ Create from every row a Test Key object to
-        extract the data to display in the list
-        Args:
-            rows: DB rows
-        """
-        ans = []
+    # def get_answers(self, rows):
+    #     """ Create from every row a Test Key object to
+    #     extract the data to display in the list
+    #     Args:
+    #         rows: DB rows
+    #     """
+    #     ans = []
 
-        for row in rows:
+    #     for row in rows:
 
-            # Convert json test_keys into python object
-            test_key = DNSTestKey(json.dumps(row['test_keys']))
-            tcp_connect = test_key.get_tcp_connect()
+    #         # Convert json test_keys into python object
+    #         test_key = DNSTestKey(json.dumps(row['test_keys']))
+    #         tcp_connect = test_key.get_tcp_connect()
 
-            for tcp in tcp_connect:
+    #         for tcp in tcp_connect:
 
-                flag_status = 'No flag'
+    #             flag_status = 'No flag'
 
-                if Flag.objects.filter(ip=tcp['ip'],
-                                       medicion=row['id'],
-                                       type_med='TCP').exists():
+    #             if Flag.objects.filter(ip=tcp['ip'],
+    #                                    medicion=row['id'],
+    #                                    type_med='TCP').exists():
 
-                    f = Flag.objects.get(ip=tcp['ip'],
-                                         medicion=row['id'],
-                                         type_med='TCP')
+    #                 f = Flag.objects.get(ip=tcp['ip'],
+    #                                      medicion=row['id'],
+    #                                      type_med='TCP')
 
-                    if f.flag:
-                        flag_status = 'hard'
-                    elif f.flag is False:
-                        flag_status = 'soft'
-                    elif f.flag is None:
-                        flag_status = 'muted'
+    #                 if f.flag:
+    #                     flag_status = 'hard'
+    #                 elif f.flag is False:
+    #                     flag_status = 'soft'
+    #                 elif f.flag is None:
+    #                     flag_status = 'muted'
 
-                ip = tcp['ip']
-                port = tcp['port']
-                blocked = tcp['status']['blocked']
-                success = tcp['status']['success']
+    #             ip = tcp['ip']
+    #             port = tcp['port']
+    #             blocked = tcp['status']['blocked']
+    #             success = tcp['status']['success']
 
-                # Formating the answers #
-                ans += [[flag_status, row['id'], row['input'],
-                         ip, port, blocked, success,
-                         row['probe_cc'], row['probe_ip'],
-                         row['measurement_start_time']]]
+    #             # Formating the answers #
+    #             ans += [[flag_status, row['id'], row['input'],
+    #                      ip, port, blocked, success,
+    #                      row['probe_cc'], row['probe_ip'],
+    #                      row['measurement_start_time']]]
 
-        return ans
+    #     return ans
+
+
+class TCPTableAjax(LoginRequiredMixin, DatatablesView):
+    """TCPTableAjax: DatatablesView than
+    populate a DataTable with all metrics with web_connectivity
+    as test_name for tcp test"""
+
+    # queryset = Metric.objects.filter(test_name='web_connectivity')
+    queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
+        tcp=RawSQL(
+            "test_keys->>'tcp_connect'", ()
+        ),
+    )
+        # body_proportion=RawSQL(
+        #     "test_keys->>'body_proportion'", ()
+        # ),
+        # headers_match=RawSQL(
+        #     "test_keys->>'headers_match'", ()
+        # ),
+        # status_code_match=RawSQL(
+        #     "test_keys->>'status_code_match'", ()
+        # ),
+        # title_match=RawSQL(
+        #     "test_keys->>'title_match'", ()
+        # )
+    #)
+    fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
+        'tcp': 'tcp',
+        'id': 'id',
+        'input': 'input',
+        'ip': 'flags__ip',
+        'port': 'id',
+        'blocked': 'id',
+        'success': 'id',
+        'probe_cc': 'probe_cc',
+        'probe_ip': 'probe_ip',
+        'measurement_start_time': 'measurement_start_time'
+    }
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
 
 
 class HTTPTableView(LoginRequiredMixin, generic.TemplateView):

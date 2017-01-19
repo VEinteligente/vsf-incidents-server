@@ -11,6 +11,7 @@
         <th>flag</th>
         <th>id</th>
         <th>input</th>
+        <th>measurement start time</th>
     </thead>
     <tbody></tbody>
 </table>
@@ -25,7 +26,42 @@
         $('#my-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": '/measurements/prueba-dns/'
+            "sAjaxSource": '/measurements/prueba-dns/',
+            "aoColumns": [
+               { "mData": "Flag",  "mRender": function ( data, type, full ) {
+                        
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        return flag_icon;
+                    }
+                },
+                { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+                },
+                { "mData": "input" },
+                { "mData": "measurement_start_time" }
+            ],
         });
 
     })

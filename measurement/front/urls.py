@@ -120,4 +120,8 @@ urlpatterns = [
         r'^prueba-dns/$',
         views.DNSTableAjax.as_view()
     ),
+    url(
+        r'^prueba-tcp/$',
+        views.TCPTableAjax.as_view()
+    ),
 ]

@@ -1,0 +1,277 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block content %}
+<div class="table-responsive">
+    <table id="my-table">
+        <thead>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>ip</th>
+            <th>port</th>
+            <th>blocked</th>
+            <th>success</th>
+            <th>probe_cc</th>
+            <th>probe_ip</th>
+            <th>measurement_start_time</th>
+        </thead>
+        <tfoot>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>ip</th>
+            <th>port</th>
+            <th>blocked</th>
+            <th>success</th>
+            <th>probe_cc</th>
+            <th>probe_ip</th>
+            <th>measurement_start_time</th>
+        </tfoot>
+        <tbody id="my-table-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+{% block extrajs %}
+<script>
+
+$(function () {
+
+    var tbody = document.getElementById("my-table-body");
+    var row_list = tbody.getElementsByTagName("tr");
+
+    var t = $('#my-table').DataTable({
+        'deferRender': true,
+        "bPaginate": true,
+        "sPaginationType": "full_numbers",
+        "bProcessing": true,
+        "bServerSide": true,
+        "sAjaxSource": "/measurements/prueba-tcp/",
+        /*"rowCallback": function( row, data, index ) {
+            console.log("DATA", data);
+            var list_ip = JSON.parse(data['ip']);
+            
+            console.log("TBODY", tbody);
+            
+            console.log("LIST", list_ip);
+            console.log("ROW", row);
+            console.log("ROW LIST", row_list);
+            console.log("INDEX", index);
+            if(list_ip.length > 1){
+
+                var ip = $('td:eq(3)', row)[0];
+                ip.innerText = list_ip[0]['ip']; 
+
+                for (var i = 1; i < list_ip.length; i++) {
+                    var original = "original-" + index;
+                    var clone = "clone-" + index + i;
+                    var row_clone = row.cloneNode(true);
+                    var ip = $('td:eq(3)', row_clone)[0];
+                    ip.innerText = list_ip[i]['ip'];
+                    console.log("ROW CLONE", row_clone);
+                    $(row).attr('id', original);
+                    $(row_clone).attr('id', clone);
+                    //$(row_clone).insertAfter(row);
+                    //$(row.parentNode).insertBefore(row_clone, row_list[index + 1]);
+                    
+                }  
+
+            }else if(list_ip.length == 1){
+
+                var ip = $('td:eq(3)', row)[0];
+                ip.innerText = list_ip[0]['ip']; 
+            }                    
+                                    
+        },*/
+        "aoColumns": [
+            { "mData": "Flag",  "mRender": function ( data, type, full ) {
+                        
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        return flag_icon;
+                    }
+            },
+            { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+            },
+            { "mData": "input" },
+            { "mData": "ip" },
+            { "mData": "port",
+              "mRender": function ( data ) { return ''; }
+            },
+            { "mData": "blocked",
+              "mRender": function ( data ) { return ''; }
+            },
+            { "mData": "success",
+              "mRender": function ( data ) { return ''; }
+            },
+            { "mData": "probe_cc" },
+            { "mData": "probe_ip" },
+            { "mData": "measurement_start_time" }
+        ],       
+    });
+
+    $('#my-table').on( 'draw.dt', function (e, settings) {
+        
+        var items_results = settings.json.aaData;
+        var cont = 0;            
+        var ids_done = [];
+        var ip_flags = [];
+
+        for (var x=0; x< items_results.length; x++) {
+
+            if(items_results[x]['flag_id']){
+                ip_flags.push(items_results[x]['ip']);
+            }
+            
+        }
+
+            for(var i=0; i< items_results.length; i++){
+
+                var id_flag = JSON.parse(items_results[i]['flag_id']);
+                var list_ip = JSON.parse(items_results[i]['tcp']);
+                var ip_flag = items_results[i]['ip'];
+                var id = items_results[i]['id'];
+                var done = false; 
+                var row = row_list[i+cont];                               
+
+                //console.log("ROW", row);
+                console.log("IDS IN DONE", ids_done);
+                console.log("ID IN ITEMS", id); 
+                console.log("IP FLAGS", ip_flags);               
+
+                /*for (var x=0; x< ids_done.length; x++) {
+                    if (ids_done[x] === id) {
+                        done = true;
+                        cont++;
+                    }
+                }*/
+                if($.inArray(id, ids_done) !== -1){
+                    done = true;
+                    //cont++;
+                }
+
+                if(!done){
+
+                    if(list_ip.length > 1){
+
+                        var ip = $('td:eq(3)', row)[0];
+                        var port = $('td:eq(4)', row)[0];
+                        var blocked = $('td:eq(5)', row)[0];
+                        var success = $('td:eq(6)', row)[0];
+                        ip.innerText = list_ip[0]['ip'];
+                        port.innerText = list_ip[0]['port'];
+                        blocked.innerText = list_ip[0]['status']['blocked'];
+                        success.innerText = list_ip[0]['status']['success'];
+
+                        for (var j = 1; j < list_ip.length; j++) {
+                            
+                            var row = row_list[i+cont];
+                            //var ip_flag = $('td:eq(3)', row)[0].innerText;
+                            var row_clone = row.cloneNode(true);
+                            var ip = $('td:eq(3)', row_clone)[0];
+                            var port = $('td:eq(4)', row_clone)[0];
+                            var blocked = $('td:eq(5)', row_clone)[0];
+                            var success = $('td:eq(6)', row_clone)[0];
+                            var flag_clone = $('td:eq(0)', row_clone)[0];
+                            ip.innerText = '';
+                            port.innerText = '';
+                            blocked.innerText = '';
+                            success.innerText = '';
+                            flag_clone.innerText = '';
+                            console.log("ROW CLONE", row_clone);
+                            //var ip = $('td:eq(3)', row_clone)[0];
+
+                            console.log("IP FLAG", ip_flag);
+                            if(!ip_flag){
+                                
+                                ip.innerText = list_ip[j]['ip'];
+                                port.innerText = list_ip[j]['port'];
+                                blocked.innerText = list_ip[j]['status']['blocked'];
+                                success.innerText = list_ip[j]['status']['success'];
+                                console.log("NO IP FLAG");
+                                $(row_clone).insertAfter(row);
+                                cont++;
+
+                            }else{
+                                
+                                console.log("IP loop", list_ip[j]['ip']);
+                                console.log("Id", id);
+                                if(ip_flag != list_ip[j]['ip'] &&
+                                   $.inArray(list_ip[j]['ip'], ip_flags) === -1 &&
+                                   $.inArray(id, ids_done) === -1){
+                                  
+                                  ip.innerText = list_ip[j]['ip'];
+                                  port.innerText = list_ip[j]['port'];
+                                  blocked.innerText = list_ip[j]['status']['blocked'];
+                                  success.innerText = list_ip[j]['status']['success'];
+                                  console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
+                                  $(row_clone).insertAfter(row);
+                                  cont++;
+
+                                }else{
+                                 // Do nothing
+                                 console.log("IP FLAG TRUE, IP FLAGS EQUALS");
+                                }
+        
+                            }
+
+                            //$(row).attr('id', original);
+                            //$(row_clone).attr('id', clone);
+                            //$(row_clone).insertAfter(row);
+                            //cont++;
+                            //$(row.parentNode).insertBefore(row_clone, row_list[index + 1]);                        
+                        }  
+
+                    }else if(list_ip.length == 1){
+
+                        if(!ip_flag){
+                            console.log("IP FLAG FALSE, ONE ITEM");
+                            console.log("ROW INI", row);
+                            var ip = $('td:eq(3)', row)[0];
+                            var port = $('td:eq(4)', row)[0];
+                            var blocked = $('td:eq(5)', row)[0];
+                            var success = $('td:eq(6)', row)[0];
+                            ip.innerText = list_ip[0]['ip'];
+                            port.innerText = list_ip[0]['port'];
+                            blocked.innerText = list_ip[0]['status']['blocked'];
+                            success.innerText = list_ip[0]['status']['success'];     
+                        }                       
+                        
+                    }  
+
+                    ids_done.push(id);      
+                }     
+
+            }
+            console.log("JSON PARSE", settings.json.aaData);
+    });
+
+   
+
+})
+
+</script>
+{% endblock %}
