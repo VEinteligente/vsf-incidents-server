@@ -386,3 +386,22 @@ class UpdateFlagView(generic.UpdateView):
         flag.save(using='default')
         suggestedEvents(flag)
 
+
+import threading
+import time
+from update_flags_manual import update_flags_manual
+
+
+def servicio():
+    print "comenzo a hacer el hilo"
+    time.sleep(4)
+    print "termino el hilo"
+
+
+class LuigiUpdateFlagView(generic.View):
+
+    def get(self, request, *args, **kwargs):
+        t = threading.Thread(target=update_flags_manual)
+        t.start()
+        print "hola mundo"
+        return HttpResponse(status=200)
