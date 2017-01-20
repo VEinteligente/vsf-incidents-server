@@ -44,3 +44,18 @@ class UserForm(forms.ModelForm):
             # saving of m2m data.
             self.save_m2m = self._save_m2m
         return self.instance
+
+
+class ApiUserForm(UserForm):
+    password = forms.CharField(widget=forms.PasswordInput(), required=True)
+    confirm_password = forms.CharField(widget=forms.PasswordInput(), required=True)
+
+    def clean(self):
+        cleaned_data = super(ApiUserForm, self).clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password != confirm_password:
+            raise forms.ValidationError({
+                "password": "Password do not match."
+            })

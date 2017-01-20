@@ -81,8 +81,23 @@
                         <h4 class="modal-title" id="myModalLabel">Add API User</h4>
                     </div>
                     <div class="modal-body">
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                    &times;
+                                </button>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         {% csrf_token %}
-                        {% bootstrap_form form %}
+                        {% bootstrap_field form.username %}
+                        {% bootstrap_field form.password %}
+                        {% bootstrap_field form.confirm_password %}
+                        {% bootstrap_field form.first_name %}
+                        {% bootstrap_field form.last_name %}
+                        {% bootstrap_field form.email %}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -230,7 +245,10 @@
                 $.ajax({
                     url: '{% url 'users:user_front:api-users-list' %}',
                     method: 'POST',
-                    data: formData
+                    data: formData,
+                    error: function (a, b, c) {
+                        alert(JSON.stringify(a.responseJSON));
+                    }
                 }).done(function(data){
                     listTable.ajax.reload( null, false );
                     $("#success-add-alert").fadeIn();
