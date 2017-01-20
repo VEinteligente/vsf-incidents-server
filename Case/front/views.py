@@ -180,13 +180,13 @@ class UpdateCase(LoginRequiredMixin, PageTitleMixin, generic.UpdateView):
             return self.form_invalid(form, update_forms)
 
         self.object = form.save(commit=False)
-
         events_ids = form.cleaned_data['events'].split(',')
         events = []
         if (str(events_ids[0]) != ''):
             events = Event.objects.filter(id__in=events_ids)
 
         self.object.save()
+        self.object.events.clear()
         for event in events:
             self.object.events.add(event)
 
