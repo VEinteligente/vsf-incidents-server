@@ -10,7 +10,7 @@ from django.contrib.auth.models import User, Group
 from django.views import generic
 
 from vsf_user.models import TokenControl
-from froms import UserForm
+from froms import ApiUserForm
 
 
 class AjaxableResponseMixin(object):
@@ -41,7 +41,7 @@ class AjaxableResponseMixin(object):
 
 class ListAPIUsers(LoginRequiredMixin, AjaxableResponseMixin, generic.CreateView):
     model = User
-    form_class = UserForm
+    form_class = ApiUserForm
     template_name = 'list_api_user.html'
     success_url = 'http://google.com'
 
@@ -49,14 +49,25 @@ class ListAPIUsers(LoginRequiredMixin, AjaxableResponseMixin, generic.CreateView
         """
         If the form is valid, save the associated model.
         """
-        self.object = form.save()
+        self.object = User.objects.create_user(
+            form.cleaned_data['username'],
+            form.cleaned_data['email'],
+            form.cleaned_data['password']
+        )
+
+        self.object.first_name = form.cleaned_data['first_name']
+        self.object.last_name = form.cleaned_data['last_name']
+        self.object.save()
 
         g = Group.objects.get(name='api')
         token = Token.objects.create(user=self.object)
         TokenControl.objects.create(token=token, last_used=datetime.now())
         g.user_set.add(self.object)
 
-        return super(ListAPIUsers, self).form_valid(form)
+        data = {
+            'pk': self.object.pk,
+        }
+        return JsonResponse(data)
 
 
 class APIUsersDataTableAjax(LoginRequiredMixin, DatatablesView):
