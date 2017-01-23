@@ -13,7 +13,7 @@
         <th>input</th>
         <th>measurement start time</th>
     </thead>
-    <tbody></tbody>
+    <tbody id="my-table-body"></tbody>
 </table>
 {% endblock %}
 
@@ -22,6 +22,9 @@
 {% datatables_bootstrap_js %}
 <script>
    $(function () {
+
+        var tbody = document.getElementById("my-table-body");
+        var row_list = tbody.getElementsByTagName("tr");
 
         $('#my-table').dataTable({
             "bProcessing": true,
@@ -62,6 +65,254 @@
                 { "mData": "input" },
                 { "mData": "measurement_start_time" }
             ],
+        });
+
+        $('#my-table').on( 'draw.dt', function (e, settings) {
+        
+            var items_results = settings.json.aaData;
+            console.log("JSON PARSE", items_results);
+
+            var dns = {{ dns|safe }};
+            var dns_public = {{ dns_public|safe }};
+            var probes = {{ probes|safe }};
+
+            console.log("DNS PUBLIC", dns_public);
+            
+            var cont = 0;            
+            var ids_done = [];
+            var ip_flags = [];
+
+            for (var x=0; x< items_results.length; x++) {
+
+                if(items_results[x]['flag_id']){
+                    ip_flags.push(items_results[x]['ip']);
+                }
+                
+            }
+
+            for(var i=0; i< items_results.length; i++){
+
+                var id_flag = JSON.parse(items_results[i]['flag_id']);
+                var queries = JSON.parse(items_results[i]['queries']);
+                var annotation = JSON.parse(items_results[i]['annotation']);;
+                var id = items_results[i]['id'];
+                var done = false; 
+                var row = row_list[i+cont];                               
+
+                //console.log("ROW", row);
+                console.log("IDS IN DONE", ids_done);
+                console.log("ID IN ITEMS", id); 
+                console.log("IP FLAGS", ip_flags);    
+
+                var dns_isp = 'Unknown'; 
+
+                if($.inArray(id, ids_done) !== -1){
+                    done = true;
+                    //cont++;
+                }
+
+                if(!done){
+
+                    if (annotation){
+
+                        for (var x=0; x< probes.length; x++) {
+
+                            if(probes[x]['identification'] === annotation['probe']){
+                                dns_isp = probes[x]['isp'];
+                            }
+                            
+                        } 
+
+                    }
+
+                    console.log("Queries before", queries);
+
+                    for (var q=0; q< queries.length; q++){
+
+                        if(queries[0] === queries[q]){
+
+                        }else if($.inArray(queries[q]['resolver_hostname'], dns_public) !== -1){
+                            
+                            queries[q].pop('resolver_hostname', null);
+                            queries[q].pop('resolver_port', null);
+                            queries[q].pop('query_type', null);
+                            queries[q].pop('hostname', null);
+                            queries[q].pop('failure', null);
+                            queries[q].pop('answers', null);
+
+                        }
+
+                    }
+
+                    queries.filter(function(val) { return val !== null; });
+
+                    console.log("Queries after", queries); 
+
+                    for (var q=0; q< queries.length; q++){
+
+                       if (!queries[0]['failure'] && queries[0]['answers']){
+
+                            // Get answers 
+                            answers = queries[0]['answers'];
+                            control_resolver = [];
+                            dns_result = [];
+
+                            // Get control resolver from answer_type A #
+                            for (var a=0; a < answers.length; a++){
+
+                                if (a['answer_type'] == 'A' &&
+                                    $.inArray(a['ipv4'],   
+                                              control_resolver) === -1){
+                                    control_resolver.push(a['ipv4']);
+                                  
+                                }  
+                            }
+
+                            // Verify each result from queries with control resolver
+                            for(var i=0; i< queries.length; i++){
+
+                                dns_name = queries[i]['resolver_hostname'];
+                                match = false;
+                                flag_status = 'No flag';
+
+                                // If query has failure, dns result 
+                                // is a failure response and match is False 
+
+                                // If query doesn't has failure, then find dns result 
+                                // from answer type A and later compare it with control 
+                                // resolver. If both are the same, match is True otherwise match is False 
+
+                                if (query[i]['failure']){
+                                    dns_result.push(query[i]['failure']);
+                                }                                    
+
+                                answers = query[i]['answers'];
+
+                                for (var a=0; a < answers.length; a++){
+
+                                    if (a['answer_type'] == 'A' &&
+                                        $.inArray(a['ipv4'],   
+                                                  dns_result) === -1){
+                                        dns_result.push(a['ipv4']);
+                                      
+                                    }  
+                                }
+
+                                /*if all(map(lambda v: v in control_resolver, dns_result)):
+                             match = True
+                         else:
+                            # Search flag #
+
+                            if Flag.objects.filter(ip=dns_name,
+                                                    medicion=row['id'],
+                                                    type_med='DNS').exists():
+
+                                f = Flag.objects.get(ip=dns_name,
+                                                      medicion=row['id'],
+                                                      type_med='DNS')
+
+                                 if f.flag:
+                                     flag_status = 'hard'
+                                 elif f.flag is False:
+    #                                 flag_status = 'soft'
+    #                             elif f.flag is None:
+    #                                 flag_status = 'muted'*/
+
+                                // If dns_name is in DNS table, find its name
+                                /* if DNS.objects.filter(ip=dns_name).exists():
+                                     dns_table_name = DNS.objects\
+                                                         .get(ip=dns_name).verbose
+                                 else:
+                                     dns_table_name = dns_name*/
+                            }
+                        }
+
+                    }    
+                    /*if(list_ip.length > 1){
+
+                        var ip = $('td:eq(3)', row)[0];
+                        var port = $('td:eq(4)', row)[0];
+                        var blocked = $('td:eq(5)', row)[0];
+                        var success = $('td:eq(6)', row)[0];
+                        ip.innerText = list_ip[0]['ip'];
+                        port.innerText = list_ip[0]['port'];
+                        blocked.innerText = list_ip[0]['status']['blocked'];
+                        success.innerText = list_ip[0]['status']['success'];
+
+                        for (var j = 1; j < list_ip.length; j++) {
+                            
+                            var row = row_list[i+cont];
+                            //var ip_flag = $('td:eq(3)', row)[0].innerText;
+                            var row_clone = row.cloneNode(true);
+                            var ip = $('td:eq(3)', row_clone)[0];
+                            var port = $('td:eq(4)', row_clone)[0];
+                            var blocked = $('td:eq(5)', row_clone)[0];
+                            var success = $('td:eq(6)', row_clone)[0];
+                            var flag_clone = $('td:eq(0)', row_clone)[0];
+                            ip.innerText = '';
+                            port.innerText = '';
+                            blocked.innerText = '';
+                            success.innerText = '';
+                            flag_clone.innerText = '';
+                            console.log("ROW CLONE", row_clone);
+                            //var ip = $('td:eq(3)', row_clone)[0];
+
+                            console.log("IP FLAG", ip_flag);
+                            if(!ip_flag){
+                                
+                                ip.innerText = list_ip[j]['ip'];
+                                port.innerText = list_ip[j]['port'];
+                                blocked.innerText = list_ip[j]['status']['blocked'];
+                                success.innerText = list_ip[j]['status']['success'];
+                                console.log("NO IP FLAG");
+                                $(row_clone).insertAfter(row);
+                                cont++;
+
+                            }else{
+                                
+                                console.log("IP loop", list_ip[j]['ip']);
+                                console.log("Id", id);
+                                if(ip_flag != list_ip[j]['ip'] &&
+                                   $.inArray(list_ip[j]['ip'], ip_flags) === -1 &&
+                                   $.inArray(id, ids_done) === -1){
+                                  
+                                  ip.innerText = list_ip[j]['ip'];
+                                  port.innerText = list_ip[j]['port'];
+                                  blocked.innerText = list_ip[j]['status']['blocked'];
+                                  success.innerText = list_ip[j]['status']['success'];
+                                  console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
+                                  $(row_clone).insertAfter(row);
+                                  cont++;
+
+                                }else{
+                                 // Do nothing
+                                 console.log("IP FLAG TRUE, IP FLAGS EQUALS");
+                                }
+        
+                            }                      
+                        }  
+
+                    }else if(list_ip.length == 1){
+
+                        if(!ip_flag){
+                            console.log("IP FLAG FALSE, ONE ITEM");
+                            console.log("ROW INI", row);
+                            var ip = $('td:eq(3)', row)[0];
+                            var port = $('td:eq(4)', row)[0];
+                            var blocked = $('td:eq(5)', row)[0];
+                            var success = $('td:eq(6)', row)[0];
+                            ip.innerText = list_ip[0]['ip'];
+                            port.innerText = list_ip[0]['port'];
+                            blocked.innerText = list_ip[0]['status']['blocked'];
+                            success.innerText = list_ip[0]['status']['success'];     
+                        }                       
+                        
+                    }  */
+
+                    ids_done.push(id);      
+                }     
+
+            }           
         });
 
     })

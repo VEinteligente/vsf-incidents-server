@@ -356,7 +356,7 @@ class UpdateFlagView(generic.UpdateView):
         else:
 
             # Evaluating second condition for hard flags
-            ids = Metric.objects.values_list('report_id',flat=True)
+            ids = Metric.objects.values_list('report_id', flat=True)
             ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
             flags = Flag.objects\

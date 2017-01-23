@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
@@ -529,17 +530,36 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
 
     #     return ans
 
+    def get_context_data(self, **kwargs):
+
+        context = super(DNSTableView, self).get_context_data(**kwargs)
+
+        context['dns'] = json.dumps(list(DNS.objects.values('isp','ip','verbose')))
+        context['dns_public'] = json.dumps(list(DNS.objects.values('isp','ip','verbose').filter(public=True)))
+        context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
+
+        return context
+
 
 class DNSTableAjax(DatatablesView):
 
+    queryset = Metric.objects.filter(test_name='dns_consistency').annotate(
+        annotation=RawSQL(
+            "test_keys->>'annotation'", ()
+        ),
+        queries=RawSQL(
+            "test_keys->>'queries'", ()
+        )
+    )
     fields = {
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
+        'annotation': 'annotation',
+        'queries': 'queries',
         'id': 'id',
         'input': 'input',
         'measurement_start_time': 'measurement_start_time'
     }
-    queryset = Metric.objects.filter(test_name='dns_consistency')
     # queryset = Metric.objects.filter(test_name='dns_consistency')\
     #                          .annotate(
     #     # flag=connections['default'].cursor().execute(
@@ -661,19 +681,6 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
             "test_keys->>'tcp_connect'", ()
         ),
     )
-        # body_proportion=RawSQL(
-        #     "test_keys->>'body_proportion'", ()
-        # ),
-        # headers_match=RawSQL(
-        #     "test_keys->>'headers_match'", ()
-        # ),
-        # status_code_match=RawSQL(
-        #     "test_keys->>'status_code_match'", ()
-        # ),
-        # title_match=RawSQL(
-        #     "test_keys->>'title_match'", ()
-        # )
-    #)
     fields = {
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
