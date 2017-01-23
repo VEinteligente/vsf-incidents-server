@@ -392,16 +392,25 @@ import time
 from update_flags_manual import update_flags_manual
 
 
-def servicio():
+def luigiUpdateFlagTask():
+    global running
+    running += 1
     print "comenzo a hacer el hilo"
-    time.sleep(4)
+    update_flags_manual()
+    running -= 1
     print "termino el hilo"
 
 
+running = 0
 class LuigiUpdateFlagView(generic.View):
 
     def get(self, request, *args, **kwargs):
-        t = threading.Thread(target=update_flags_manual)
-        t.start()
-        print "hola mundo"
+        global running
+        # t = threading.Thread(target=update_flags_manual)
+        # t = threading.Thread(target=servicio)
+        if running < 1:
+            t = threading.Thread(target=luigiUpdateFlagTask)
+            t.start()
+        else:
+            print "task already run"
         return HttpResponse(status=200)
