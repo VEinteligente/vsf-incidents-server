@@ -247,6 +247,7 @@
                     method: 'POST',
                     data: formData,
                     error: function (a, b, c) {
+                        console.log(a);
                         alert(JSON.stringify(a.responseJSON));
                     }
                 }).done(function(data){
