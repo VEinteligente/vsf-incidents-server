@@ -59,7 +59,11 @@ class ListAPIUsers(LoginRequiredMixin, AjaxableResponseMixin, generic.CreateView
         self.object.last_name = form.cleaned_data['last_name']
         self.object.save()
 
-        g = Group.objects.get(name='api')
+        try:
+            g = Group.objects.get(name='api')
+        except Group.DoesNotExist:
+            g = Group(name='api')
+            g.save()
         token = Token.objects.create(user=self.object)
         TokenControl.objects.create(token=token, last_used=datetime.now())
         g.user_set.add(self.object)
