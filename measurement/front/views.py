@@ -260,7 +260,7 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, 
+class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
                            generic.TemplateView, generic.edit.FormMixin):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
@@ -535,7 +535,7 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
         context = super(DNSTableView, self).get_context_data(**kwargs)
 
         context['dns'] = json.dumps(list(DNS.objects.values('isp','ip','verbose')))
-        context['dns_public'] = json.dumps(list(DNS.objects.values('isp','ip','verbose').filter(public=True)))
+        context['dns_public'] = json.dumps(list(DNS.objects.values('ip').filter(public=True)))
         context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
 
         return context
@@ -558,6 +558,11 @@ class DNSTableAjax(DatatablesView):
         'queries': 'queries',
         'id': 'id',
         'input': 'input',
+        'match': 'id',
+        'dns isp': 'id',
+        'control resolver': 'id',
+        'dns name': 'id',
+        'dns result': 'id',
         'measurement_start_time': 'measurement_start_time'
     }
     # queryset = Metric.objects.filter(test_name='dns_consistency')\
@@ -782,7 +787,7 @@ class CreateMutedInput(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
             messages.success(self.request, msg)
         else:
             msg = 'No se pudo crear el muted input'
-            messages.error(self.request, msg)      
+            messages.error(self.request, msg)
 
         return HttpResponseRedirect(self.success_url)
 
