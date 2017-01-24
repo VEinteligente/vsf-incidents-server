@@ -11,186 +11,94 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import local_settings
 from os.path import join
 
-from django.urls import reverse_lazy
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = local_settings.BASE_DIR
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'ctqz_5!yp$h&6al9w5%i)!4d_=bm$*^+el=o!6wq$2_x$gw6@d'
+SECRET_KEY = local_settings.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = local_settings.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = local_settings.ALLOWED_HOSTS
 
 
 # Application definition
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'djangojs',
-    'eztables',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'bootstrap3',
-    'debug_toolbar',
-    'django_extensions',
-    'widget_tweaks',
-    'dashboard',
-    'event',
-    'Case',
-    'measurement',
-    'vsf_user',
-    'prettyjson',
-    'modeltranslation',
-]
+INSTALLED_APPS = local_settings.INSTALLED_APPS
 
-MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+MIDDLEWARE = local_settings.MIDDLEWARE
 
-ROOT_URLCONF = 'vsf.urls'
+ROOT_URLCONF = local_settings.ROOT_URLCONF
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+TEMPLATES = local_settings.TEMPLATES
 
-WSGI_APPLICATION = 'vsf.wsgi.application'
+WSGI_APPLICATION = local_settings.WSGI_APPLICATION
 
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'vsf_db',
-        'USER': 'vsf_db',
-        'PASSWORD': 'HfCAck1rXiexNyEa',
-        'HOST': '',
-        'PORT': '',
-        'ATOMIC_REQUESTS': True
-    },
-    'titan_db': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pipeline_db',
-        'USER': 'pipeline_access',
-        'PASSWORD': '[$iB:k_Y1j!ZtJ,L4g{-#',
-        'HOST': '37.218.242.176',  # titan ip
-        'PORT': '5432'
-    }
-}
+DATABASES = local_settings.DATABASES
 
-DATABASE_ROUTERS = ['vsf.DBRouter.CustomRouter']
+DATABASE_ROUTERS = local_settings.DATABASE_ROUTERS
 
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+AUTH_PASSWORD_VALIDATORS = local_settings.AUTH_PASSWORD_VALIDATORS
 
 
-REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'PAGE_SIZE': 10
-}
+REST_FRAMEWORK = local_settings.REST_FRAMEWORK
 
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = local_settings.LANGUAGE_CODE
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = local_settings.TIME_ZONE
 
-USE_I18N = True
+USE_I18N = local_settings.USE_I18N
 
-USE_L10N = True
+USE_L10N = local_settings.USE_L10N
 
-USE_TZ = True
+USE_TZ = local_settings.USE_TZ
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_ROOT = 'vsf/static/'
+STATIC_ROOT = local_settings.STATIC_ROOT
 
-STATIC_URL = '/static/'
+STATIC_URL = local_settings.STATIC_URL
 
-STATICFILES_DIRS = [
-    'static'
-]
+STATICFILES_DIRS = local_settings.STATICFILES_DIRS
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = local_settings.MEDIA_ROOT
 
-MEDIA_URL = '/media/'
+MEDIA_URL = local_settings.MEDIA_URL
 
 # Login redirect url
 
-LOGIN_URL = reverse_lazy('dashboard:login')
-LOGIN_REDIRECT_URL = reverse_lazy('dashboard:home')
+LOGIN_URL = local_settings.LOGIN_URL
+LOGIN_REDIRECT_URL = local_settings.LOGIN_REDIRECT_URL
 
-INTERNAL_IPS = ('127.0.0.1',)
-DEBUG_TOOLBAR_CONFIG = {
-    'INTERCEPT_REDIRECTS': False,
-}
+INTERNAL_IPS = local_settings.INTERNAL_IPS
+DEBUG_TOOLBAR_CONFIG = local_settings.DEBUG_TOOLBAR_CONFIG
 
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
+EMAIL_HOST = local_settings.EMAIL_HOST
+EMAIL_PORT = local_settings.EMAIL_PORT
 
 # Django-modeltranslate setup.
-LANGUAGES = (
-    ('de', 'English'),
-    ('es', 'Spanish'),
-)
+LANGUAGES = local_settings.LANGUAGES
 
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'es'
+MODELTRANSLATION_DEFAULT_LANGUAGE = local_settings.MODELTRANSLATION_DEFAULT_LANGUAGE
