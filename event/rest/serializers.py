@@ -33,6 +33,12 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class SiteSerializer(serializers.ModelSerializer):
+    class Meta():
+        model = Site
+        fields = ('name',)
+
+
+class BlockedSiteSerializer(SiteSerializer):
     domains = serializers.SerializerMethodField()
 
     @staticmethod
@@ -48,8 +54,8 @@ class SiteSerializer(serializers.ModelSerializer):
         dm = Url.objects.filter(site=obj, id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
-    class Meta:
-        model = Site
+    class Meta(SiteSerializer.Meta):
+        fields = ('domains', 'name')
 
 
 class EventGroupSerializer(serializers.ModelSerializer):
