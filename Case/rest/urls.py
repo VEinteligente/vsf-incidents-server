@@ -43,6 +43,11 @@ urlpatterns = [
         name='list-category-case-rest'
     ),
     url(
+        r'^isp/$',
+        views.ListISPView.as_view(),
+        name='isp-rest'
+    ),
+    url(
         r'^list/isp/$',
         views.ListISPCaseView.as_view(),
         name='list-isp-case-rest'
