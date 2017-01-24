@@ -379,6 +379,7 @@ def update_flags_manual():
            update_http and update_hard and \
            update_muted:
 
+            print "Fin"
             return "200 ok (="
 
     except Exception as e:
