@@ -23,5 +23,10 @@ urlpatterns = [
         views.ListEventGroupView.as_view(),
         name='list-event-group'
     ),
+    url(
+        r'^site/$',
+        views.ListSiteView.as_view(),
+        name='sites-rest'
+    ),
 
 ]

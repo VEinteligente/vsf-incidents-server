@@ -194,13 +194,10 @@ class CategoryCaseSerializer(CategorySerializer):
         return len(cases)
 
 
-class ISPCaseSerializer(serializers.Serializer):
+class ISPSerializer(serializers.Serializer):
     """ISPCaseSerializer: Serializer
-    for serialize the ISP of the cases, with all cases with that 
-    ISP and how many there are"""
+    for serialize the ISP of the cases"""
     isp = serializers.SerializerMethodField()
-    cases = serializers.SerializerMethodField()
-    number_cases = serializers.SerializerMethodField()
 
     def get_isp(self, obj):
         """ Name of the isp
@@ -212,6 +209,14 @@ class ISPCaseSerializer(serializers.Serializer):
            value of dict {'isp': 'value'}
         """
         return obj['isp']
+
+
+class ISPCaseSerializer(ISPSerializer):
+    """ISPCaseSerializer: Serializer extends of ISPSerializer
+    for serialize the ISP of the cases, with all cases with that 
+    ISP and how many there are"""
+    cases = serializers.SerializerMethodField()
+    number_cases = serializers.SerializerMethodField()
 
     def get_cases(self, obj):
         """List of all cases in a specific isp

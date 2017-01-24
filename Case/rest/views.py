@@ -12,7 +12,8 @@ from serializers import (
     CategoryCaseSerializer,
     ISPCaseSerializer,
     CategorySerializer,
-    RegionSerializer
+    RegionSerializer,
+    ISPSerializer
 )
 from event.models import Event
 from Case.models import Case, Category
@@ -98,6 +99,16 @@ class ListCategoryCaseView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Category.objects.all()
     serializer_class = CategoryCaseSerializer
+
+
+class ListISPView(generics.ListAPIView):
+    """ListISPView: ListAPIView
+    for displaying a list of ISP """
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Event.objects.filter(
+        draft=False).values('isp').order_by('isp').distinct()
+    serializer_class = ISPSerializer
 
 
 class ListISPCaseView(generics.ListAPIView):
