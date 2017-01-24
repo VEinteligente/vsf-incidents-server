@@ -739,6 +739,8 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         )
     )
     fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
         'id': 'id',
         'measurement_start_time': 'measurement_start_time',
         'input': 'input',
