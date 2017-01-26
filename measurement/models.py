@@ -42,6 +42,9 @@ class MetricFlag(models.Model):
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
     ip = models.GenericIPAddressField(null=True, blank=True)
+    target = models.CharField(max_length=25)
+    isp = models.CharField(max_length=25, null=True, blank=True)
+    region = models.CharField(max_length=25, null=True, blank=True)
     flag = models.NullBooleanField(default=False)
     manual_flag = models.BooleanField(default=False)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
