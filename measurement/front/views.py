@@ -698,7 +698,8 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
         'success': 'id',
         'probe_cc': 'probe_cc',
         'probe_ip': 'probe_ip',
-        'measurement_start_time': 'measurement_start_time'
+        'measurement_start_time': 'measurement_start_time',
+        'report_id': 'report_id'
     }
 
     def json_response(self, data):
@@ -738,6 +739,8 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         )
     )
     fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
         'id': 'id',
         'measurement_start_time': 'measurement_start_time',
         'input': 'input',
@@ -747,6 +750,7 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         'headers_match': 'headers_match',
         'status_code_match': 'status_code_match',
         'title_match': 'title_match',
+        'report_id': 'report_id',
     }
 
     def json_response(self, data):

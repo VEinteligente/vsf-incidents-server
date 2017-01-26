@@ -4,6 +4,7 @@
 <div class="table-responsive">
     <table id="my-table">
         <thead>
+            <th>flag</th>
             <th>id</th>
             <th>measurement_start_time</th>
             <th>input</th>
@@ -13,8 +14,10 @@
             <th>headers_match</th>
             <th>status_code_match</th>
             <th>title_match</th>
+            <th>report_id</th>
         </thead>
         <tfoot>
+            <th>flag</th>
             <th>id</th>
             <th>measurement_start_time</th>
             <th>input</th>
@@ -24,6 +27,7 @@
             <th>headers_match</th>
             <th>status_code_match</th>
             <th>title_match</th>
+            <th>report_id</th>
         </tfoot>
         <tbody></tbody>
     </table>
@@ -44,15 +48,96 @@ $(function () {
         "bServerSide": true,
         "sAjaxSource": "/measurements/http-table-ajax/",
         "aoColumns": [
-            { "mData": "id" },
+            { "mData": "Flag",  "mRender": function ( data, type, full ) {
+                        
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        return flag_icon;
+                    }
+            },
+            { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement;
+                        }else{
+                            return '';
+                        }
+                   }
+            },
             { "mData": "measurement_start_time" },
             { "mData": "input" },
             { "mData": "probe_cc" },
-            { "mData": 'body_length_match'},
+            { "mData": 'body_length_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
             { "mData": 'body_proportion'},
-            { "mData": 'headers_match'},
-            { "mData": 'status_code_match'},
-            { "mData": 'title_match'}
+            { "mData": 'headers_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": 'status_code_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": 'title_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": "report_id",
+               "mRender": function ( data ) {
+                    if (data != null){
+                        var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                        url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                        return url_report;
+                    }else{
+                        return '';
+                    }
+               }
+            }
 
         ]
     });
