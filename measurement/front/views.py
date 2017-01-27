@@ -535,7 +535,7 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
         context = super(DNSTableView, self).get_context_data(**kwargs)
 
         context['dns'] = json.dumps(list(DNS.objects.values('isp','ip','verbose')))
-        context['dns_public'] = json.dumps(list(DNS.objects.values('ip').filter(public=True)))
+        context['dns_public'] = json.dumps(list(DNS.objects.values_list('ip', flat=True).filter(public=True)))
         context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
 
         return context
@@ -554,6 +554,7 @@ class DNSTableAjax(DatatablesView):
     fields = {
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
+        'ip': 'flags__ip',
         'annotation': 'annotation',
         'queries': 'queries',
         'id': 'id',

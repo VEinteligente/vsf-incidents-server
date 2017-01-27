@@ -99,16 +99,16 @@ class UpdateFlagView(generic.UpdateView):
             #update_tcp = []
             update_tcp = self.update_tcp_flags(rows_tcp)
 
-            print "BULK TCP"
-            MetricFlag.objects.bulk_create(update_tcp)
-
             # Update HTTP Flags #
             print "HTTP"
             #update_http = []
             update_http = self.update_http_flags(rows_tcp)
 
-            print "BULK HTTP"
-            MetricFlag.objects.bulk_create(update_http)
+            to_bulk_list = []
+            to_bulk_list += update_dns + update_tcp + update_http
+
+            print "BULK"
+            MetricFlag.objects.bulk_create(to_bulk_list)
 
             # Update Muted Flags #
             print "MUTED"
