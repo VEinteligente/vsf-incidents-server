@@ -42,6 +42,8 @@ TEMPLATES = local_settings.TEMPLATES
 
 WSGI_APPLICATION = local_settings.WSGI_APPLICATION
 
+SECURE_SSL_REDIRECT = local_settings.SECURE_SSL_REDIRECT
+
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
