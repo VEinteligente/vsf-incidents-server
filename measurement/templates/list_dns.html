@@ -126,9 +126,10 @@
                 var annotation = JSON.parse(items_results[j]['annotation']);
                 var id = items_results[j]['id'];
                 var done = false;
-                var row = row_list[j+cont];
+                var row_init = row_list[j];
+                //var row = row_list[j+cont];
 
-                console.log("ROW", row);
+                console.log("ROW", row_init);
                 console.log("IDS IN DONE", ids_done);
                 console.log("ID IN ITEMS", id);
                 console.log("IP FLAG", ip_flag);
@@ -269,7 +270,7 @@
 
                             console.log("DNS IP loop", dns_name);
                             console.log("Id", id);
-                            if(i === 0){
+                            if(i === 0 && !ip_flag){
 
                                 var row_match = $('td:eq(3)', row)[0];
                                 var row_dns_isp = $('td:eq(4)', row)[0];
@@ -304,18 +305,18 @@
                                     // Do nothing
                                     console.log("IP FLAG TRUE, IP FLAGS EQUALS");
 
-                                    var row_match = $('td:eq(3)', row)[0];
-                                var row_dns_isp = $('td:eq(4)', row)[0];
-                                var row_control_resolver = $('td:eq(5)', row)[0];
-                                var row_dns_name = $('td:eq(6)', row)[0];
-                                var row_dns_result = $('td:eq(7)', row)[0];
-                                row_match.innerText = match;
-                                row_dns_isp.innerText = dns_isp;
-                                row_control_resolver.innerText = control_resolver;
-                                row_dns_name.innerText = dns_table_name;
-                                row_dns_result.innerText = dns_result;
+                                    var row_match = $('td:eq(3)', row_init)[0];
+                                    var row_dns_isp = $('td:eq(4)', row_init)[0];
+                                    var row_control_resolver = $('td:eq(5)', row_init)[0];
+                                    var row_dns_name = $('td:eq(6)', row_init)[0];
+                                    var row_dns_result = $('td:eq(7)', row_init)[0];
+                                    row_match.innerText = match;
+                                    row_dns_isp.innerText = dns_isp;
+                                    row_control_resolver.innerText = control_resolver;
+                                    row_dns_name.innerText = dns_table_name;
+                                    row_dns_result.innerText = dns_result;
 
-                                check_cross(row_match);
+                                    check_cross(row_match);
                                 }
 
                             }                            
