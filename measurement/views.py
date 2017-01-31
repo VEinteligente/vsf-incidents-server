@@ -6,6 +6,7 @@ from measurement.models import (
     Flag,
     DNS,
     Metric,
+    MetricFlag,
     Probe,
     MutedInput
 )
@@ -71,8 +72,11 @@ class UpdateFlagView(generic.UpdateView):
                 query_tcp += " and id not in " + ids
 
             # Results from execute queries #
+            print "QUERIESSSSS"
             result_dns = database.db_execute(query_dns)
             result_tcp = database.db_execute(query_tcp)
+            #result_dns = None
+            #result_tcp = None
 
             rows_dns = {}
             rows_tcp = {}
@@ -86,25 +90,41 @@ class UpdateFlagView(generic.UpdateView):
                 rows_tcp = result_tcp['rows']
 
             # Update DNS Flags #
+            print "DNS"
+            #update_dns = []
             update_dns = self.update_dns_flags(rows_dns)
 
             # Update TCP Flags #
+            print "TCP"
+            #update_tcp = []
             update_tcp = self.update_tcp_flags(rows_tcp)
 
             # Update HTTP Flags #
+            print "HTTP"
+            #update_http = []
             update_http = self.update_http_flags(rows_tcp)
 
+            to_bulk_list = []
+            to_bulk_list += update_dns + update_tcp + update_http
+
+            print "BULK"
+            MetricFlag.objects.bulk_create(to_bulk_list)
+
             # Update Muted Flags #
-            update_muted_flags = self.update_muted_flags()
+            print "MUTED"
+            update_muted = self.update_muted_flags()
 
             # Update Hard Flags #
-            update_hard_flags = self.update_hard_flags()
+            print "HARD"
+            update_hard = self.update_hard_flags()
 
             if update_dns and update_tcp and \
-               update_http and update_hard_flags and \
-               update_muted_flags:
+               update_http and update_hard and \
+               update_muted:
 
                 return HttpResponse(status=200)
+
+            return HttpResponse(status=400)
 
         except Exception as e:
 
@@ -113,6 +133,8 @@ class UpdateFlagView(generic.UpdateView):
             return HttpResponse(status=400)
 
     def update_dns_flags(self, rows):
+
+        flags = []
 
         for row in rows:
 
@@ -152,7 +174,7 @@ class UpdateFlagView(generic.UpdateView):
                     for a in answers:
                         if a['answer_type'] == 'A' and \
                            a['ipv4'] not in control_resolver:
-                            control_resolver += a['ipv4']
+                            control_resolver += [a['ipv4']]
 
                     # Verify each result from queries with control resolver #
                     for query in queries:
@@ -179,6 +201,14 @@ class UpdateFlagView(generic.UpdateView):
                                     dns_isp = 'Unknown'
                                     flag = None
 
+                                m_flag = MetricFlag.objects.create(metric_id=row['id'],
+                                                                   target=url.url,
+                                                                   isp=dns_isp,
+                                                                   region='CCS',
+                                                                   ip=dns_name,
+                                                                   flag=flag,
+                                                                   type_med='DNS')
+
                                 flag = Flag.objects.create(medicion=row['id'],
                                                            date=date,
                                                            target=url,
@@ -187,7 +217,9 @@ class UpdateFlagView(generic.UpdateView):
                                                            ip=dns_name,
                                                            flag=flag,
                                                            type_med='DNS')
+
                                 flag.save(using='default')
+                                flags += [m_flag]
 
                         else:
 
@@ -196,7 +228,7 @@ class UpdateFlagView(generic.UpdateView):
                             for a in answers:
                                 if a['answer_type'] == 'A' and \
                                    a['ipv4'] not in dns_result:
-                                    dns_result += a['ipv4']
+                                    dns_result += [a['ipv4']]
 
                             # If doesn't match, generate soft flag in measurement #
                             #if control_resolver != dns_result:
@@ -212,6 +244,14 @@ class UpdateFlagView(generic.UpdateView):
                                         dns_isp = 'Unknown'
                                         flag = None
 
+                                    m_flag = MetricFlag.objects.create(metric_id=row['id'],
+                                                                       target=url.url,
+                                                                       isp=dns_isp,
+                                                                       region='CCS',
+                                                                       ip=dns_name,
+                                                                       flag=flag,
+                                                                       type_med='DNS')
+
                                     flag = Flag.objects.create(ip=dns_name,
                                                                flag=flag,
                                                                date=date,
@@ -220,11 +260,15 @@ class UpdateFlagView(generic.UpdateView):
                                                                region='CCS',
                                                                medicion=row['id'],
                                                                type_med='DNS')
-                                    flag.save(using='default')
 
-        return True
+                                    flag.save(using='default')
+                                    flags += [m_flag]
+
+        return flags
 
     def update_tcp_flags(self, rows):
+
+        flags = []
 
         for row in rows:
 
@@ -258,6 +302,14 @@ class UpdateFlagView(generic.UpdateView):
                             dns_isp = 'Unknown'
                             flag = None
 
+                        m_flag = MetricFlag(metric_id=row['id'],
+                                            target=url.url,
+                                            isp=dns_isp,
+                                            region='CCS',
+                                            ip=tcp['ip'],
+                                            flag=flag,
+                                            type_med='TCP')
+
                         flag = Flag.objects.create(ip=tcp['ip'],
                                                    flag=flag,
                                                    date=date,
@@ -266,11 +318,15 @@ class UpdateFlagView(generic.UpdateView):
                                                    region='CCS',
                                                    medicion=row['id'],
                                                    type_med='TCP')
-                        flag.save(using='default')
 
-        return True
+                        flag.save(using='default')
+                        flags += [m_flag]
+
+        return flags
 
     def update_http_flags(self, rows):
+
+        flags = []
 
         for row in rows:
 
@@ -302,6 +358,13 @@ class UpdateFlagView(generic.UpdateView):
                         dns_isp = 'Unknown'
                         flag = None
 
+                    m_flag = MetricFlag(metric_id=row['id'],
+                                        target=url.url,
+                                        isp=dns_isp,
+                                        region='CCS',
+                                        ip=test_key.get_client_resolver(),
+                                        flag=flag,
+                                        type_med='HTTP')
 
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
                                                flag=flag,
@@ -311,20 +374,26 @@ class UpdateFlagView(generic.UpdateView):
                                                region='CCS',
                                                medicion=row['id'],
                                                type_med='HTTP')
-                    flag.save(using='default')
 
-        return True
+                    flag.save(using='default')
+                    flags += [m_flag]
+
+        return flags
 
     def update_muted_flags(self):
 
-        muted_list = MutedInput.objects.values_list('url')
-        type_list = MutedInput.objects.values_list('type_med')
+        muted_list = list(MutedInput.objects.values_list('url', flat=True))
+        type_list = list(MutedInput.objects.values_list('type_med', flat=True))
 
         flags = Flag.objects.filter(flag=False,
                                     target__url__in=muted_list,
                                     type_med__in=type_list)
+        m_flags = MetricFlag.objects.filter(flag=False,
+                                            target__in=muted_list,
+                                            type_med__in=type_list)
 
         flags.update(flag=None)
+        m_flags.update(flag=None)
 
         return True
 
@@ -348,10 +417,22 @@ class UpdateFlagView(generic.UpdateView):
 
             for r in result:
                 flags_to_update = flags.filter(isp=r['isp'],
-                                               target=r['target'],
+                                               target__url=r['target'],
                                                type_med=r['type_med'])
 
                 map(self.soft_to_hard_flag, flags_to_update)
+
+                flags_id = list(flags.values_list('medicion', flat=True))
+                flags_isp = list(flags.values_list('isp', flat=True))
+                flags_url = list(flags.values_list('target__url', flat=True))
+                flags_type_med = list(flags.values_list('type_med', flat=True))
+
+                m_flags_update = MetricFlag.objects.filter(metric_id__in=flags_id,
+                                                           isp__in=flags_isp,
+                                                           target__in=flags_url,
+                                                           type_med__in=flags_type_med)
+
+                map(self.soft_to_hard_flag, m_flags_update)
 
         else:
 
@@ -373,11 +454,25 @@ class UpdateFlagView(generic.UpdateView):
 
                 for r in result:
                     flags_to_update = flags.filter(isp=r['isp'],
-                                                   target=r['target'],
+                                                   target__url=r['target'],
                                                    type_med=r['type_med'],
                                                    region=r['region'])
 
                     map(self.soft_to_hard_flag, flags_to_update)
+
+                    flags_id = list(flags.values_list('medicion', flat=True))
+                    flags_isp = list(flags.values_list('isp', flat=True))
+                    flags_url = list(flags.values_list('target__url', flat=True))
+                    flags_type_med = list(flags.values_list('type_med', flat=True))
+                    flags_region = list(flags.values_list('region', flat=True))
+
+                    m_flags_update = MetricFlag.objects.filter(metric_id__in=flags_id,
+                                                               isp__in=flags_isp,
+                                                               target__in=flags_url,
+                                                               region__in=flags_region,
+                                                               type_med__in=flags_type_med)
+
+                    map(self.soft_to_hard_flag, m_flags_update)
 
         return True
 

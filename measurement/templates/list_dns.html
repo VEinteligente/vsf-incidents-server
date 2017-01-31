@@ -87,6 +87,14 @@
             ],
         });
 
+        function check_cross(value) {
+            if(value.innerText == "true"){
+                value.innerHTML = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+            }else{
+                value.innerHTML = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';
+            }
+        }
+
         $('#my-table').on( 'draw.dt', function (e, settings) {
 
             var items_results = settings.json.aaData;
@@ -110,19 +118,20 @@
 
             }
 
-            for(var i=0; i< items_results.length; i++){
+            for(var j=0; j< items_results.length; j++){
 
-                var id_flag = JSON.parse(items_results[i]['flag_id']);
-                var queries = JSON.parse(items_results[i]['queries']);
-                var ip_flag = items_results[i]['ip'];
-                var annotation = JSON.parse(items_results[i]['annotation']);;
-                var id = items_results[i]['id'];
+                var id_flag = JSON.parse(items_results[j]['flag_id']);
+                var queries = JSON.parse(items_results[j]['queries']);
+                var ip_flag = items_results[j]['ip'];
+                var annotation = JSON.parse(items_results[j]['annotation']);
+                var id = items_results[j]['id'];
                 var done = false;
-                var row = row_list[i+cont];
+                var row = row_list[j+cont];
 
-                //console.log("ROW", row);
+                console.log("ROW", row);
                 console.log("IDS IN DONE", ids_done);
                 console.log("ID IN ITEMS", id);
+                console.log("IP FLAG", ip_flag);
                 console.log("DNS IP FLAGS", dns_flags);
 
                 var dns_isp = 'Unknown';
@@ -175,30 +184,37 @@
                         var control_resolver = [];
                         var dns_result = [];
 
+                        console.log("ANSWERS", answers);
+
                         // Get control resolver from answer_type A #
                         for (var a=0; a < answers.length; a++){
 
-                            if (a['answer_type'] === 'A' &&
-                                $.inArray(a['ipv4'],
+                            if (answers[a]['answer_type'] === 'A' &&
+                                $.inArray(answers[a]['ipv4'],
                                           control_resolver) === -1){
-                                control_resolver.push(a['ipv4']);
+                                control_resolver.push(answers[a]['ipv4']);
 
                             }
                         }
+
+                        console.log("CONTROL RESOLVER", control_resolver);
 
                         // Verify each result from queries with control resolver
                         for(var i=0; i< queries.length; i++){
 
                             var dns_name = queries[i]['resolver_hostname'];
                             var match = false;
+                            console.log("DNS name", dns_name);
 
-                            var row = row_list[i+cont];
+                            var row = row_list[j+cont];
                             var row_clone = row.cloneNode(true);
+                            var clone_flag = $('td:eq(0)', row_clone)[0];
                             var clone_match = $('td:eq(3)', row_clone)[0];
                             var clone_dns_isp = $('td:eq(4)', row_clone)[0];
                             var clone_control_resolver = $('td:eq(5)', row_clone)[0];
                             var clone_dns_name = $('td:eq(6)', row_clone)[0];
-                            var clone_dns_result = $('td:eq(0)', row_clone)[0];
+                            var clone_dns_result = $('td:eq(7)', row_clone)[0];
+                            clone_flag.innerText = '';
                             clone_match.innerText = '';
                             clone_dns_isp.innerText = '';
                             clone_control_resolver.innerText = '';
@@ -213,21 +229,23 @@
                             // from answer type A and later compare it with control
                             // resolver. If both are the same, match is True otherwise match is False
 
-                            if (query[i]['failure']){
-                                dns_result.push(query[i]['failure']);
+                            if (queries[i]['failure']){
+                                dns_result.push(queries[i]['failure']);
                             }
 
-                            answers = query[i]['answers'];
+                            answers = queries[i]['answers'];
 
                             for (var a=0; a < answers.length; a++){
 
-                                if (a['answer_type'] === 'A' &&
-                                    $.inArray(a['ipv4'],
+                                if (answers[a]['answer_type'] === 'A' &&
+                                    $.inArray(answers[a]['ipv4'],
                                               dns_result) === -1){
-                                    dns_result.push(a['ipv4']);
+                                    dns_result.push(answers[a]['ipv4']);
 
                                 }
                             }
+
+                            console.log("DNS RESULT", dns_result);
 
                             // If dns_name is in DNS table, find its name
                             var result = $.grep(dns, function(e){ return e.ip == dns_name; });
@@ -237,7 +255,6 @@
                                 dns_table_name = result[0].verbose;
                             }else{
                                 dns_table_name = dns_name;
-
                             }
 
                             if(dns_result.map(function(dns){
@@ -247,38 +264,72 @@
                                     return false;
                                 }}).every(x => x === true)){
                                 match = true;
+                                console.log("MATCH", match);
                             }
 
                             console.log("DNS IP loop", dns_name);
                             console.log("Id", id);
-                            if(ip_flag != dns_name &&
-                               $.inArray(dns_name, dns_flags) === -1 &&
-                               $.inArray(id, ids_done) === -1){
+                            if(i === 0){
 
-                                clone_match.innerText = match;
-                                clone_dns_isp.innerText = dns_isp;
-                                clone_control_resolver.innerText = control_resolver.join();
-                                clone_dns_name.innerText = dns_table_name;
-                                clone_dns_result.innerText = dns_result.join();
-                                console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
-                                $(row_clone).insertAfter(row);
-                                cont++;
+                                var row_match = $('td:eq(3)', row)[0];
+                                var row_dns_isp = $('td:eq(4)', row)[0];
+                                var row_control_resolver = $('td:eq(5)', row)[0];
+                                var row_dns_name = $('td:eq(6)', row)[0];
+                                var row_dns_result = $('td:eq(7)', row)[0];
+                                row_match.innerText = match;
+                                row_dns_isp.innerText = dns_isp;
+                                row_control_resolver.innerText = control_resolver;
+                                row_dns_name.innerText = dns_table_name;
+                                row_dns_result.innerText = dns_result;
 
-                            }else{
-                                // Do nothing
-                                console.log("IP FLAG TRUE, IP FLAGS EQUALS");
-                            }
+                                check_cross(row_match);
 
+                            } else {
 
+                                if(ip_flag != dns_name &&
+                                   $.inArray(dns_name, dns_flags) === -1 &&
+                                   $.inArray(id, ids_done) === -1){
+
+                                    clone_match.innerText = match;
+                                    clone_dns_isp.innerText = dns_isp;
+                                    clone_control_resolver.innerText = control_resolver;
+                                    clone_dns_name.innerText = dns_table_name;
+                                    clone_dns_result.innerText = dns_result;
+                                    console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
+                                    check_cross(clone_match);
+                                    $(row_clone).insertAfter(row);
+                                    cont++;
+
+                                }else{
+                                    // Do nothing
+                                    console.log("IP FLAG TRUE, IP FLAGS EQUALS");
+
+                                    var row_match = $('td:eq(3)', row)[0];
+                                var row_dns_isp = $('td:eq(4)', row)[0];
+                                var row_control_resolver = $('td:eq(5)', row)[0];
+                                var row_dns_name = $('td:eq(6)', row)[0];
+                                var row_dns_result = $('td:eq(7)', row)[0];
+                                row_match.innerText = match;
+                                row_dns_isp.innerText = dns_isp;
+                                row_control_resolver.innerText = control_resolver;
+                                row_dns_name.innerText = dns_table_name;
+                                row_dns_result.innerText = dns_result;
+
+                                check_cross(row_match);
+                                }
+
+                            }                            
+                            
                         }
-                    }
 
+                    }
+                    
                     ids_done.push(id);
                 }
 
             }
         });
 
-    })
+    });
 </script>
 {% endblock %}
