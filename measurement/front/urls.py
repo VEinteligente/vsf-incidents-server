@@ -108,6 +108,11 @@ urlpatterns = [
         name='list-report-probe'
     ),
     url(
+        r'^create_event/$',
+        views.EventFromMeasurementView.as_view(),
+        name='measurements_to_event'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'

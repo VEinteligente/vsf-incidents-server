@@ -1062,6 +1062,65 @@ class ManualFlagsView(generic.FormView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+# Create Events From Measurements
+
+class EventFromMeasurementView(PageTitleMixin, generic.FormView):
+    """ManualFlagsView: CreateView for create manual flags
+    in DB"""
+    page_header = "Measurement List"
+    page_header_description = ""
+    breadcrumb = [""]
+    form_class = ManualFlagForm
+    success_url = ""
+    template_name = 'display_table.html'
+
+    def get_success_url(self, id):
+        return reverse_lazy(
+            'events:event_front:create-event-from-measurements',
+            kwargs={'pk': id})
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get metrics values
+        metric_inputs = form.cleaned_data['metrics']
+        error_msg = ""
+
+        if metric_inputs.endswith(','):
+            metric_inputs = metric_inputs[:-1]
+
+        # Create database object #
+        try:
+            database = DBconnection('titan_db')
+
+            query = "select id, input, measurement_start_time, test_name, annotations "
+            query += "from metrics where id in (" + metric_inputs + ")"
+            # Results from execute queries #
+            metrics = database.db_execute(query)
+        except Exception:
+            error_msg = "Database connection error"
+        if metrics:
+            rows_ids = metrics['rows']
+
+            if validate_metrics(rows_ids):
+                # Change or create flag to Manual Flag
+                event = change_to_manual_flag_and_create_event(rows_ids)
+                if event is not False:
+                    msg = 'New event created'
+                    messages.success(self.request, msg)
+
+                    return HttpResponseRedirect(self.get_success_url(event.id))
+            else:
+                error_msg = "Measurements must have the same Input and Test Name. "
+                error_msg += "Measurements must have a probe in annotations."
+                error_msg += "One measurement have already an event"
+
+        msg = 'Error creating new Event. ' + error_msg
+        messages.error(self.request, msg)
+        return self.form_invalid(form)
+
+
 ######################## PRUEBA #######################################
 
 class PruebaDataTable(generic.TemplateView):

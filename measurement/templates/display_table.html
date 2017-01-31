@@ -8,6 +8,31 @@
 {% endblock %}
 
 {% block content %}
+
+
+{% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
     
     <div class="table-responsive">
         
@@ -23,13 +48,14 @@
                 <th>Measurement Start Time</th>
             </thead>
         </table>
-        <form action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}        
         <div class="box-footer text-right">
-            <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">
+            <form id="form" action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}        
+                <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">      
+                <input id="create-event" class="btn btn-flat btn-primary event-btn" type="submit" value="Create Event">
+            </form>
         </div>
-        </form>
     </div>
     
 {% endblock %}
@@ -47,6 +73,7 @@
         $( '#id_metrics' ).val('');
 
         $( '#create-manual-flag').toggleClass('disabled');
+        $( '#create-event').toggleClass('disabled');
 
         $('#my-table').dataTable({
             "bProcessing": true,
@@ -122,9 +149,11 @@
                }
 
                var metrics = $( '#id_metrics' );
-               var measurement = $( this ).context.childNodes[1].innerText;
-
+               var measurement = $( this ).context.childNodes[2].innerText;
                $( '#create-manual-flag').removeClass('disabled');
+                $( '#create-event').removeClass('disabled');
+
+
 
                if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
@@ -145,6 +174,8 @@
                 if (!metrics.val().match(/([^,\']+)\w/)){
                     metrics.val("");
                     $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
                 }
                        
             }               
@@ -162,11 +193,13 @@
         $('#my-table tbody').on('click', 'tr', function () {
 
             var metrics = $( '#id_metrics' );
-            var measurement = $( this ).context.childNodes[1].innerText;
+            var measurement = $( this ).context.childNodes[2].innerText;
 
             $( this ).toggleClass('selected');
 
             $( '#create-manual-flag').removeClass('disabled');
+            $( '#create-event').removeClass('disabled');
+
 
             if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
@@ -187,6 +220,8 @@
                 if (!metrics.val().match(/([^,\']+)\w/)){
                     metrics.val("");
                     $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
                 }
                        
             }               
@@ -195,6 +230,12 @@
 
             $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
             
+        });
+
+        $(document).on('click', '.event-btn', function(event) {
+            /* Act on the event */
+            var url = '/measurements/create_event/'
+            $('#form').attr('action', url);
         });
 
     })

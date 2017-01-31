@@ -5,10 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
-from measurement.models import Flag
+from measurement.models import Flag, MetricFlag
 from event.models import Url
 from django.db.models import Q
-from .forms import EventForm
+from .forms import EventForm, EventExtendForm
 from .utils import suggestedFlags
 from event.models import Event
 import json
@@ -129,8 +129,8 @@ class UpdateEvent(CreateEvent,
 
         for f in flags:
             flags_id += f.medicion + ' '
-            flags_str += f.medicion + '&' + f.target.url + '&' + \
-                         f.isp + '&' + f.ip + '&' + f.type_med + ' '
+            # flags_str += f.medicion + '&' + f.target.url + '&' + \
+            #              f.isp + '&' + f.ip + '&' + f.type_med + ' '
 
         open_ended = False
 
@@ -189,8 +189,11 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         flags = event.flags.all()
 
         for f in flags:
-            f.event = None
-            f.save(update_fields=['event'])
+            if f.manual_flag is True:
+                f.delete()
+            else:
+                f.event = None
+                f.save(update_fields=['event'])
 
         event.flags.remove()
 
@@ -272,3 +275,75 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
     breadcrumb = ["Events", "Event Suggestions"]
     queryset = Event.objects.exclude(
         suggested_events=None).prefetch_related('suggested_events', 'flags')
+
+
+class CreateEventMeasurementView(UpdateEvent,
+                  PageTitleMixin,
+                  generic.UpdateView):
+    """CreateEventMeasurementView"""
+    form_class = EventExtendForm
+    context_object_name = 'event'
+    page_header = "New Event"
+    page_header_description = ""
+    breadcrumb = ["Events", "New Event from Measurements"]
+    model = Event
+    template_name = 'create_event_measurement.html'
+
+
+    def get_context_data(self, **kwargs):
+        '''Initial data for Event form'''
+
+        context = super(CreateEventMeasurementView, self).get_context_data(**kwargs)
+
+        form = self.get_form_class()
+
+        event = self.object
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags)
+
+        open_ended = False
+
+        if not event.end_date:
+            open_ended = True
+
+        # Initial data for the form
+        context['form'] = form(initial={'identification': event.identification,
+                                        'open_ended': open_ended,
+                                        'isp': event.isp,
+                                        'type': event.type
+                                        })
+        context['flags'] = flags
+        return context
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get flags values
+        event = self.object
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags)
+
+        # Object to save
+        self.object = form.save(commit=False)
+
+        if Event.objects.filter(id=self.object.id).exists():
+            msg = 'Se ha modificado el evento'
+        else:
+            msg = 'Se ha creado el evento'
+
+        if not form.cleaned_data['open_ended']:
+            self.object.end_date = flags.latest('date').date
+        else:
+            self.object.end_date = None
+
+        self.object.save()  # Save object in the Database
+
+        # remove all events from the related flag
+        for flag in flags:
+            flag.suggested_events.clear()
+        suggestedFlags(self.object)
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())

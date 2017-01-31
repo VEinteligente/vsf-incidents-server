@@ -56,3 +56,12 @@ class EventForm(forms.ModelForm):
         else:
             self.add_error(None,
                        'The Event must have measurements and identification asociated')
+
+
+class EventExtendForm(forms.ModelForm):
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+
+    class Meta():
+        model = Event
+        fields = ['open_ended', 'identification', 'isp', 'type']
