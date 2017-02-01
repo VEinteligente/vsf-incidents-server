@@ -32,6 +32,11 @@ def change_to_manual_flag_sql(metric_sql):
             # Save object in database
             flag.save()
 
+            m_flag, created = MetricFlag.objects.get_or_create(
+                metric_id=metric_sql['id'],
+                manual_flag=True,
+                target=target.url)
+
         return True
 
     except Exception as e:
@@ -49,6 +54,7 @@ def change_to_manual_flag_and_create_event(metrics_sql):
     id_flags = []
     target = ""
     isp = "Unknown"
+    metric_flags = []
 
     for metric_sql in metrics_sql:
         # Get all flags associated with metric_sql object
@@ -75,6 +81,11 @@ def change_to_manual_flag_and_create_event(metrics_sql):
             id_flags.append(flag.id)
 
             target = url
+
+            m_flag, created = MetricFlag.objects.get_or_create(
+                metric_id=metric_sql['id'],
+                manual_flag=True,
+                target=target.url)
         else:
             for flag in flags:
                 flags_event.append(flag)

@@ -199,7 +199,7 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
 
         event.delete()
 
-        msg = 'Se ha eliminado el evento elegido'
+        msg = 'Event deleted sucessfully'
 
         messages.success(request, msg)
 
