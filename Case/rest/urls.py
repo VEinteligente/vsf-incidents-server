@@ -57,4 +57,9 @@ urlpatterns = [
         views.ListCaseFilterView.as_view(),
         name='list-case-filter-rest'
     ),
+    url(
+        r'^gantt/(?P<case_id>[0-9]+)/$',
+        views.GanttChart.as_view(),
+        name='test'
+    ),
 ]

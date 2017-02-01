@@ -4,7 +4,7 @@ from rest_framework import serializers
 from Case.models import Case, Update
 from measurement.models import State
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Url
+from event.models import Url, Site
 
 import django_filters
 
@@ -77,6 +77,7 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
     def get_updates(self, obj):
         queryset = obj.updates.all().order_by('-date')
         return UpdateSerializer(queryset, many=True).data
+
 
 class DetailEventCaseSerializer(serializers.ModelSerializer):
     """DetailEventCaseSerializer: ModelSerializer
@@ -164,7 +165,6 @@ class CategoryCaseSerializer(CategorySerializer):
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()
 
-
     def get_cases(self, obj):
         """List of all cases in a specific category
 
@@ -249,6 +249,23 @@ class ISPCaseSerializer(ISPSerializer):
         return len(cases)
 
 
+class GanttChartSerializer(serializers.ModelSerializer):
+
+    events = serializers.SerializerMethodField()
+
+    def get_events(self, obj):
+        events = obj.events.order_by(
+            'isp',
+            'target__site__name',
+            'start_date'
+        )
+        return EventSerializer(events, many=True).data
+
+    class Meta:
+        model = Case
+        fields = ('events',)
+
+
 # Django Filter CaseFilter
 
 class CharInFilter(django_filters.BaseInFilter,
@@ -281,7 +298,7 @@ class CaseFilter(django_filters.FilterSet):
         distinct=True
     )
     category = CharInFilter(
-        name='category',
+        name='category__name',
         distinct=True
     )
 
