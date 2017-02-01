@@ -17,6 +17,8 @@ def change_to_manual_flag_sql(metric_sql):
         # Get all flags associated with metric_sql object
         flags = Flag.objects.filter(medicion=metric_sql['id'])
 
+        print flags
+
         if not flags:
             # Get or Create Url Input
             url, created = Url.objects\
@@ -35,7 +37,9 @@ def change_to_manual_flag_sql(metric_sql):
             m_flag, created = MetricFlag.objects.get_or_create(
                 metric_id=metric_sql['id'],
                 manual_flag=True,
-                target=target.url)
+                target=url)
+
+            print m_flag
 
         return True
 

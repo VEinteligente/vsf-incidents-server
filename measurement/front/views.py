@@ -305,6 +305,7 @@ class MeasurementAjaxView(DatatablesView):
     fields = {
         'checkbox': 'input',
         'Flag': 'flags__flag',
+        'manual_flag': 'flags__manual_flag',
         'flag_id': 'flags__id',
         'id': 'id',
         'input': 'input',
@@ -554,6 +555,7 @@ class DNSTableAjax(DatatablesView):
     fields = {
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
+        'manual_flag': 'flags__manual_flag',
         'ip': 'flags__ip',
         'annotation': 'annotation',
         'queries': 'queries',
@@ -690,6 +692,7 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
     fields = {
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
+        'manual_flag': 'flags__manual_flag',
         'tcp': 'tcp',
         'id': 'id',
         'input': 'input',

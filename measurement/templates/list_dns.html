@@ -53,6 +53,10 @@
                             }
                         }
 
+                        if(full.manual_flag){
+                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
+                        }
+
                         return flag_icon;
                     }
                 },
@@ -122,6 +126,7 @@
 
                 var id_flag = JSON.parse(items_results[j]['flag_id']);
                 var queries = JSON.parse(items_results[j]['queries']);
+                var manual_flag = items_results[j]['manual_flag'];
                 var ip_flag = items_results[j]['ip'];
                 var annotation = JSON.parse(items_results[j]['annotation']);
                 var id = items_results[j]['id'];
@@ -209,13 +214,15 @@
 
                             var row = row_list[j+cont];
                             var row_clone = row.cloneNode(true);
-                            var clone_flag = $('td:eq(0)', row_clone)[0];
+                            if(!manual_flag){
+                                var clone_flag = $('td:eq(0)', row_clone)[0];
+                                clone_flag.innerText = '';
+                            }
                             var clone_match = $('td:eq(3)', row_clone)[0];
                             var clone_dns_isp = $('td:eq(4)', row_clone)[0];
                             var clone_control_resolver = $('td:eq(5)', row_clone)[0];
                             var clone_dns_name = $('td:eq(6)', row_clone)[0];
                             var clone_dns_result = $('td:eq(7)', row_clone)[0];
-                            clone_flag.innerText = '';
                             clone_match.innerText = '';
                             clone_dns_isp.innerText = '';
                             clone_control_resolver.innerText = '';
@@ -319,12 +326,12 @@
                                     check_cross(row_match);
                                 }
 
-                            }                            
-                            
+                            }
+
                         }
 
                     }
-                    
+
                     ids_done.push(id);
                 }
 
