@@ -10,7 +10,8 @@ from .serializers import (
     SiteSerializer,
     EventSerializer,
     EventGroupSerializer,
-    EventGroupFilter
+    EventGroupFilter,
+    BlockedSiteSerializer
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -52,7 +53,7 @@ class BlockedSites(BlockedDomains):
     Ej. Mi Sitio Bloqueado
     """
 
-    serializer_class = SiteSerializer
+    serializer_class = BlockedSiteSerializer
 
     def get_queryset(self):
         queryset = super(BlockedSites, self).get_queryset()
@@ -80,3 +81,12 @@ class ListEventGroupView(generics.ListAPIView):
     serializer_class = EventGroupSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = EventGroupFilter
+
+
+class ListSiteView(generics.ListAPIView):
+    """ListSiteView: ListAPIView
+    for displaying a list of all sites"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
