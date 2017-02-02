@@ -6,20 +6,35 @@
 {% endblock %}
 
 {% block content %}
-<table id="my-table">
-    <thead>
-        <th>flag</th>
-        <th>id</th>
-        <th>input</th>
-        <th>match</th>
-        <th>dns isp</th>
-        <th>control resolver</th>
-        <th>dns name</th>
-        <th>dns result</th>
-        <th>measurement start time</th>
-    </thead>
-    <tbody id="my-table-body"></tbody>
-</table>
+<div class="table-responsive">
+    <table id="my-table">
+        <thead>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>match</th>
+            <th>dns isp</th>
+            <th>control resolver</th>
+            <th>dns name</th>
+            <th>dns result</th>
+            <th>measurement start time</th>
+            <th>report_id</th>
+        </thead>
+        <tfoot>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>match</th>
+            <th>dns isp</th>
+            <th>control resolver</th>
+            <th>dns name</th>
+            <th>dns result</th>
+            <th>measurement start time</th>
+            <th>report_id</th>
+        </tfoot>
+        <tbody id="my-table-body"></tbody>
+    </table>
+</div>
 {% endblock %}
 
 {% block extrajs %}
@@ -87,7 +102,18 @@
                 { "mData": "dns result",
                   "mRender": function ( data ) { return ''; }
                 },
-                { "mData": "measurement_start_time" }
+                { "mData": "measurement_start_time" },
+                { "mData": "report_id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                            return url_report;
+                        }else{
+                            return '';
+                        }
+                   }
+                },
             ],
         });
 

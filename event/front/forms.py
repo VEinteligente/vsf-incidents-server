@@ -35,7 +35,7 @@ class EventForm(forms.ModelForm):
             # Get flags from database with same target, isp
             # and type
 
-            for f in flags:
+            for f in filter(None, flags):
                 split = f.split('&')
                 bd_flags += Flag.objects.filter(medicion=split[0],
                                                 target__url=split[1],
