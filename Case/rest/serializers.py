@@ -4,7 +4,7 @@ from rest_framework import serializers
 from Case.models import Case, Update
 from measurement.models import State
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Url
+from event.models import Url, Site
 
 import django_filters
 
@@ -78,6 +78,7 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
         queryset = obj.updates.all().order_by('-date')
         return UpdateSerializer(queryset, many=True).data
 
+
 class DetailEventCaseSerializer(serializers.ModelSerializer):
     """DetailEventCaseSerializer: ModelSerializer
     for serialize a case with his events (including details of the events)"""
@@ -144,6 +145,7 @@ class CategorySerializer(serializers.Serializer):
     """CategorySerializer: Serializer
     for serialize the categories of the cases"""
     category = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         """Name of the category
@@ -156,6 +158,17 @@ class CategorySerializer(serializers.Serializer):
         """
         return obj.name
 
+    def get_display_name(self, obj):
+        """Name of the category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            value of dict {'category': 'value'}
+        """
+        return obj.display_name
+
 
 class CategoryCaseSerializer(CategorySerializer):
     """CategoryCaseSerializer: Serializer extention of CategorySerializer
@@ -163,7 +176,6 @@ class CategoryCaseSerializer(CategorySerializer):
     category and how many there are"""
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()
-
 
     def get_cases(self, obj):
         """List of all cases in a specific category
@@ -249,6 +261,23 @@ class ISPCaseSerializer(ISPSerializer):
         return len(cases)
 
 
+class GanttChartSerializer(serializers.ModelSerializer):
+
+    events = serializers.SerializerMethodField()
+
+    def get_events(self, obj):
+        events = obj.events.order_by(
+            'isp',
+            'target__site__name',
+            'start_date'
+        )
+        return EventSerializer(events, many=True).data
+
+    class Meta:
+        model = Case
+        fields = ('events',)
+
+
 # Django Filter CaseFilter
 
 class CharInFilter(django_filters.BaseInFilter,
@@ -281,7 +310,7 @@ class CaseFilter(django_filters.FilterSet):
         distinct=True
     )
     category = CharInFilter(
-        name='category',
+        name='category__name',
         distinct=True
     )
 
