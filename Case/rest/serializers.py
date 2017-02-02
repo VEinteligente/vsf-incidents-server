@@ -145,6 +145,7 @@ class CategorySerializer(serializers.Serializer):
     """CategorySerializer: Serializer
     for serialize the categories of the cases"""
     category = serializers.SerializerMethodField()
+    display_name = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         """Name of the category
@@ -156,6 +157,17 @@ class CategorySerializer(serializers.Serializer):
             value of dict {'category': 'value'}
         """
         return obj.name
+
+    def get_display_name(self, obj):
+        """Name of the category
+
+        Args:
+            obj: dict {'category': 'value'}
+
+        Returns:
+            value of dict {'category': 'value'}
+        """
+        return obj.display_name
 
 
 class CategoryCaseSerializer(CategorySerializer):
