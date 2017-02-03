@@ -101,8 +101,12 @@ LOGIN_REDIRECT_URL = local_settings.LOGIN_REDIRECT_URL
 INTERNAL_IPS = local_settings.INTERNAL_IPS
 DEBUG_TOOLBAR_CONFIG = local_settings.DEBUG_TOOLBAR_CONFIG
 
+EMAIL_BACKEND = local_settings.EMAIL_BACKEND
+EMAIL_USE_TLS = local_settings.EMAIL_USE_TLS
 EMAIL_HOST = local_settings.EMAIL_HOST
 EMAIL_PORT = local_settings.EMAIL_PORT
+EMAIL_HOST_USER = local_settings.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = local_settings.EMAIL_HOST_PASSWORD
 
 # Django-modeltranslate setup.
 LANGUAGES = local_settings.LANGUAGES
