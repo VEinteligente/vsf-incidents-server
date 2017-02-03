@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
+from django.core.mail import EmailMessage
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
@@ -535,7 +536,9 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
 
         context = super(DNSTableView, self).get_context_data(**kwargs)
 
-        context['dns'] = json.dumps(list(DNS.objects.values('isp','ip','verbose')))
+        context['dns'] = json.dumps(list(DNS.objects.values('isp',
+                                                            'ip',
+                                                            'verbose')))
         context['dns_public'] = json.dumps(list(DNS.objects.values_list('ip', flat=True).filter(public=True)))
         context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
 
@@ -1046,7 +1049,6 @@ class ManualFlagsView(generic.FormView):
 
         # Create database object #
         database = DBconnection('titan_db')
-
         query = "select id, input, measurement_start_time "
         query += "from metrics where id in (" + metric_inputs + ")"
 
@@ -1066,6 +1068,7 @@ class ManualFlagsView(generic.FormView):
 
         return HttpResponseRedirect(self.get_success_url())
 
+        # q = Metric.objects.first()
 
 # Create Events From Measurements
 
@@ -1146,3 +1149,7 @@ class PruebaDataTableAjax(DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder)
         )
+
+    def get(self, request, *args, **kwargs):
+        email = EmailMessage('title', 'body', to=['nestorbracho2207@gmail.com'])
+        email.send()
