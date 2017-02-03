@@ -115,9 +115,14 @@
             var dns_flags = [];
 
             for (var x=0; x< items_results.length; x++) {
+                console.log("FLAG ID", items_results[x]['flag_id']);
 
                 if(items_results[x]['flag_id']){
-                    dns_flags.push(items_results[x]['ip']);
+                    
+                    if(!items_results[x]['manual_flag']){
+                        dns_flags.push(items_results[x]['ip']);
+                    }
+                    
                 }
 
             }

@@ -142,9 +142,10 @@ class UpdateFlagView(generic.UpdateView):
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -279,9 +280,10 @@ class UpdateFlagView(generic.UpdateView):
             date = row['measurement_start_time']
             probe = None
 
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -335,9 +337,10 @@ class UpdateFlagView(generic.UpdateView):
 
             date = row['measurement_start_time']
 
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -400,14 +403,16 @@ class UpdateFlagView(generic.UpdateView):
     def update_hard_flags(self):
 
         # Evaluating first condition for hard flags
-        ids = Metric.objects.values_list('report_id',flat=True)
+        ids = Metric.objects.values_list('id', flat=True)
         ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
 
         flags = Flag.objects\
                     .filter(medicion__in=ids)
 
         result = flags\
-                     .values('isp','target','type_med')\
+                     .values('isp',
+                             'target',
+                             'type_med')\
                      .annotate(total_soft=Count(Case(
                                When(flag=False, then=1),
                                output_field=CharField())))\
@@ -437,7 +442,7 @@ class UpdateFlagView(generic.UpdateView):
         else:
 
             # Evaluating second condition for hard flags
-            ids = Metric.objects.values_list('report_id', flat=True)
+            ids = Metric.objects.values_list('id', flat=True)
             ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
             flags = Flag.objects\
