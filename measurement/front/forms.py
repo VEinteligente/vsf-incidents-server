@@ -13,7 +13,7 @@ class ProbeForm(forms.ModelForm):
 
     class Meta:
         model = Probe
-        fields = ['identification', 'region', 'country', 'city', 
+        fields = ['identification', 'region', 'country', 'city',
                   'isp', 'plan']
 
 

@@ -11,4 +11,9 @@ urlpatterns = [
         views.UpdateFlagView.as_view(),
         name='update-flags'
     ),
+    url(
+        r'^luigi-update/$',
+        views.LuigiUpdateFlagView.as_view(),
+        name='luigi'
+    ),
 ]

@@ -8,12 +8,38 @@
 {% endblock %}
 
 {% block content %}
-    
+
+
+{% if messages %}
+    <div class="box">
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools -->
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="table-responsive">
-        
+
         <table id="my-table">
             <thead>
                 <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
+                <th>Flag</th>
                 <th>ID</th>
                 <th>Input</th>
                 <th>Report ID</th>
@@ -22,15 +48,16 @@
                 <th>Measurement Start Time</th>
             </thead>
         </table>
-        <form action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}        
         <div class="box-footer text-right">
-            <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">
+            <form id="form" action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+                <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">
+                <input id="create-event" class="btn btn-flat btn-primary event-btn" type="submit" value="Create Event">
+            </form>
         </div>
-        </form>
     </div>
-    
+
 {% endblock %}
 
 
@@ -46,6 +73,7 @@
         $( '#id_metrics' ).val('');
 
         $( '#create-manual-flag').toggleClass('disabled');
+        $( '#create-event').toggleClass('disabled');
 
         $('#my-table').dataTable({
             "bProcessing": true,
@@ -57,12 +85,48 @@
                 return '<input type="checkbox" name="' + data + '" value="1">'
             }
                 },
-                { "mData": "id" },
+                { "mData": "Flag",  "mRender": function ( data, type, full ) {
+
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        if(full.manual_flag){
+                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
+                        }
+
+                        return flag_icon;
+                    }
+                },
+                { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+                },
                 { "mData": "input" },
                 { "mData": "report_id",
                    "mRender": function ( data ) {
                         if (data != null){
-                            return '<a href="{% url 'measurements:measurement_front:detail-report' report_id=data %}">' + data + '</a>';
+                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                            return url_report
                         }else{
                             return '';
                         }
@@ -78,7 +142,7 @@
         $('#example-select-all').on('click', function(){
             // Get all rows with search applied
             var rows = $('#my-table').find('tbody').find('tr');
-            // Check/uncheck checkboxes for all rows in the table            
+            // Check/uncheck checkboxes for all rows in the table
             $('input[type="checkbox"]', rows).prop('checked', this.checked);
             $(rows).each(function() {
                var checked = $('input[type="checkbox"]', rows).prop('checked');
@@ -89,15 +153,17 @@
                }
 
                var metrics = $( '#id_metrics' );
-               var measurement = $( this ).context.childNodes[1].innerText;
-
+               var measurement = $( this ).context.childNodes[2].innerText;
                $( '#create-manual-flag').removeClass('disabled');
+                $( '#create-event').removeClass('disabled');
+
+
 
                if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
-                metrics.val( metrics.val() + '\'' + measurement + '\', ');       
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');
             }else{
-                $(this).find(":checkbox").prop("checked", false);                
+                $(this).find(":checkbox").prop("checked", false);
                 var metric_index = metrics.val().indexOf(measurement);
                 metrics.val(
                         metrics.val().substring(
@@ -108,20 +174,22 @@
                                 metric_index + measurement.length + 2
                         )
                 );
-                
+
                 if (!metrics.val().match(/([^,\']+)\w/)){
                     metrics.val("");
                     $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
                 }
-                       
-            }               
+
+            }
 
             $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
 
             $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
 
             });
-            
+
             console.log("METRICS", $("#id_metrics").val());
 
         });
@@ -129,17 +197,19 @@
         $('#my-table tbody').on('click', 'tr', function () {
 
             var metrics = $( '#id_metrics' );
-            var measurement = $( this ).context.childNodes[1].innerText;
+            var measurement = $( this ).context.childNodes[2].innerText;
 
             $( this ).toggleClass('selected');
 
             $( '#create-manual-flag').removeClass('disabled');
+            $( '#create-event').removeClass('disabled');
+
 
             if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
-                metrics.val( metrics.val() + '\'' + measurement + '\', ');       
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');
             }else{
-                $(this).find(":checkbox").prop("checked", false);                
+                $(this).find(":checkbox").prop("checked", false);
                 var metric_index = metrics.val().indexOf(measurement);
                 metrics.val(
                         metrics.val().substring(
@@ -150,18 +220,33 @@
                                 metric_index + measurement.length + 2
                         )
                 );
-                
+
                 if (!metrics.val().match(/([^,\']+)\w/)){
                     metrics.val("");
                     $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
                 }
-                       
-            }               
+
+            }
 
             $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
 
             $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
-            
+
+        });
+
+        $('#create-manual-flag').on('click', function(event) {
+            /* Act on the event */
+            var url = '/measurements/create-manual-flags/'
+            $('#form').attr('action', url);
+        });
+
+
+        $(document).on('click', '.event-btn', function(event) {
+            /* Act on the event */
+            var url = '/measurements/create_event/'
+            $('#form').attr('action', url);
         });
 
     })

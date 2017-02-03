@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.views import generic
@@ -259,7 +260,7 @@ class DNSTestKey(object):
             self.queries = filter(None, self.queries)
 
 
-class MeasurementTableView(LoginRequiredMixin, PageTitleMixin, 
+class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
                            generic.TemplateView, generic.edit.FormMixin):
     """MeasurementTableView: TemplateView than
     display a list of all metrics in DB"""
@@ -303,6 +304,9 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
 class MeasurementAjaxView(DatatablesView):
     fields = {
         'checkbox': 'input',
+        'Flag': 'flags__flag',
+        'manual_flag': 'flags__manual_flag',
+        'flag_id': 'flags__id',
         'id': 'id',
         'input': 'input',
         'report_id': 'report_id',
@@ -527,19 +531,53 @@ class DNSTableView(LoginRequiredMixin, generic.TemplateView):
 
     #     return ans
 
+    def get_context_data(self, **kwargs):
+
+        context = super(DNSTableView, self).get_context_data(**kwargs)
+
+        context['dns'] = json.dumps(list(DNS.objects.values('isp','ip','verbose')))
+        context['dns_public'] = json.dumps(list(DNS.objects.values_list('ip', flat=True).filter(public=True)))
+        context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
+
+        return context
+
 
 class DNSTableAjax(DatatablesView):
 
-    fields = ('flag', 'id', 'input')
-    queryset = Metric.objects.filter(test_name='dns_consistency')\
-                             .annotate(
-        # flag=connections['default'].cursor().execute(
-        #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
-        # ,
-        flag=RawSQL(
-            "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
+    queryset = Metric.objects.filter(test_name='dns_consistency').annotate(
+        annotation=RawSQL(
+            "test_keys->>'annotation'", ()
+        ),
+        queries=RawSQL(
+            "test_keys->>'queries'", ()
         )
     )
+    fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
+        'manual_flag': 'flags__manual_flag',
+        'ip': 'flags__ip',
+        'annotation': 'annotation',
+        'queries': 'queries',
+        'id': 'id',
+        'input': 'input',
+        'match': 'id',
+        'dns isp': 'id',
+        'control resolver': 'id',
+        'dns name': 'id',
+        'dns result': 'id',
+        'measurement_start_time': 'measurement_start_time',
+        'report_id': 'report_id'
+    }
+    # queryset = Metric.objects.filter(test_name='dns_consistency')\
+    #                          .annotate(
+    #     # flag=connections['default'].cursor().execute(
+    #     #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
+    #     # ,
+    #     flag=RawSQL(
+    #         "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
+    #     )
+    # )
 
     def json_response(self, data):
         return HttpResponse(
@@ -552,93 +590,127 @@ class TCPTableView(LoginRequiredMixin, generic.TemplateView):
     display a list of metrics in DB
     with web_connectivity as test_name"""
 
-    template_name = 'display_dns_table.html'
+    template_name = 'display_tcp_table.html'
 
-    def get_context_data(self, **kwargs):
+    # def get_context_data(self, **kwargs):
 
-        context = super(TCPTableView, self).get_context_data(**kwargs)
+    #     context = super(TCPTableView, self).get_context_data(**kwargs)
 
-        try:
-            # Create database connection #
-            database = DBconnection('titan_db')
-            query = "select id, input, test_keys, probe_cc, probe_ip, "
-            query += "measurement_start_time "
-            query += "from metrics where test_name='web_connectivity'"
+    #     try:
+    #         # Create database connection #
+    #         database = DBconnection('titan_db')
+    #         query = "select id, input, test_keys, probe_cc, probe_ip, "
+    #         query += "measurement_start_time "
+    #         query += "from metrics where test_name='web_connectivity'"
 
-            result = database.db_execute(query)
+    #         result = database.db_execute(query)
 
-            rows = {}
-            columns = {}
+    #         rows = {}
+    #         columns = {}
 
-            if result:
+    #         if result:
 
-                rows = result['rows']
-                columns = result['columns']
+    #             rows = result['rows']
+    #             columns = result['columns']
 
-            # Adding columns
-            columns_final = ['flag'] + columns[:len(columns) / 2]
-            columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
-            columns_final += columns[len(columns) / 2:]
-            columns_final.remove('test_keys')
+    #         # Adding columns
+    #         columns_final = ['flag'] + columns[:len(columns) / 2]
+    #         columns_final += ['ip', 'port', 'bloqueado', 'medicion exitosa']
+    #         columns_final += columns[len(columns) / 2:]
+    #         columns_final.remove('test_keys')
 
-            # Answers #
-            ans = self.get_answers(rows)
+    #         # Answers #
+    #         ans = self.get_answers(rows)
 
-            # Context data variables #
-            context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-            context['columns'] = columns_final
+    #         # Context data variables #
+    #         context['rows'] = [dict(zip(columns_final, row)) for row in ans]
+    #         context['columns'] = columns_final
 
-        except Exception as e:
+    #     except Exception as e:
 
-            print e
+    #         print e
 
-        return context
+    #     return context
 
-    def get_answers(self, rows):
-        """ Create from every row a Test Key object to
-        extract the data to display in the list
-        Args:
-            rows: DB rows
-        """
-        ans = []
+    # def get_answers(self, rows):
+    #     """ Create from every row a Test Key object to
+    #     extract the data to display in the list
+    #     Args:
+    #         rows: DB rows
+    #     """
+    #     ans = []
 
-        for row in rows:
+    #     for row in rows:
 
-            # Convert json test_keys into python object
-            test_key = DNSTestKey(json.dumps(row['test_keys']))
-            tcp_connect = test_key.get_tcp_connect()
+    #         # Convert json test_keys into python object
+    #         test_key = DNSTestKey(json.dumps(row['test_keys']))
+    #         tcp_connect = test_key.get_tcp_connect()
 
-            for tcp in tcp_connect:
+    #         for tcp in tcp_connect:
 
-                flag_status = 'No flag'
+    #             flag_status = 'No flag'
 
-                if Flag.objects.filter(ip=tcp['ip'],
-                                       medicion=row['id'],
-                                       type_med='TCP').exists():
+    #             if Flag.objects.filter(ip=tcp['ip'],
+    #                                    medicion=row['id'],
+    #                                    type_med='TCP').exists():
 
-                    f = Flag.objects.get(ip=tcp['ip'],
-                                         medicion=row['id'],
-                                         type_med='TCP')
+    #                 f = Flag.objects.get(ip=tcp['ip'],
+    #                                      medicion=row['id'],
+    #                                      type_med='TCP')
 
-                    if f.flag:
-                        flag_status = 'hard'
-                    elif f.flag is False:
-                        flag_status = 'soft'
-                    elif f.flag is None:
-                        flag_status = 'muted'
+    #                 if f.flag:
+    #                     flag_status = 'hard'
+    #                 elif f.flag is False:
+    #                     flag_status = 'soft'
+    #                 elif f.flag is None:
+    #                     flag_status = 'muted'
 
-                ip = tcp['ip']
-                port = tcp['port']
-                blocked = tcp['status']['blocked']
-                success = tcp['status']['success']
+    #             ip = tcp['ip']
+    #             port = tcp['port']
+    #             blocked = tcp['status']['blocked']
+    #             success = tcp['status']['success']
 
-                # Formating the answers #
-                ans += [[flag_status, row['id'], row['input'],
-                         ip, port, blocked, success,
-                         row['probe_cc'], row['probe_ip'],
-                         row['measurement_start_time']]]
+    #             # Formating the answers #
+    #             ans += [[flag_status, row['id'], row['input'],
+    #                      ip, port, blocked, success,
+    #                      row['probe_cc'], row['probe_ip'],
+    #                      row['measurement_start_time']]]
 
-        return ans
+    #     return ans
+
+
+class TCPTableAjax(LoginRequiredMixin, DatatablesView):
+    """TCPTableAjax: DatatablesView than
+    populate a DataTable with all metrics with web_connectivity
+    as test_name for tcp test"""
+
+    # queryset = Metric.objects.filter(test_name='web_connectivity')
+    queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
+        tcp=RawSQL(
+            "test_keys->>'tcp_connect'", ()
+        ),
+    )
+    fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
+        'manual_flag': 'flags__manual_flag',
+        'tcp': 'tcp',
+        'id': 'id',
+        'input': 'input',
+        'ip': 'flags__ip',
+        'port': 'id',
+        'blocked': 'id',
+        'success': 'id',
+        'probe_cc': 'probe_cc',
+        'probe_ip': 'probe_ip',
+        'measurement_start_time': 'measurement_start_time',
+        'report_id': 'report_id'
+    }
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
 
 
 class HTTPTableView(LoginRequiredMixin, generic.TemplateView):
@@ -672,6 +744,8 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         )
     )
     fields = {
+        'Flag': 'flags__flag',
+        'flag_id': 'flags__id',
         'id': 'id',
         'measurement_start_time': 'measurement_start_time',
         'input': 'input',
@@ -681,6 +755,7 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         'headers_match': 'headers_match',
         'status_code_match': 'status_code_match',
         'title_match': 'title_match',
+        'report_id': 'report_id',
     }
 
     def json_response(self, data):
@@ -721,7 +796,7 @@ class CreateMutedInput(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
             messages.success(self.request, msg)
         else:
             msg = 'No se pudo crear el muted input'
-            messages.error(self.request, msg)      
+            messages.error(self.request, msg)
 
         return HttpResponseRedirect(self.success_url)
 
@@ -915,9 +990,8 @@ class DetailReportView(PageTitleMixin, generic.DetailView):
         metrics = Metric.objects.filter(
             report_id=self.kwargs['report_id'])
         context['metrics'] = metrics.values('id', 'input', 'annotations')
-        context['report_filename'] = metrics.first().report_filename
-        context['test_name'] = metrics.first().test_name
-        context['test_start_time'] = metrics.first().test_start_time
+        report = metrics.first()
+        context['report'] = report
         try:
             if metrics.first().annotations['probe']:
                 context['probe'] = Probe.objects.get(
@@ -991,6 +1065,65 @@ class ManualFlagsView(generic.FormView):
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+# Create Events From Measurements
+
+class EventFromMeasurementView(PageTitleMixin, generic.FormView):
+    """ManualFlagsView: CreateView for create manual flags
+    in DB"""
+    page_header = "Measurement List"
+    page_header_description = ""
+    breadcrumb = [""]
+    form_class = ManualFlagForm
+    success_url = ""
+    template_name = 'display_table.html'
+
+    def get_success_url(self, id):
+        return reverse_lazy(
+            'events:event_front:create-event-from-measurements',
+            kwargs={'pk': id})
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get metrics values
+        metric_inputs = form.cleaned_data['metrics']
+        error_msg = ""
+
+        if metric_inputs.endswith(','):
+            metric_inputs = metric_inputs[:-1]
+
+        # Create database object #
+        try:
+            database = DBconnection('titan_db')
+
+            query = "select id, input, measurement_start_time, test_name, annotations "
+            query += "from metrics where id in (" + metric_inputs + ")"
+            # Results from execute queries #
+            metrics = database.db_execute(query)
+        except Exception:
+            error_msg = "Database connection error"
+        if metrics:
+            rows_ids = metrics['rows']
+
+            if validate_metrics(rows_ids):
+                # Change or create flag to Manual Flag
+                event = change_to_manual_flag_and_create_event(rows_ids)
+                if event is not False:
+                    msg = 'New event created'
+                    messages.success(self.request, msg)
+
+                    return HttpResponseRedirect(self.get_success_url(event.id))
+            else:
+                error_msg = "Measurements must have the same Input and Test Name. "
+                error_msg += "Measurements must have a probe in annotations."
+                error_msg += "One measurement have already an event"
+
+        msg = 'Error creating new Event. ' + error_msg
+        messages.error(self.request, msg)
+        return self.form_invalid(form)
 
 
 ######################## PRUEBA #######################################
