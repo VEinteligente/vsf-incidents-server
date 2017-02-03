@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.core.mail import EmailMessage
 from django.views import generic
 from django.http import HttpResponse
+from django.contrib.auth.models import User
 from datetime import datetime
 from measurement.models import (
     Flag,
@@ -28,6 +30,27 @@ import json
 from vsf import conf
 
 # Create your views here.
+
+
+class send_email_users():
+    """docstring for send_email_users
+    Send to all admins an email when hard
+    flags are created"""
+
+    # Get users emails
+    users_emails = User.objects.values_list('email', flat=True)
+
+    # Send email to each user
+    for email_user in users_emails:
+
+        title = 'Se han calculado nuevos Hard Flag'
+        msg = 'Actualmente se han agregado nuevos hard flag '
+        msg += ' a la base de datos'
+
+        email = EmailMessage(title,
+                             msg,
+                             to=[email_user])
+        email.send()
 
 
 class UpdateFlagView(generic.UpdateView):
@@ -406,6 +429,9 @@ class UpdateFlagView(generic.UpdateView):
         ids = Metric.objects.values_list('id', flat=True)
         ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
 
+        # If send emails when hard flag are created
+        send_email = False
+
         flags = Flag.objects\
                     .filter(medicion__in=ids)
 
@@ -424,6 +450,9 @@ class UpdateFlagView(generic.UpdateView):
                 flags_to_update = flags.filter(isp=r['isp'],
                                                target__url=r['target'],
                                                type_med=r['type_med'])
+                # If exist flags to update
+                if flags_to_update:
+                    send_email = True
 
                 map(self.soft_to_hard_flag, flags_to_update)
 
@@ -463,6 +492,10 @@ class UpdateFlagView(generic.UpdateView):
                                                    type_med=r['type_med'],
                                                    region=r['region'])
 
+                    # If exist flags to update
+                    if flags_to_update:
+                        send_email = True
+
                     map(self.soft_to_hard_flag, flags_to_update)
 
                     flags_id = list(flags.values_list('medicion', flat=True))
@@ -478,6 +511,10 @@ class UpdateFlagView(generic.UpdateView):
                                                                type_med__in=flags_type_med)
 
                     map(self.soft_to_hard_flag, m_flags_update)
+
+        # If send_email then send emails to users
+        if send_email:
+            send_email_users()
 
         return True
 
@@ -516,3 +553,5 @@ class LuigiUpdateFlagView(generic.View):
         else:
             print "task already run"
         return HttpResponse(status=200)
+=======
+>>>>>>> hard_flag_send_mail
