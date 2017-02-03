@@ -86,6 +86,7 @@ def change_to_manual_flag_and_create_event(metrics_sql):
 
             target = url
 
+            # Save objects in remote database if is not already
             m_flag, created = MetricFlag.objects.get_or_create(
                 metric_id=metric_sql['id'],
                 manual_flag=True,
@@ -97,6 +98,9 @@ def change_to_manual_flag_and_create_event(metrics_sql):
                 if target == "":
                     target = flag.target
 
+        # Check if metric have a prove assigned to it.
+        # If it is get ISP from probe.
+        # If not, ISP will be Unknown
         try:
             annotations = metric_sql['annotations']
             if annotations['probe'] != "":
@@ -123,6 +127,7 @@ def change_to_manual_flag_and_create_event(metrics_sql):
 
     # Add flags to events
     for flag in flags_event:
+        flag.suggested_events.clear()
         event.flags.add(flag)
 
     # Add suggested flags to the event

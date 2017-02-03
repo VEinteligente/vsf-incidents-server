@@ -569,7 +569,8 @@ class DNSTableAjax(DatatablesView):
         'control resolver': 'id',
         'dns name': 'id',
         'dns result': 'id',
-        'measurement_start_time': 'measurement_start_time'
+        'measurement_start_time': 'measurement_start_time',
+        'report_id': 'report_id'
     }
     # queryset = Metric.objects.filter(test_name='dns_consistency')\
     #                          .annotate(
