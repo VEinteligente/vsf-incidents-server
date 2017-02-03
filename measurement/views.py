@@ -29,8 +29,6 @@ from measurement.front.views import DBconnection, DNSTestKey
 import json
 from vsf import conf
 
-# Create your views here.
-
 
 class send_email_users():
     """docstring for send_email_users
@@ -38,19 +36,27 @@ class send_email_users():
     flags are created"""
 
     # Get users emails
-    users_emails = User.objects.values_list('email', flat=True)
+    users_emails = User.objects.exclude(
+        Q(email='') |
+        Q(email=None)
+    ).values_list(
+        'email',
+        flat=True
+    )
 
     # Send email to each user
-    for email_user in users_emails:
+    # for email_user in users_emails:
 
-        title = 'Se han calculado nuevos Hard Flag'
-        msg = 'Actualmente se han agregado nuevos hard flag '
-        msg += ' a la base de datos'
+    title = 'Se han calculado nuevos Hard Flag'
+    msg = 'Actualmente se han agregado nuevos hard flag '
+    msg += ' a la base de datos'
 
-        # email = EmailMessage(title,
-        #                      msg,
-        #                      to=[email_user])
-        # email.send()
+    email = EmailMessage(
+        title,
+        msg,
+        to=users_emails
+    )
+    email.send()
 
 
 class UpdateFlagView(generic.UpdateView):
@@ -542,6 +548,7 @@ def luigiUpdateFlagTask():
 to control than no more than 1 thread to be running luigiUpdateFlagTask at the same time"""
 running = 0
 
+
 class LuigiUpdateFlagView(generic.View):
     """LuigiUpdateFlagView: View called by Ooni-pipeline which created and 
     exclusive thread to update flags."""
@@ -553,4 +560,7 @@ class LuigiUpdateFlagView(generic.View):
         else:
             print "task already run"
         return HttpResponse(status=200)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1b1e6f067d4275ab1d874a37ab64ed9e2708c155
