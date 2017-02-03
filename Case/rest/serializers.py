@@ -1,7 +1,7 @@
 import json
 
 from rest_framework import serializers
-from Case.models import Case, Update
+from Case.models import Case, Update, Category
 from measurement.models import State
 from event.rest.serializers import EventSerializer, UrlSerializer
 from event.models import Url, Site
@@ -18,7 +18,7 @@ class CaseSerializer(serializers.ModelSerializer):
     isp = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
     domains = serializers.SerializerMethodField()
-    category = serializers.StringRelatedField()
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -57,6 +57,21 @@ class CaseSerializer(serializers.ModelSerializer):
         dm = Url.objects.filter(id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
+
 
 class UpdateSerializer(serializers.ModelSerializer):
     """UpdateSerializer: ModelSerializer
@@ -70,6 +85,8 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
     """DetailUpdateCaseSerializer: ModelSerializer
     for serialize a case with his updates (including details of the updates)"""
     updates = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Case
@@ -78,12 +95,28 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
         queryset = obj.updates.all().order_by('-date')
         return UpdateSerializer(queryset, many=True).data
 
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
+
 
 class DetailEventCaseSerializer(serializers.ModelSerializer):
     """DetailEventCaseSerializer: ModelSerializer
     for serialize a case with his events (including details of the events)"""
     events = serializers.SerializerMethodField()
     updates = serializers.StringRelatedField(many=True)
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -91,6 +124,21 @@ class DetailEventCaseSerializer(serializers.ModelSerializer):
     def get_events(self, obj):
         queryset = obj.events.all().order_by('-start_date')
         return EventSerializer(queryset, many=True).data
+
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -145,7 +193,6 @@ class CategorySerializer(serializers.Serializer):
     """CategorySerializer: Serializer
     for serialize the categories of the cases"""
     category = serializers.SerializerMethodField()
-    display_name = serializers.SerializerMethodField()
 
     def get_category(self, obj):
         """Name of the category
@@ -154,20 +201,11 @@ class CategorySerializer(serializers.Serializer):
             obj: dict {'category': 'value'}
 
         Returns:
-            value of dict {'category': 'value'}
+            value of dict {'category': {
+                'name': obj.name, 'display_name': obj.display_name}
+            }
         """
-        return obj.name
-
-    def get_display_name(self, obj):
-        """Name of the category
-
-        Args:
-            obj: dict {'category': 'value'}
-
-        Returns:
-            value of dict {'category': 'value'}
-        """
-        return obj.display_name
+        return {'name': obj.name, 'display_name': obj.display_name}
 
 
 class CategoryCaseSerializer(CategorySerializer):
