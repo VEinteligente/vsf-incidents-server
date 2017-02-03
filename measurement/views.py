@@ -47,10 +47,10 @@ class send_email_users():
         msg = 'Actualmente se han agregado nuevos hard flag '
         msg += ' a la base de datos'
 
-        email = EmailMessage(title,
-                             msg,
-                             to=[email_user])
-        email.send()
+        # email = EmailMessage(title,
+        #                      msg,
+        #                      to=[email_user])
+        # email.send()
 
 
 class UpdateFlagView(generic.UpdateView):
@@ -553,5 +553,4 @@ class LuigiUpdateFlagView(generic.View):
         else:
             print "task already run"
         return HttpResponse(status=200)
-=======
->>>>>>> hard_flag_send_mail
+
