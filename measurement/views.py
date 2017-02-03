@@ -401,9 +401,13 @@ def luigiUpdateFlagTask():
     running -= 1
     print "termino el hilo"
 
-"""running: Global variable defined to be used by LuigiUpdateFlagView and luigiUpdateFlagTask
-to control than no more than 1 thread to be running luigiUpdateFlagTask at the same time"""
+
+"""running: Global variable defined to be used by
+LuigiUpdateFlagView and luigiUpdateFlagTask
+to control than no more than 1 thread to be
+running luigiUpdateFlagTask at the same time"""
 running = 0
+
 
 class LuigiUpdateFlagView(generic.View):
     """LuigiUpdateFlagView: View called by Ooni-pipeline which created and 
