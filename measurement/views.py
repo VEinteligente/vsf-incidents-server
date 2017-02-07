@@ -30,7 +30,7 @@ import json
 from vsf import conf
 
 
-class send_email_users():
+def send_email_users():
     """docstring for send_email_users
     Send to all admins an email when hard
     flags are created"""
@@ -261,7 +261,7 @@ class UpdateFlagView(generic.UpdateView):
                                     dns_result += [a['ipv4']]
 
                             # If doesn't match, generate soft flag in measurement #
-                            #if control_resolver != dns_result:
+                            # if control_resolver != dns_result:
                             if not all(map(lambda v: v in control_resolver, dns_result)):
 
                                 if not Flag.objects.filter(ip=dns_name,
