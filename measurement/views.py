@@ -560,7 +560,3 @@ class LuigiUpdateFlagView(generic.View):
         else:
             print "task already run"
         return HttpResponse(status=200)
-<<<<<<< HEAD
-
-=======
->>>>>>> 1b1e6f067d4275ab1d874a37ab64ed9e2708c155

@@ -104,7 +104,8 @@ def change_to_manual_flag_and_create_event(metrics_sql):
         try:
             annotations = metric_sql['annotations']
             if annotations['probe'] != "":
-                probe = Probe.objects.filter(id=annotations['probe'])
+                probe = Probe.objects.filter(
+                    identification=annotations['probe']).first()
                 isp = probe.isp
         except Exception:
             isp = "Unknown"
@@ -147,14 +148,21 @@ def validate_metrics(metrics_sql):
     metric_test_names = []
     metric_isp = []
     metric_ids = []
+    print 'Pedro: Comenzando'
+    print metrics_sql
     for metric_sql in metrics_sql:
+        print 'Pedro: itero'
         metric_ids.append(metric_sql['id'])
         metric_inputs.append(metric_sql['input'])
         metric_test_names.append(metric_sql['test_name'])
         try:
+            print 'Pedro: annotations'
             annotations = metric_sql['annotations']
             if annotations['probe'] != "":
-                probe = Probe.objects.filter(id=annotations['probe'])
+                probe = Probe.objects.filter(
+                    identification=annotations['probe']).first()
+                print 'Pedro: probe'
+                print probe
                 metric_isp.append(probe.isp)
         except Exception:
             return False
@@ -165,7 +173,7 @@ def validate_metrics(metrics_sql):
     if flags != 0:
         return False
 
-
+    print 'Pedro: Antes de los sets'
     # Builds sets of inputs ans test_names.
     # If there is a set with lenght differet
     # to 1, then there most be two differrents

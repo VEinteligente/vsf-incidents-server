@@ -128,13 +128,13 @@
         $('#my-table').on( 'draw.dt', function (e, settings) {
 
             var items_results = settings.json.aaData;
-            console.log("JSON PARSE", items_results);
+            // console.log("JSON PARSE", items_results);
 
             var dns = {{ dns|safe }};
             var dns_public = {{ dns_public|safe }};
             var probes = {{ probes|safe }};
 
-            console.log("DNS PUBLIC", dns_public);
+            // console.log("DNS PUBLIC", dns_public);
 
             var cont = 0;
             var ids_done = [];
@@ -164,12 +164,12 @@
                 //var row_init = row_list[j];
                 var row = row_list[j+cont];
 
-                console.log("ROW", row);
-                console.log("IDS IN DONE", ids_done);
-                console.log("ID IN ITEMS", id);
-                console.log("IP FLAG", ip_flag);
-                console.log("DNS IP FLAGS", dns_flags);
-                console.log("DNS", dns);
+                // console.log("ROW", row);
+                // console.log("IDS IN DONE", ids_done);
+                // console.log("ID IN ITEMS", id);
+                // console.log("IP FLAG", ip_flag);
+                // console.log("DNS IP FLAGS", dns_flags);
+                // console.log("DNS", dns);
 
                 var dns_isp = 'Unknown';
 
@@ -194,7 +194,7 @@
 
                     }
 
-                    console.log("Queries before", queries);
+                    // console.log("Queries before", queries);
 
                     for (var q=0; q< queries.length; q++){
 
@@ -215,7 +215,7 @@
 
                     queries.filter(function(val) { return val !== null; });
 
-                    console.log("Queries after", queries);
+                    // console.log("Queries after", queries);
 
                     if (!queries[0]['failure'] && queries[0]['answers']){
 
@@ -224,7 +224,7 @@
                         var control_resolver = [];
                         var dns_result = [];
 
-                        console.log("ANSWERS", answers);
+                        // console.log("ANSWERS", answers);
 
                         // Get control resolver from answer_type A #
                         for (var a=0; a < answers.length; a++){
@@ -237,7 +237,7 @@
                             }
                         }
 
-                        console.log("CONTROL RESOLVER", control_resolver);
+                        // console.log("CONTROL RESOLVER", control_resolver);
 
                         // Verify each result from queries with control resolver
                         for(var i=0; i< queries.length; i++){
@@ -263,7 +263,7 @@
                             clone_control_resolver.innerText = '';
                             clone_dns_name.innerText = '';
                             clone_dns_result.innerText = '';
-                            console.log("ROW CLONE", row_clone);
+                            // console.log("ROW CLONE", row_clone);
 
                             // If query has failure, dns result
                             // is a failure response and match is False
@@ -288,15 +288,15 @@
                                 }
                             }
 
-                            console.log("DNS RESULT", dns_result);
+                            // console.log("DNS RESULT", dns_result);
 
                             // If dns_name is in DNS table, find its name
                             var result = $.grep(dns, function(e){ 
-                                console.log("E", e.ip === dns_name);
+                                // console.log("E", e.ip === dns_name);
                                 return e.ip === dns_name; });
                             var dns_table_name = '';
 
-                            console.log("RESULT",   result);
+                            // console.log("RESULT",   result);
                             if (result.length === 1){
                                 dns_table_name = result[0].verbose;
                             }else{
@@ -310,12 +310,12 @@
                                     return false;
                                 }}).every(x => x === true)){
                                 match = true;
-                                console.log("MATCH", match);
+                                // console.log("MATCH", match);
                             }
 
-                            console.log("DNS IP loop", dns_name);
-                            console.log("DNS IP name", dns_table_name);
-                            console.log("Id", id);
+                            // console.log("DNS IP loop", dns_name);
+                            // console.log("DNS IP name", dns_table_name);
+                            // console.log("Id", id);
                             if(i == 0){
 
                                 var row_match = $('td:eq(3)', row)[0];
@@ -342,14 +342,14 @@
                                     clone_control_resolver.innerText = control_resolver;
                                     clone_dns_name.innerText = dns_table_name;
                                     clone_dns_result.innerText = dns_result;
-                                    console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
+                                    // console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
                                     check_cross(clone_match);
                                     $(row_clone).insertAfter(row);
                                     cont++;
 
                                 }else{
                                     // Do nothing
-                                    console.log("IP FLAG TRUE, IP FLAGS EQUALS");
+                                    // console.log("IP FLAG TRUE, IP FLAGS EQUALS");
 
                                     /*var row_match = $('td:eq(3)', row)[0];
                                     var row_dns_isp = $('td:eq(4)', row)[0];

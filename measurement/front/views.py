@@ -268,7 +268,7 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
 
     page_header = "Measurement List"
     page_header_description = ""
-    breadcrumb = [""]
+    breadcrumb = ["Measurements", "All"]
     form_class = ManualFlagForm
     template_name = 'display_table.html'
 
@@ -375,11 +375,18 @@ class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
         return super(MeasurementDetail, self).get_context_data(**context)
 
 
-class DNSTableView(LoginRequiredMixin, generic.TemplateView):
+class DNSTableView(
+    LoginRequiredMixin, PageTitleMixin,
+    generic.TemplateView, generic.edit.FormMixin
+):
     """DNSTableView: TemplateView than
     display a list of metrics in DB
     with dns_consistency as test_name"""
 
+    page_header = "DNS Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "DNS"]
+    form_class = ManualFlagForm
     # template_name = 'display_dns_table.html'
     template_name = 'list_dns.html'
 
@@ -588,11 +595,18 @@ class DNSTableAjax(DatatablesView):
         )
 
 
-class TCPTableView(LoginRequiredMixin, generic.TemplateView):
+class TCPTableView(
+    LoginRequiredMixin, PageTitleMixin,
+    generic.TemplateView, generic.edit.FormMixin
+):
     """TCPTableView: TemplateView than
     display a list of metrics in DB
     with web_connectivity as test_name"""
 
+    page_header = "TCP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "TCP"]
+    form_class = ManualFlagForm
     template_name = 'display_tcp_table.html'
 
     # def get_context_data(self, **kwargs):
@@ -716,11 +730,18 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
         )
 
 
-class HTTPTableView(LoginRequiredMixin, generic.TemplateView):
+class HTTPTableView(
+    LoginRequiredMixin, PageTitleMixin,
+    generic.TemplateView, generic.edit.FormMixin
+):
     """HTTPTableView: TemplateView than
     display a list of metrics in DB using
     HTTPListDatatablesView"""
 
+    page_header = "HTTP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "HTTP"]
+    form_class = ManualFlagForm
     template_name = 'display_http_table.html'
 
 
@@ -747,7 +768,9 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         )
     )
     fields = {
+        'checkbox': 'input',
         'Flag': 'flags__flag',
+        'manual_flag': 'flags__manual_flag',
         'flag_id': 'flags__id',
         'id': 'id',
         'measurement_start_time': 'measurement_start_time',
@@ -1072,12 +1095,13 @@ class ManualFlagsView(generic.FormView):
 
 # Create Events From Measurements
 
+
 class EventFromMeasurementView(PageTitleMixin, generic.FormView):
-    """ManualFlagsView: CreateView for create manual flags
+    """EventFromMeasurementView: FormView for create event from measurements
     in DB"""
     page_header = "Measurement List"
     page_header_description = ""
-    breadcrumb = [""]
+    breadcrumb = ["Measurements", "All"]
     form_class = ManualFlagForm
     success_url = ""
     template_name = 'display_table.html'
@@ -1110,8 +1134,8 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
             error_msg = "Database connection error"
         if metrics:
             rows_ids = metrics['rows']
-
             if validate_metrics(rows_ids):
+
                 # Change or create flag to Manual Flag
                 event = change_to_manual_flag_and_create_event(rows_ids)
                 if event is not False:
@@ -1128,6 +1152,35 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
         messages.error(self.request, msg)
         return self.form_invalid(form)
 
+
+class EventFromDNSMeasurementView(EventFromMeasurementView):
+    """EventFromMeasurementView: EventFromMeasurementView extention
+    for create event from DNS measurements in DB"""
+    page_header = "DNS Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "DNS"]
+    form_class = ManualFlagForm
+    template_name = 'list_dns.html'
+
+
+class EventFromTCPMeasurementView(EventFromMeasurementView):
+    """EventFromMeasurementView: EventFromMeasurementView extention
+    for create event from TCP measurements in DB"""
+    page_header = "TCP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "TCP"]
+    form_class = ManualFlagForm
+    template_name = 'display_tcp_table.html'
+
+
+class EventFromHTTPMeasurementView(EventFromMeasurementView):
+    """EventFromMeasurementView: EventFromMeasurementView extention
+    for create event from HTTP measurements in DB"""
+    page_header = "HTTP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurements", "HTTP"]
+    form_class = ManualFlagForm
+    template_name = 'display_http_table.html'
 
 ######################## PRUEBA #######################################
 
