@@ -1,0 +1,390 @@
+{% extends 'dashboard/layout.html' %}
+{% load eztables %}
+
+{% block extracss %}
+    {% datatables_bootstrap_css %}
+{% endblock %}
+
+{% block content %}
+<div class="table-responsive">
+    <table id="my-table">
+        <thead>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>match</th>
+            <th>dns isp</th>
+            <th>control resolver</th>
+            <th>dns name</th>
+            <th>dns result</th>
+            <th>measurement start time</th>
+            <th>report_id</th>
+        </thead>
+        <tfoot>
+            <th>flag</th>
+            <th>id</th>
+            <th>input</th>
+            <th>match</th>
+            <th>dns isp</th>
+            <th>control resolver</th>
+            <th>dns name</th>
+            <th>dns result</th>
+            <th>measurement start time</th>
+            <th>report_id</th>
+        </tfoot>
+        <tbody id="my-table-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{% datatables_js %}
+{% datatables_bootstrap_js %}
+<script>
+   $(function () {
+
+        var tbody = document.getElementById("my-table-body");
+        var row_list = tbody.getElementsByTagName("tr");
+
+        $('#my-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": '/measurements/prueba-dns/',
+            "aoColumns": [
+               { "mData": "Flag",  "mRender": function ( data, type, full ) {
+
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        if(full.manual_flag){
+                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
+                        }
+
+                        return flag_icon;
+                    }
+                },
+                { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+                },
+                { "mData": "input" },
+                { "mData": "match",
+                  "mRender": function ( data ) { return ''; }
+                },
+                { "mData": "dns isp",
+                  "mRender": function ( data ) { return ''; }
+                },
+                { "mData": "control resolver",
+                  "mRender": function ( data ) { return ''; }
+                },
+                { "mData": "dns name",
+                  "mRender": function ( data ) { return ''; }
+                },
+                { "mData": "dns result",
+                  "mRender": function ( data ) { return ''; }
+                },
+                { "mData": "measurement_start_time" },
+                { "mData": "report_id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                            return url_report;
+                        }else{
+                            return '';
+                        }
+                   }
+                },
+            ],
+        });
+
+        function check_cross(value) {
+            if(value.innerText == "true"){
+                value.innerHTML = '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+            }else{
+                value.innerHTML = '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';
+            }
+        }
+
+        $('#my-table').on( 'draw.dt', function (e, settings) {
+
+            var items_results = settings.json.aaData;
+            console.log("JSON PARSE", items_results);
+
+            var dns = {{ dns|safe }};
+            var dns_public = {{ dns_public|safe }};
+            var probes = {{ probes|safe }};
+
+            console.log("DNS PUBLIC", dns_public);
+
+            var cont = 0;
+            var ids_done = [];
+            var dns_flags = [];
+
+            for (var x=0; x< items_results.length; x++) {
+                
+                if(items_results[x]['flag_id']){
+                    
+                    if(!items_results[x]['manual_flag']){
+                        dns_flags.push(items_results[x]['ip']);
+                    }
+                    
+                }
+
+            }
+
+            for(var j=0; j< items_results.length; j++){
+
+                var id_flag = JSON.parse(items_results[j]['flag_id']);
+                var queries = JSON.parse(items_results[j]['queries']);
+                var manual_flag = items_results[j]['manual_flag'];
+                var ip_flag = items_results[j]['ip'];
+                var annotation = JSON.parse(items_results[j]['annotation']);
+                var id = items_results[j]['id'];
+                var done = false;
+                //var row_init = row_list[j];
+                var row = row_list[j+cont];
+
+                console.log("ROW", row);
+                console.log("IDS IN DONE", ids_done);
+                console.log("ID IN ITEMS", id);
+                console.log("IP FLAG", ip_flag);
+                console.log("DNS IP FLAGS", dns_flags);
+                console.log("DNS", dns);
+
+                var dns_isp = 'Unknown';
+
+                if($.inArray(id, ids_done) !== -1){
+                    done = true;
+
+                    $(row).html("");
+
+                }
+
+                if(!done){
+
+                    if (annotation){
+
+                        for (var x=0; x< probes.length; x++) {
+
+                            if(probes[x]['identification'] === annotation['probe']){
+                                dns_isp = probes[x]['isp'];
+                            }
+
+                        }
+
+                    }
+
+                    console.log("Queries before", queries);
+
+                    for (var q=0; q< queries.length; q++){
+
+                        if(queries[0] === queries[q]){
+
+                        }else if($.inArray(queries[q]['resolver_hostname'], dns_public) !== -1){
+
+                            queries[q].pop('resolver_hostname', null);
+                            queries[q].pop('resolver_port', null);
+                            queries[q].pop('query_type', null);
+                            queries[q].pop('hostname', null);
+                            queries[q].pop('failure', null);
+                            queries[q].pop('answers', null);
+
+                        }
+
+                    }
+
+                    queries.filter(function(val) { return val !== null; });
+
+                    console.log("Queries after", queries);
+
+                    if (!queries[0]['failure'] && queries[0]['answers']){
+
+                        // Get answers
+                        var answers = queries[0]['answers'];
+                        var control_resolver = [];
+                        var dns_result = [];
+
+                        console.log("ANSWERS", answers);
+
+                        // Get control resolver from answer_type A #
+                        for (var a=0; a < answers.length; a++){
+
+                            if (answers[a]['answer_type'] === 'A' &&
+                                $.inArray(answers[a]['ipv4'],
+                                          control_resolver) === -1){
+                                control_resolver.push(answers[a]['ipv4']);
+
+                            }
+                        }
+
+                        console.log("CONTROL RESOLVER", control_resolver);
+
+                        // Verify each result from queries with control resolver
+                        for(var i=0; i< queries.length; i++){
+
+                            var dns_name = queries[i]['resolver_hostname'];
+                            var dns_result = [];
+                            var match = false;
+                            console.log("DNS name", dns_name);
+
+                            var row = row_list[j+cont];
+                            var row_clone = row.cloneNode(true);
+                            if(!manual_flag){
+                                var clone_flag = $('td:eq(0)', row_clone)[0];
+                                clone_flag.innerText = '';
+                            }
+                            var clone_match = $('td:eq(3)', row_clone)[0];
+                            var clone_dns_isp = $('td:eq(4)', row_clone)[0];
+                            var clone_control_resolver = $('td:eq(5)', row_clone)[0];
+                            var clone_dns_name = $('td:eq(6)', row_clone)[0];
+                            var clone_dns_result = $('td:eq(7)', row_clone)[0];
+                            clone_match.innerText = '';
+                            clone_dns_isp.innerText = '';
+                            clone_control_resolver.innerText = '';
+                            clone_dns_name.innerText = '';
+                            clone_dns_result.innerText = '';
+                            console.log("ROW CLONE", row_clone);
+
+                            // If query has failure, dns result
+                            // is a failure response and match is False
+
+                            // If query doesn't has failure, then find dns result
+                            // from answer type A and later compare it with control
+                            // resolver. If both are the same, match is True otherwise match is False
+
+                            if (queries[i]['failure']){
+                                dns_result.push(queries[i]['failure']);
+                            }
+
+                            answers = queries[i]['answers'];
+
+                            for (var a=0; a < answers.length; a++){
+
+                                if (answers[a]['answer_type'] === 'A' &&
+                                    $.inArray(answers[a]['ipv4'],
+                                              dns_result) === -1){
+                                    dns_result.push(answers[a]['ipv4']);
+
+                                }
+                            }
+
+                            console.log("DNS RESULT", dns_result);
+
+                            // If dns_name is in DNS table, find its name
+                            var result = $.grep(dns, function(e){ 
+                                console.log("E", e.ip === dns_name);
+                                return e.ip === dns_name; });
+                            var dns_table_name = '';
+
+                            console.log("RESULT",   result);
+                            if (result.length === 1){
+                                dns_table_name = result[0].verbose;
+                            }else{
+                                dns_table_name = dns_name;
+                            }
+
+                            if(dns_result.map(function(dns){
+                                if($.inArray(dns, control_resolver) !== -1){
+                                    return true;
+                                }else{
+                                    return false;
+                                }}).every(x => x === true)){
+                                match = true;
+                                console.log("MATCH", match);
+                            }
+
+                            console.log("DNS IP loop", dns_name);
+                            console.log("DNS IP name", dns_table_name);
+                            console.log("Id", id);
+                            if(i == 0){
+
+                                var row_match = $('td:eq(3)', row)[0];
+                                var row_dns_isp = $('td:eq(4)', row)[0];
+                                var row_control_resolver = $('td:eq(5)', row)[0];
+                                var row_dns_name = $('td:eq(6)', row)[0];
+                                var row_dns_result = $('td:eq(7)', row)[0];
+                                row_match.innerText = match;
+                                row_dns_isp.innerText = dns_isp;
+                                row_control_resolver.innerText = control_resolver;
+                                row_dns_name.innerText = dns_table_name;
+                                row_dns_result.innerText = dns_result;
+
+                                check_cross(row_match);
+
+                            } else {
+
+                                if(ip_flag === null || (ip_flag != dns_name &&
+                                   $.inArray(dns_name, dns_flags) === -1 &&
+                                   $.inArray(id, ids_done) === -1)){
+
+                                    clone_match.innerText = match;
+                                    clone_dns_isp.innerText = dns_isp;
+                                    clone_control_resolver.innerText = control_resolver;
+                                    clone_dns_name.innerText = dns_table_name;
+                                    clone_dns_result.innerText = dns_result;
+                                    console.log("IP FLAG TRUE, IP FLAGS DISTINCT");
+                                    check_cross(clone_match);
+                                    $(row_clone).insertAfter(row);
+                                    cont++;
+
+                                }else{
+                                    // Do nothing
+                                    console.log("IP FLAG TRUE, IP FLAGS EQUALS");
+
+                                    /*var row_match = $('td:eq(3)', row)[0];
+                                    var row_dns_isp = $('td:eq(4)', row)[0];
+                                    var row_control_resolver = $('td:eq(5)', row)[0];
+                                    var row_dns_name = $('td:eq(6)', row)[0];
+                                    var row_dns_result = $('td:eq(7)', row)[0];*/
+                                   /* row_match.innerText = match;
+                                    row_dns_isp.innerText = dns_isp;
+                                    row_control_resolver.innerText = control_resolver;
+                                    row_dns_name.innerText = dns_table_name;
+                                    row_dns_result.innerText = dns_result;*/
+                                    clone_match.innerText = match;
+                                    clone_dns_isp.innerText = dns_isp;
+                                    clone_control_resolver.innerText = control_resolver;
+                                    clone_dns_name.innerText = dns_table_name;
+                                    clone_dns_result.innerText = dns_result;
+                                    check_cross(clone_match);
+                                    $(row_clone).insertAfter(row);
+                                    cont++;
+
+                                    check_cross(row_match);
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                    ids_done.push(id);
+                }
+
+            }
+        });
+
+    });
+</script>
+{% endblock %}

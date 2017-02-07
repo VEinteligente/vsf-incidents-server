@@ -35,7 +35,7 @@ class EventForm(forms.ModelForm):
             # Get flags from database with same target, isp
             # and type
 
-            for f in flags:
+            for f in filter(None, flags):
                 split = f.split('&')
                 bd_flags += Flag.objects.filter(medicion=split[0],
                                                 target__url=split[1],
@@ -56,3 +56,12 @@ class EventForm(forms.ModelForm):
         else:
             self.add_error(None,
                        'The Event must have measurements and identification asociated')
+
+
+class EventExtendForm(forms.ModelForm):
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+
+    class Meta():
+        model = Event
+        fields = ['open_ended', 'identification', 'isp', 'type']

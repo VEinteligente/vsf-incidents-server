@@ -43,4 +43,9 @@ urlpatterns = [
         views.ListEventSuggestedFlags.as_view(),
         name='suggestions-event'
     ),
+    url(
+        r'^(?P<pk>[0-9]+)/create_from_measurements/$',
+        views.CreateEventMeasurementView.as_view(),
+        name='create-event-from-measurements'
+    ),
 ]

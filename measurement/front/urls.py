@@ -88,6 +88,11 @@ urlpatterns = [
         name='edit-probe'
     ),
     url(
+        r'^create-manual-flags/$',
+        views.ManualFlagsView.as_view(),
+        name='create-manual-flags'
+    ),
+    url(
         r'^reports/$',
         views.ListReportView.as_view(),
         name='list-report'
@@ -103,6 +108,11 @@ urlpatterns = [
         name='list-report-probe'
     ),
     url(
+        r'^create_event/$',
+        views.EventFromMeasurementView.as_view(),
+        name='measurements_to_event'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
@@ -110,5 +120,13 @@ urlpatterns = [
     url(
         r'^prueba-ajax/$',
         views.PruebaDataTableAjax.as_view()
+    ),
+    url(
+        r'^prueba-dns/$',
+        views.DNSTableAjax.as_view()
+    ),
+    url(
+        r'^prueba-tcp/$',
+        views.TCPTableAjax.as_view()
     ),
 ]

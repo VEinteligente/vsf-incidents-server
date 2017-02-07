@@ -5,10 +5,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
-from measurement.models import Flag
+from measurement.models import Flag, MetricFlag
 from event.models import Url
 from django.db.models import Q
-from .forms import EventForm
+from .forms import EventForm, EventExtendForm
 from .utils import suggestedFlags
 from event.models import Event
 import json
@@ -52,12 +52,20 @@ class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
         for f in flags:
             split = f.split('&')
             target = Url.objects.get(url=split[1])
-            flag = Flag.objects.filter(medicion=split[0],
-                                       target=target,
-                                       isp=split[2],
-                                       ip=split[3],
-                                       type_med=split[4])
-            ids += [flag[0].id]
+            flag = Flag.objects.filter(
+                Q(medicion=split[0],
+                   target=target,
+                   isp=split[2],
+                   ip=split[3],
+                   type_med=split[4]
+                ) | Q(medicion=split[0],
+                   target=target,
+                   isp=None,
+                   ip=None,
+                   type_med=split[4])
+
+            )
+            ids += [flag.first().id]
 
         # Filter Flag objects for ids
         flags = Flag.objects.filter(id__in=ids)
@@ -76,7 +84,10 @@ class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
             self.object.end_date = None
 
         self.object.start_date = flags.earliest('date').date
-        self.object.isp = flags[0].isp  # Flag isp
+        if flags[0].isp is not None:
+            self.object.isp = flags[0].isp  # Flag isp
+        else:
+            self.object.isp = "Unknown"
         self.object.target = flags[0].target  # Flag target
 
         self.object.save()  # Save object in the Database
@@ -129,9 +140,10 @@ class UpdateEvent(CreateEvent,
 
         for f in flags:
             flags_id += f.medicion + ' '
-            flags_str += f.medicion + '&' + f.target.url + '&' + \
-                         f.isp + '&' + f.ip + '&' + f.type_med + ' '
-
+            try:
+                flags_str += f.medicion + '&' + f.target.url + '&' + f.isp + '&' + f.ip + '&' + f.type_med + ' '
+            except Exception:
+                flags_str += f.medicion + '&' + f.target.url + '&Unknown&Unknown&' + f.type_med + ' '
         open_ended = False
 
         if not event.end_date:
@@ -189,14 +201,17 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         flags = event.flags.all()
 
         for f in flags:
-            f.event = None
-            f.save(update_fields=['event'])
+            if f.manual_flag is True:
+                f.delete()
+            else:
+                f.event = None
+                f.save(update_fields=['event'])
 
         event.flags.remove()
 
         event.delete()
 
-        msg = 'Se ha eliminado el evento elegido'
+        msg = 'Event deleted sucessfully'
 
         messages.success(request, msg)
 
@@ -228,6 +243,7 @@ class FlagsTable(LoginRequiredMixin, DatatablesView):
             json.dumps(data, cls=DjangoJSONEncoder),
         )
 
+from django.db.models import Count, Case, When, IntegerField
 
 class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     """UpdateFlagsTable: DatatablesView used to display
@@ -235,13 +251,15 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     This View is summoned by AJAX"""
     model = Flag
     fields = {
+        'id': 'id',
         'Flag': 'flag',
         'Measurement': 'medicion',
         'Date': 'date',
         'Target': 'target__url',
         'ISP': 'isp',
         'IP Address': 'ip',
-        'Measurement type': 'type_med'
+        'Measurement type': 'type_med',
+        'selected': 'selected'
     }
 
     def get_queryset(self):
@@ -251,9 +269,25 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
 
         # Flags of the measurement
         if pk:
-            queryset = Flag.objects.filter(Q(event=None) |
-                                           Q(event=Event.objects.get(id=pk)))
-        return queryset
+            queryset = Flag.objects.filter(
+                Q(event=None) |
+                Q(event=Event.objects.get(id=pk))
+            ).annotate(selected=Count(
+                Case(
+                    When(event=Event.objects.get(id=pk), then=1),
+                    output_field=IntegerField()))
+            ).order_by('-selected')
+
+            print queryset[0]
+            print queryset[1]
+
+        # Perform global search
+        queryset = self.global_search(queryset)
+        # Perform column search
+        queryset = self.column_search(queryset)
+        # Return the ordered queryset
+        return queryset.order_by(*self.get_orders())
+
 
     def json_response(self, data):
         return HttpResponse(
@@ -272,3 +306,76 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
     breadcrumb = ["Events", "Event Suggestions"]
     queryset = Event.objects.exclude(
         suggested_events=None).prefetch_related('suggested_events', 'flags')
+
+
+class CreateEventMeasurementView(UpdateEvent,
+                  PageTitleMixin,
+                  generic.UpdateView):
+    """CreateEventMeasurementView: CreateView extends of UpdateEvent than
+    create a new event from a list of measurements"""
+    form_class = EventExtendForm
+    context_object_name = 'event'
+    page_header = "New Event"
+    page_header_description = ""
+    breadcrumb = ["Events", "New Event from Measurements"]
+    model = Event
+    template_name = 'create_event_measurement.html'
+
+
+    def get_context_data(self, **kwargs):
+        '''Initial data for Event form'''
+
+        context = super(CreateEventMeasurementView, self).get_context_data(**kwargs)
+
+        form = self.get_form_class()
+
+        event = self.object
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags)
+
+        open_ended = False
+
+        if not event.end_date:
+            open_ended = True
+
+        # Initial data for the form
+        context['form'] = form(initial={'identification': event.identification,
+                                        'open_ended': open_ended,
+                                        'isp': event.isp,
+                                        'type': event.type
+                                        })
+        context['flags'] = flags
+        return context
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get flags values
+        event = self.object
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags)
+
+        # Object to save
+        self.object = form.save(commit=False)
+
+        if Event.objects.filter(id=self.object.id).exists():
+            msg = 'Event modified successfully'
+        else:
+            msg = 'Event Created successfully'
+
+        if not form.cleaned_data['open_ended']:
+            self.object.end_date = flags.latest('date').date
+        else:
+            self.object.end_date = None
+
+        self.object.save()  # Save object in the Database
+
+        # remove all events from the related flag
+        for flag in flags:
+            flag.suggested_events.clear()
+        suggestedFlags(self.object)
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())

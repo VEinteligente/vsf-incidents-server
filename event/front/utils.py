@@ -56,11 +56,6 @@ def suggestedFlags(event):
         event: Event object
     """
     try:
-        # get all regions of all flags associated with the event (parameter)
-        regions = []
-        for flag in event.flags.all():
-            regions.append(flag.probe.region)
-
         # get all types of flags according the event
         flagTypes = getFlagTypes(event)
 
@@ -75,14 +70,12 @@ def suggestedFlags(event):
                     event=None,
                     target=event.target,
                     isp=event.isp,
-                    region__in=regions,
                     type_med__in=flagTypes) |
                 Q(
                     flag=True,
                     event=None,
                     target=event.target,
                     isp=event.isp,
-                    probe__region__in=regions,
                     type_med__in=flagTypes))
         else:
             flags = Flag.objects.filter(
@@ -90,24 +83,25 @@ def suggestedFlags(event):
                     flag=True,
                     event=None,
                     target=event.target,
-                    isp=event.isp,
-                    region__in=regions) |
+                    isp=event.isp) |
                 Q(
                     flag=True,
                     event=None,
                     target=event.target,
-                    isp=event.isp,
-                    probe__region__in=regions))
+                    isp=event.isp))
 
         # eliminate duplicate flags in queryset
         # defining a set with the queryset
         flags = set(flags)
         # assign every flag in the list as a suggested_event of
         # the event
+        print "suggestedFlags: flags"
+        print flags
         for flag in flags:
                 event.suggested_events.add(flag)
         return True
-    except Exception:
+    except Exception as e:
+        print "suggestedFlags:" + str(e)
         return False
 
 

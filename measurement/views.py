@@ -1,11 +1,14 @@
 from django.shortcuts import render
+from django.core.mail import EmailMessage
 from django.views import generic
 from django.http import HttpResponse
+from django.contrib.auth.models import User
 from datetime import datetime
 from measurement.models import (
     Flag,
     DNS,
     Metric,
+    MetricFlag,
     Probe,
     MutedInput
 )
@@ -26,7 +29,34 @@ from measurement.front.views import DBconnection, DNSTestKey
 import json
 from vsf import conf
 
-# Create your views here.
+
+class send_email_users():
+    """docstring for send_email_users
+    Send to all admins an email when hard
+    flags are created"""
+
+    # Get users emails
+    users_emails = User.objects.exclude(
+        Q(email='') |
+        Q(email=None)
+    ).values_list(
+        'email',
+        flat=True
+    )
+
+    # Send email to each user
+    # for email_user in users_emails:
+
+    title = 'Se han calculado nuevos Hard Flag'
+    msg = 'Actualmente se han agregado nuevos hard flag '
+    msg += ' a la base de datos'
+
+    email = EmailMessage(
+        title,
+        msg,
+        to=users_emails
+    )
+    email.send()
 
 
 class UpdateFlagView(generic.UpdateView):
@@ -71,8 +101,11 @@ class UpdateFlagView(generic.UpdateView):
                 query_tcp += " and id not in " + ids
 
             # Results from execute queries #
+            print "QUERIESSSSS"
             result_dns = database.db_execute(query_dns)
             result_tcp = database.db_execute(query_tcp)
+            #result_dns = None
+            #result_tcp = None
 
             rows_dns = {}
             rows_tcp = {}
@@ -86,25 +119,41 @@ class UpdateFlagView(generic.UpdateView):
                 rows_tcp = result_tcp['rows']
 
             # Update DNS Flags #
+            print "DNS"
+            #update_dns = []
             update_dns = self.update_dns_flags(rows_dns)
 
             # Update TCP Flags #
+            print "TCP"
+            #update_tcp = []
             update_tcp = self.update_tcp_flags(rows_tcp)
 
             # Update HTTP Flags #
+            print "HTTP"
+            #update_http = []
             update_http = self.update_http_flags(rows_tcp)
 
+            to_bulk_list = []
+            to_bulk_list += update_dns + update_tcp + update_http
+
+            print "BULK"
+            MetricFlag.objects.bulk_create(to_bulk_list)
+
             # Update Muted Flags #
-            update_muted_flags = self.update_muted_flags()
+            print "MUTED"
+            update_muted = self.update_muted_flags()
 
             # Update Hard Flags #
-            update_hard_flags = self.update_hard_flags()
+            print "HARD"
+            update_hard = self.update_hard_flags()
 
             if update_dns and update_tcp and \
-               update_http and update_hard_flags and \
-               update_muted_flags:
+               update_http and update_hard and \
+               update_muted:
 
                 return HttpResponse(status=200)
+
+            return HttpResponse(status=400)
 
         except Exception as e:
 
@@ -114,15 +163,18 @@ class UpdateFlagView(generic.UpdateView):
 
     def update_dns_flags(self, rows):
 
+        flags = []
+
         for row in rows:
 
             # Convert json test_keys into python object
             test_key = DNSTestKey(json.dumps(row['test_keys']))
 
             # Get public DNS #
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -152,7 +204,7 @@ class UpdateFlagView(generic.UpdateView):
                     for a in answers:
                         if a['answer_type'] == 'A' and \
                            a['ipv4'] not in control_resolver:
-                            control_resolver += a['ipv4']
+                            control_resolver += [a['ipv4']]
 
                     # Verify each result from queries with control resolver #
                     for query in queries:
@@ -179,6 +231,14 @@ class UpdateFlagView(generic.UpdateView):
                                     dns_isp = 'Unknown'
                                     flag = None
 
+                                m_flag = MetricFlag.objects.create(metric_id=row['id'],
+                                                                   target=url.url,
+                                                                   isp=dns_isp,
+                                                                   region='CCS',
+                                                                   ip=dns_name,
+                                                                   flag=flag,
+                                                                   type_med='DNS')
+
                                 flag = Flag.objects.create(medicion=row['id'],
                                                            date=date,
                                                            target=url,
@@ -187,7 +247,9 @@ class UpdateFlagView(generic.UpdateView):
                                                            ip=dns_name,
                                                            flag=flag,
                                                            type_med='DNS')
+
                                 flag.save(using='default')
+                                flags += [m_flag]
 
                         else:
 
@@ -196,7 +258,7 @@ class UpdateFlagView(generic.UpdateView):
                             for a in answers:
                                 if a['answer_type'] == 'A' and \
                                    a['ipv4'] not in dns_result:
-                                    dns_result += a['ipv4']
+                                    dns_result += [a['ipv4']]
 
                             # If doesn't match, generate soft flag in measurement #
                             #if control_resolver != dns_result:
@@ -212,6 +274,14 @@ class UpdateFlagView(generic.UpdateView):
                                         dns_isp = 'Unknown'
                                         flag = None
 
+                                    m_flag = MetricFlag.objects.create(metric_id=row['id'],
+                                                                       target=url.url,
+                                                                       isp=dns_isp,
+                                                                       region='CCS',
+                                                                       ip=dns_name,
+                                                                       flag=flag,
+                                                                       type_med='DNS')
+
                                     flag = Flag.objects.create(ip=dns_name,
                                                                flag=flag,
                                                                date=date,
@@ -220,11 +290,15 @@ class UpdateFlagView(generic.UpdateView):
                                                                region='CCS',
                                                                medicion=row['id'],
                                                                type_med='DNS')
-                                    flag.save(using='default')
 
-        return True
+                                    flag.save(using='default')
+                                    flags += [m_flag]
+
+        return flags
 
     def update_tcp_flags(self, rows):
+
+        flags = []
 
         for row in rows:
 
@@ -235,9 +309,10 @@ class UpdateFlagView(generic.UpdateView):
             date = row['measurement_start_time']
             probe = None
 
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -258,6 +333,14 @@ class UpdateFlagView(generic.UpdateView):
                             dns_isp = 'Unknown'
                             flag = None
 
+                        m_flag = MetricFlag(metric_id=row['id'],
+                                            target=url.url,
+                                            isp=dns_isp,
+                                            region='CCS',
+                                            ip=tcp['ip'],
+                                            flag=flag,
+                                            type_med='TCP')
+
                         flag = Flag.objects.create(ip=tcp['ip'],
                                                    flag=flag,
                                                    date=date,
@@ -266,11 +349,15 @@ class UpdateFlagView(generic.UpdateView):
                                                    region='CCS',
                                                    medicion=row['id'],
                                                    type_med='TCP')
-                        flag.save(using='default')
 
-        return True
+                        flag.save(using='default')
+                        flags += [m_flag]
+
+        return flags
 
     def update_http_flags(self, rows):
+
+        flags = []
 
         for row in rows:
 
@@ -279,9 +366,10 @@ class UpdateFlagView(generic.UpdateView):
 
             date = row['measurement_start_time']
 
-            if 'annotation' in row:
-                probe = Probe.objects.get(identification=row['annotation']['probe'])
-                dns_isp = probe.isp
+            if 'annotations' in row:
+                if row['annotations']['probe']:
+                    probe = Probe.objects.get(identification=row['annotations']['probe'])
+                    dns_isp = probe.isp
             else:
                 dns_isp = None
 
@@ -302,6 +390,13 @@ class UpdateFlagView(generic.UpdateView):
                         dns_isp = 'Unknown'
                         flag = None
 
+                    m_flag = MetricFlag(metric_id=row['id'],
+                                        target=url.url,
+                                        isp=dns_isp,
+                                        region='CCS',
+                                        ip=test_key.get_client_resolver(),
+                                        flag=flag,
+                                        type_med='HTTP')
 
                     flag = Flag.objects.create(ip=test_key.get_client_resolver(),
                                                flag=flag,
@@ -311,34 +406,45 @@ class UpdateFlagView(generic.UpdateView):
                                                region='CCS',
                                                medicion=row['id'],
                                                type_med='HTTP')
-                    flag.save(using='default')
 
-        return True
+                    flag.save(using='default')
+                    flags += [m_flag]
+
+        return flags
 
     def update_muted_flags(self):
 
-        muted_list = MutedInput.objects.values_list('url')
-        type_list = MutedInput.objects.values_list('type_med')
+        muted_list = list(MutedInput.objects.values_list('url', flat=True))
+        type_list = list(MutedInput.objects.values_list('type_med', flat=True))
 
         flags = Flag.objects.filter(flag=False,
                                     target__url__in=muted_list,
                                     type_med__in=type_list)
+        m_flags = MetricFlag.objects.filter(flag=False,
+                                            target__in=muted_list,
+                                            type_med__in=type_list)
 
         flags.update(flag=None)
+        m_flags.update(flag=None)
 
         return True
 
     def update_hard_flags(self):
 
         # Evaluating first condition for hard flags
-        ids = Metric.objects.values_list('report_id',flat=True)
+        ids = Metric.objects.values_list('id', flat=True)
         ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
+
+        # If send emails when hard flag are created
+        send_email = False
 
         flags = Flag.objects\
                     .filter(medicion__in=ids)
 
         result = flags\
-                     .values('isp','target','type_med')\
+                     .values('isp',
+                             'target',
+                             'type_med')\
                      .annotate(total_soft=Count(Case(
                                When(flag=False, then=1),
                                output_field=CharField())))\
@@ -348,15 +454,30 @@ class UpdateFlagView(generic.UpdateView):
 
             for r in result:
                 flags_to_update = flags.filter(isp=r['isp'],
-                                               target=r['target'],
+                                               target__url=r['target'],
                                                type_med=r['type_med'])
+                # If exist flags to update
+                if flags_to_update:
+                    send_email = True
 
                 map(self.soft_to_hard_flag, flags_to_update)
+
+                flags_id = list(flags.values_list('medicion', flat=True))
+                flags_isp = list(flags.values_list('isp', flat=True))
+                flags_url = list(flags.values_list('target__url', flat=True))
+                flags_type_med = list(flags.values_list('type_med', flat=True))
+
+                m_flags_update = MetricFlag.objects.filter(metric_id__in=flags_id,
+                                                           isp__in=flags_isp,
+                                                           target__in=flags_url,
+                                                           type_med__in=flags_type_med)
+
+                map(self.soft_to_hard_flag, m_flags_update)
 
         else:
 
             # Evaluating second condition for hard flags
-            ids = Metric.objects.values_list('report_id',flat=True)
+            ids = Metric.objects.values_list('id', flat=True)
             ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
             flags = Flag.objects\
@@ -373,11 +494,33 @@ class UpdateFlagView(generic.UpdateView):
 
                 for r in result:
                     flags_to_update = flags.filter(isp=r['isp'],
-                                                   target=r['target'],
+                                                   target__url=r['target'],
                                                    type_med=r['type_med'],
                                                    region=r['region'])
 
+                    # If exist flags to update
+                    if flags_to_update:
+                        send_email = True
+
                     map(self.soft_to_hard_flag, flags_to_update)
+
+                    flags_id = list(flags.values_list('medicion', flat=True))
+                    flags_isp = list(flags.values_list('isp', flat=True))
+                    flags_url = list(flags.values_list('target__url', flat=True))
+                    flags_type_med = list(flags.values_list('type_med', flat=True))
+                    flags_region = list(flags.values_list('region', flat=True))
+
+                    m_flags_update = MetricFlag.objects.filter(metric_id__in=flags_id,
+                                                               isp__in=flags_isp,
+                                                               target__in=flags_url,
+                                                               region__in=flags_region,
+                                                               type_med__in=flags_type_med)
+
+                    map(self.soft_to_hard_flag, m_flags_update)
+
+        # If send_email then send emails to users
+        if send_email:
+            send_email_users()
 
         return True
 
@@ -420,3 +563,7 @@ class LuigiUpdateFlagView(generic.View):
         else:
             print "task already run"
         return HttpResponse(status=200)
+<<<<<<< HEAD
+
+=======
+>>>>>>> 1b1e6f067d4275ab1d874a37ab64ed9e2708c155

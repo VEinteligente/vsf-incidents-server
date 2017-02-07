@@ -25,7 +25,7 @@
                         {% bootstrap_field form.identification %}
                         {% bootstrap_field form.open_ended %}
                         {% bootstrap_field form.flags %}
-                         <input id="flags_id" type="text" class="hidden" name="flags_id" value="{{ flags_id }}">
+                         <input id="flags_id" type="text" style="width: 100%;" name="flags_id" value="{{ flags_id }}">
                         <div class="box box-solid box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title"> Select Measurement(s)</h3>
@@ -41,6 +41,7 @@
                                 <th>ISP</th>
                                 <th>IP Address</th>
                                 <th>Measurement type</th>
+                                <th>selected</th>
                             </thead>
                             <tfoot>
                                 <th>Measurement</th>
@@ -50,6 +51,7 @@
                                 <th>ISP</th>
                                 <th>IP Address</th>
                                 <th>Measurement type</th>
+                                <th>selected</th>
                             </tfoot>
                             <tbody></tbody>
                         </table>
@@ -58,7 +60,7 @@
             </div>
                     </div>
                     <div class="box-footer text-right">
-                        <input class="btn btn-flat btn-primary" type="submit" value="Update">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Save">
                         <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a>
                         <button type="button" id="btn" class="btn btn-flat btn-primary" data-clipboard-text="{{ flags_id }}">
                             Copy Measurements Ids
@@ -98,31 +100,39 @@
         var flags_id = $( '#flags_id' ).val($( '#flags_id' ).val() + ' ');
 
         var table = $('#measurement_id').DataTable({
-            "order": [[ 0, "desc" ]],
+            "order": [[ 7, "desc" ]],
             "bPaginate": true,
             "sPaginationType": "full_numbers",
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": "{% url 'events:event_front:update-ajax'%}",
+            "columnDefs": [
+                {
+                    "targets": [ 7 ],
+                    "visible": false,
+                    "searchable": false
+                }
+            ],
             "fnServerParams": function ( aoData ) {
                 aoData.push( { "name": "pk", "value": {{ event.id }} } );
             },
             "rowCallback": function( row, data, index ) {
-
+                console.log($('#id_flags'));
                 $('#id_flags').each(function(){
-
+                    console.log($(this));
                     $.each($(this).val().split(' '), function(){
 
-                        var split = this.split('&');/*
-
+                        var split = this.split('&');
                         console.log("SPLIT 0", data['Measurement']);
                         console.log("SPLIT 0", split[0]);
                         console.log("SPLIT 1", data['Target'] == split[1]);
+                        console.log("SPLIT 2", data['ISP']);
+                        console.log("SPLIT 2", split[2]);
                         console.log("SPLIT 2", data['ISP'] == split[2]);
                         console.log("SPLIT 3", data['IP Address'] == split[3]);
-                        console.log("SPLIT 4", data['Measurement type'] == split[4]);*/
+                        console.log("SPLIT 4", data['Measurement type'] == split[4]);
 
-                        if (data['Measurement'] == split[0] && data['Target'] == split[1] && data['ISP'] == split[2] && data['IP Address'] == split[3] && data['Measurement type'] == split[4]) 
+                        if (data['Measurement'] == split[0] && data['Target'] == split[1] && (data['ISP'] == split[2] || data['ISP'] == null) && (data['IP Address'] == split[3] || data['Address'] == null) && data['Measurement type'] == split[4])
                         {
                             console.log("HOLAAAA");
                             $(row).addClass('selected');
@@ -149,9 +159,24 @@
                 },
                 { "mData": 'Date' },
                 { "mData": 'Target' },
-                { "mData": 'ISP' },
-                { "mData": "IP Address" },
-                { "mData": "Measurement type" }
+                { "mData": 'ISP', "mRender": function ( data ) {
+                        if (data == null){
+                            data = "Unknown"
+                        }
+
+                        return data;
+                    }
+                },
+                { "mData": "IP Address", "mRender": function ( data ) {
+                        if (data == null){
+                            data = "Unknown"
+                        }
+
+                        return data;
+                    }
+                },
+                { "mData": "Measurement type" },
+                { "mData": "selected" }
 
             ]
         });

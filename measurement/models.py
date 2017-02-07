@@ -41,6 +41,10 @@ class MetricFlag(models.Model):
     manage = False
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    target = models.CharField(max_length=25)
+    isp = models.CharField(max_length=25, null=True, blank=True)
+    region = models.CharField(max_length=25, null=True, blank=True)
     flag = models.NullBooleanField(default=False)
     manual_flag = models.BooleanField(default=False)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
@@ -48,7 +52,7 @@ class MetricFlag(models.Model):
                                 null=False,
                                 default='medicion')
     metric = models.ForeignKey(
-        Metric, related_name='metrics'
+        Metric, related_name='flags'
     )
 
     class Meta:
@@ -196,13 +200,14 @@ class Flag(models.Model):
     medicion = models.CharField(verbose_name='Id de la Medicion',
                                 max_length=40)
     date = models.DateTimeField()
-    target = models.ForeignKey(Url)
-    isp = models.CharField(max_length=100)
+    target = models.ForeignKey(Url) 
+    isp = models.CharField(max_length=100, null=True, blank=True)
     probe = models.ForeignKey(
         Probe, null=True, blank=True, related_name='flags')
-    ip = models.GenericIPAddressField()
+    ip = models.GenericIPAddressField(null=True, blank=True)
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
+    manual_flag = models.BooleanField(default=False)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
                                 max_length=50,
                                 choices=TYPE_CHOICES,

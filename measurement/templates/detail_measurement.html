@@ -85,6 +85,21 @@
                     </table>
                     <table class="table table-bordered table-hover">
                         <thead>
+                            <th>Test Name</th>
+                            <th>Test Start Time</th>
+                            <th>Test Version</th>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>{{metric.test_name}}</td>
+                                <td>{{metric.test_start_time}}</td>
+                                <td>{{metric.test_version}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-bordered table-hover">
+                        <thead>
                             <th>Data Format Version</th>
                             <th>Software Name</th>
                             <th>Software Version</th>
@@ -100,21 +115,24 @@
                     </table>
                     <table class="table table-bordered table-hover">
                         <thead>
-                            <th>Probe CC</th>
                             <th>Probe ASN</th>
+                            <th>Probe CC</th>
                             <th>Probe IP</th>
                         </thead>
                         <tbody>
                             
                             <tr>
-                                <td>{{metric.probe_cc}}</td>
                                 <td>{{metric.probe_asn}}</td>
+                                <td>{{metric.probe_cc}}</td>
                                 <td>{{metric.probe_ip}}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-            </div>    
+            </div>
+            {% if probe %}
+                    
+                    
             <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
@@ -175,7 +193,8 @@
                         </table>
                     {% endif %}
                 </div>
-            </div>       
+            </div>  
+            {% endif %}     
         </div>
         <div class="col-xs-2">
             <div class="box box-solid">

@@ -17,19 +17,41 @@
             </thead>
             <tbody>        
                 <tr>
-                    <td>{{report_filename}}</td>
+                    <td>{{report.report_filename}}</td>
                 </tr>
             </tbody>
         </table>
         <table class="table table-bordered table-hover">
             <thead>
                 <th>Test Name</th>
-                <th>Start Time</th>
+                <th>Test Version</th>
+                <th>Test Start Time</th>
+                <th>Data Format Version</th>
             </thead>
             <tbody>        
                 <tr>
-                    <td>{{test_name}}</td>
-                    <td>{{test_start_time}}</td>
+                    <td>{{report.test_name}}</td>
+                    <td>{{report.test_version}}</td>
+                    <td>{{report.test_start_time}}</td>
+                    <td>{{report.data_format_version}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <th>Probe ASN</th>
+                <th>Probe CC</th>
+                <th>Probe IP</th>
+                <th>Software Name</th>
+                <th>Software Version</th>
+            </thead>
+            <tbody>        
+                <tr>
+                    <td>{{report.probe_asn}}</td>
+                    <td>{{report.probe_cc}}</td>
+                    <td>{{report.probe_ip}}</td>
+                    <td>{{report.software_name}}</td>
+                    <td>{{report.software_version}}</td>
                 </tr>
             </tbody>
         </table>
