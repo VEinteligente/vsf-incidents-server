@@ -14,7 +14,8 @@ from serializers import (
     CategorySerializer,
     RegionSerializer,
     ISPSerializer,
-    GanttChartSerializer
+    GanttChartSerializer,
+    EventsByMonthSerializer
 )
 from event.models import Event
 from Case.models import Case, Category
@@ -141,3 +142,7 @@ class GanttChart(generics.RetrieveAPIView):
     lookup_url_kwarg = 'case_id'
     queryset = Case.objects.filter(draft=False)
     serializer_class = GanttChartSerializer
+
+
+class EventsByMonth(GanttChart):
+    serializer_class = EventsByMonthSerializer

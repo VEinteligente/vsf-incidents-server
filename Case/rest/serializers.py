@@ -1,5 +1,8 @@
 import json
+import datetime
+import calendar
 
+from django.db.models import Q
 from rest_framework import serializers
 from Case.models import Case, Update, Category
 from measurement.models import State
@@ -73,6 +76,61 @@ class CaseSerializer(serializers.ModelSerializer):
         return {'name': name, 'display_name': display_name}
 
 
+class GanttChartSerializer(CaseSerializer):
+
+    events = serializers.SerializerMethodField()
+
+    def get_events(self, obj):
+        events = obj.events.order_by(
+            'isp',
+            'target__site__name',
+            'start_date'
+        )
+        return EventSerializer(events, many=True).data
+
+    class Meta(CaseSerializer.Meta):
+        fields = ('events',)
+
+
+class EventsByMonthSerializer(CaseSerializer):
+
+    dates = serializers.SerializerMethodField()
+
+    def in_month_year(self, month, year):
+        d_fmt = "{0:>02}.{1:>02}.{2}"
+        date_from = datetime.datetime.strptime(
+            d_fmt.format(1, month, year), '%d.%m.%Y').date()
+        last_day_of_month = calendar.monthrange(year, month)[1]
+        date_to = datetime.datetime.strptime(
+            d_fmt.format(last_day_of_month, month, year), '%d.%m.%Y').date()
+        return self.events.filter(
+            Q(start_date__gte=date_from, start_date__lte=date_to)
+            |
+            Q(start_date__lt=date_from, start_date__gte=date_from)
+        )
+
+    def get_dates(self, obj):
+        start_date = obj.start_date
+        end_date = obj.end_date
+        self.events = obj.events.all()
+        result = {}
+        if not end_date:
+            end_date = datetime.datetime.now()
+        years = int(end_date.year) - int(start_date.year)
+        month = (years * 12) - start_date.month + end_date.month + 1
+        for i in range(0, month):
+            month = start_date.month - 1 + i
+            year = int(start_date.year + month / 12)
+            month = month % 12 + 1
+            day = min(start_date.day, calendar.monthrange(year, month)[1])
+            result[calendar.month_name[month]+' - '+str(year)] = self.in_month_year(month=month, year=year).count()
+
+        return result
+
+    class Meta(CaseSerializer.Meta):
+        fields = ('dates',)
+
+
 class UpdateSerializer(serializers.ModelSerializer):
     """UpdateSerializer: ModelSerializer
     for serialize a Update object. Excluding fields case and created by"""
@@ -86,7 +144,6 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
     for serialize a case with his updates (including details of the updates)"""
     updates = serializers.SerializerMethodField()
     category = serializers.SerializerMethodField()
-
 
     class Meta:
         model = Case
@@ -297,23 +354,6 @@ class ISPCaseSerializer(ISPSerializer):
             events__isp=obj['isp'])
         cases = set(cases)
         return len(cases)
-
-
-class GanttChartSerializer(serializers.ModelSerializer):
-
-    events = serializers.SerializerMethodField()
-
-    def get_events(self, obj):
-        events = obj.events.order_by(
-            'isp',
-            'target__site__name',
-            'start_date'
-        )
-        return EventSerializer(events, many=True).data
-
-    class Meta:
-        model = Case
-        fields = ('events',)
 
 
 # Django Filter CaseFilter
