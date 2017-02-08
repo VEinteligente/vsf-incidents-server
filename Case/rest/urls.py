@@ -60,6 +60,11 @@ urlpatterns = [
     url(
         r'^gantt/(?P<case_id>[0-9]+)/$',
         views.GanttChart.as_view(),
-        name='test'
+        name='gantt'
+    ),
+    url(
+        r'^events-month/(?P<case_id>[0-9]+)/$',
+        views.EventsByMonth.as_view(),
+        name='events-month'
     ),
 ]
