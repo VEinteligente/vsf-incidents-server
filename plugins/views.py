@@ -4,7 +4,7 @@ from vsf.settings import FLAG_TESTS
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.mixins import PageTitleMixin
-
+import json
 # from django.utils.module_loading import import_string
 # app_label = "demo"
 # url = import_string("plugins.%s" % FLAG_TESTS[0])
@@ -20,18 +20,24 @@ class PluginTableView(
     page_header_description = ""
     breadcrumb = [""]
     titles = ["", ]
+    url_ajax = None
 
     def get_render_json(self):
         renders = []
         for title in self.titles:
-            column = {"mData": title}
+            column = {}
+            column['mData'] = title
             renders.append(column)
-        return renders
+        return json.dumps(renders)
 
     def get_context_data(self, **kwargs):
         context = super(PluginTableView, self).get_context_data(**kwargs)
         context['titles'] = self.titles
-        context['aoColumns_json'] = self.get_render_json()
+        json = self.get_render_json()
+        print json
+        context['aoColumns_json'] = json
+        if self.url_ajax is not None:
+            context['url_ajax'] = self.url_ajax
         return context
 
 

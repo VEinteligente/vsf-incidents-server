@@ -1,6 +1,4 @@
 {% extends 'dashboard/layout.html' %}
-{% load key_value %}
-{% load prettyjson %}
 {% load eztables %}
 
 {% block extracss %}
@@ -9,16 +7,11 @@
 
 {% block content %}
     <div class="table-responsive">
-
         <table id="my-table">
             <thead>
-                <th>Flag</th>
-                <th>ID</th>
-                <th>Input</th>
-                <th>Report ID</th>
-                <th>Test Name</th>
-                <th>Test Start Time</th>
-                <th>Measurement Start Time</th>
+                {% for table_title in titles %}
+                    <th> {{ table_title }} </th>
+                {% endfor %}
             </thead>
         </table>
     </div>
@@ -27,70 +20,19 @@
 
 
 {% block extrajs %}
-
-{% prettyjson_setup jquery=False %}
 {% datatables_js %}
 {% datatables_bootstrap_js %}
 <script>
 
     $(function () {
+        
+        var url_datatable = '{{url_ajax}}';
 
         $('#my-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
-            "sAjaxSource": '/plugins/demo-ajax/',
-            "aoColumns": [
-                { "mData": "Flag",  "mRender": function ( data, type, full ) {
-
-                        var flag_icon = "";
-
-                        if(full.flag_id != null){
-
-                            if (data == true){
-                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
-                            }
-                            if (data == false){
-                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
-                            }
-                            if (data == null){
-                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
-                            }
-                        }
-
-                        if(full.manual_flag){
-                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
-                        }
-
-                        return flag_icon;
-                    }
-                },
-                { "mData": "id",
-                   "mRender": function ( data ) {
-                        if (data != null){
-                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
-                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
-                            return url_measurement
-                        }else{
-                            return '';
-                        }
-                   }
-                },
-                { "mData": "input" },
-                { "mData": "report_id",
-                   "mRender": function ( data ) {
-                        if (data != null){
-                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
-                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
-                            return url_report
-                        }else{
-                            return '';
-                        }
-                   }
-                },
-                { "mData": "test_name" },
-                { "mData": "test_start_time" },
-                { "mData": "measurement_start_time" }
-            ],
+            "sAjaxSource": url_datatable,
+            "aoColumns": {{ aoColumns_json|safe }},
         });
 
     })

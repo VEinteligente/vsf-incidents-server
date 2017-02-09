@@ -29,6 +29,8 @@ from measurement.front.views import DBconnection, DNSTestKey
 import json
 from vsf import conf
 
+import threading
+from update_flags_manual import update_flags_manual
 
 def send_email_users():
     """docstring for send_email_users
@@ -528,11 +530,6 @@ class UpdateFlagView(generic.UpdateView):
         flag.flag = True
         flag.save(using='default')
         suggestedEvents(flag)
-
-
-import threading
-import time
-from update_flags_manual import update_flags_manual
 
 
 def luigiUpdateFlagTask():

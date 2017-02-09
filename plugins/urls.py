@@ -4,10 +4,6 @@ import views
 
 urlpatterns = [
     url(r'^demo/', include(demo_url, namespace='demo')),
-]
-
-
-urlpatterns = [
     url(
         r'^test/$',
         views.test.as_view(),
