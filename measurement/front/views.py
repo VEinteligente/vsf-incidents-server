@@ -22,7 +22,8 @@ from measurement.models import (
 from measurement.front.forms import (
     MutedInputForm,
     ProbeForm,
-    ManualFlagForm
+    ManualFlagForm,
+    MeasurementToEventForm
 )
 from event.models import Url
 from measurement.utils import *
@@ -386,7 +387,7 @@ class DNSTableView(
     page_header = "DNS Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "DNS"]
-    form_class = ManualFlagForm
+    form_class = MeasurementToEventForm
     # template_name = 'display_dns_table.html'
     template_name = 'list_dns.html'
 
@@ -563,6 +564,7 @@ class DNSTableAjax(DatatablesView):
         )
     )
     fields = {
+        'checkbox': 'input',
         'Flag': 'flags__flag',
         'flag_id': 'flags__id',
         'manual_flag': 'flags__manual_flag',
@@ -1153,14 +1155,61 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
         return self.form_invalid(form)
 
 
-class EventFromDNSMeasurementView(EventFromMeasurementView):
+class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
     """EventFromMeasurementView: EventFromMeasurementView extention
     for create event from DNS measurements in DB"""
     page_header = "DNS Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "DNS"]
-    form_class = ManualFlagForm
+    form_class = MeasurementToEventForm
     template_name = 'list_dns.html'
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get metrics values
+        error_msg = ""
+        metric_inputs = form.cleaned_data['metrics']
+        metric_ips = form.cleaned_data['metric_ip']
+
+        if metric_inputs.endswith(','):
+            metric_inputs = metric_inputs[:-1]
+
+        if metric_ips.endswith(','):
+            metric_ips = metric_ips[:-1]
+
+        list_metric_ips =  metric_ips.split(',')
+
+        # Create database object #
+        try:
+            database = DBconnection('titan_db')
+
+            query = "select id, input, measurement_start_time, test_name, annotations "
+            query += "from metrics where id in (" + metric_inputs + ")"
+            # Results from execute queries #
+            metrics = database.db_execute(query)
+        except Exception:
+            error_msg = "Database connection error"
+        if metrics:
+            rows_ids = metrics['rows']
+            if validate_metrics(rows_ids):
+
+                # Change or create flag to Manual Flag
+                event = change_to_flag_and_create_event(rows_ids, metric_ips)
+                if event is not False:
+                    msg = 'New event created'
+                    messages.success(self.request, msg)
+
+                    return HttpResponseRedirect(self.get_success_url(event.id))
+            else:
+                error_msg = "Measurements must have the same Input and Test Name. "
+                error_msg += "Measurements must have a probe in annotations."
+                error_msg += "One measurement have already an event"
+
+        msg = 'Error creating new Event. ' + error_msg
+        messages.error(self.request, msg)
+        return self.form_invalid(form)
 
 
 class EventFromTCPMeasurementView(EventFromMeasurementView):

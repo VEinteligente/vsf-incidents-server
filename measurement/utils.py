@@ -17,8 +17,6 @@ def change_to_manual_flag_sql(metric_sql):
         # Get all flags associated with metric_sql object
         flags = Flag.objects.filter(medicion=metric_sql['id'])
 
-        print flags
-
         if not flags:
             # Get or Create Url Input
             url, created = Url.objects\
@@ -39,8 +37,6 @@ def change_to_manual_flag_sql(metric_sql):
                 manual_flag=True,
                 target=url)
 
-            print m_flag
-
         return True
 
     except Exception as e:
@@ -58,7 +54,6 @@ def change_to_manual_flag_and_create_event(metrics_sql):
     id_flags = []
     target = ""
     isp = "Unknown"
-    metric_flags = []
 
     for metric_sql in metrics_sql:
         # Get all flags associated with metric_sql object
@@ -91,7 +86,11 @@ def change_to_manual_flag_and_create_event(metrics_sql):
                 metric_id=metric_sql['id'],
                 manual_flag=True,
                 target=target.url)
+            print "Pedro Metric Flag:"
+            print m_flag
+            print created
         else:
+            print "Pedro: entre aqui"
             for flag in flags:
                 flags_event.append(flag)
                 id_flags.append(flag.id)
@@ -109,6 +108,106 @@ def change_to_manual_flag_and_create_event(metrics_sql):
                 isp = probe.isp
         except Exception:
             isp = "Unknown"
+
+    # create identification for the event (must be unique)
+    num_events = Event.objects.count()
+    identification = "event_" + str(num_events)
+    identification += "_" + time.strftime("%x") + "_" + time.strftime("%X")
+
+    # create event
+    event_date = Flag.objects.filter(id__in=id_flags).earliest('date').date
+    event = Event(
+        isp=isp,
+        start_date=event_date,
+        target=target,
+        type='bloqueo por DNS',
+        identification=identification
+    )
+    event.save()
+
+    # Add flags to events
+    for flag in flags_event:
+        flag.suggested_events.clear()
+        event.flags.add(flag)
+
+    # Add suggested flags to the event
+    suggestedFlags(event)
+
+    return event
+
+
+def change_to_flag_and_create_event(metrics_sql, list_ip):
+    """
+    Create event from measurements selected in list.
+
+    metrics_sql: list of Object Metric
+    list_ip: list of ['metric_id@ip']
+    """
+    flags_event = []
+    id_flags = []
+    target = ""
+    isp = "Unknown"
+    ip = ""
+    list_ip = list_ip.split(",")
+
+    for metric_sql in metrics_sql:
+
+        for metric in list_ip:
+            metric = metric.replace("'", "")
+            m_ip = metric.split("@")
+            if str(m_ip[0]) == str(metric_sql['id']):
+                ip = m_ip[1]
+                # Get all flags associated with metric_sql object
+                flags = Flag.objects.filter(medicion=metric_sql['id'], ip=ip)
+
+                if not flags:
+                    # Get or Create Url Input
+                    url, created = Url.objects\
+                                      .get_or_create(url=metric_sql['input'])
+
+                    # Create Manual Flag
+                    flag = Flag.objects.create(
+                        manual_flag=True,
+                        date=metric_sql['measurement_start_time'],
+                        target=url,
+                        region='CCS',
+                        medicion=metric_sql['id'],
+                        ip=ip)
+                    # Save object in database
+                    flag.save()
+                    
+                    # Add flag to list destinated to associate flags with the new event
+                    flags_event.append(flag)
+                    # Add id flag to list destinated to get earliest flag date
+                    id_flags.append(flag.id)
+
+                    target = url
+
+                    # Save objects in remote database if is not already
+                    m_flag, created = MetricFlag.objects.get_or_create(
+                        metric_id=metric_sql['id'],
+                        manual_flag=True,
+                        target=target.url,
+                        ip=ip)
+
+                else:
+                    for flag in flags:
+                        flags_event.append(flag)
+                        id_flags.append(flag.id)
+                        if target == "":
+                            target = flag.target
+
+                # Check if metric have a prove assigned to it.
+                # If it is get ISP from probe.
+                # If not, ISP will be Unknown
+                try:
+                    annotations = metric_sql['annotations']
+                    if annotations['probe'] != "":
+                        probe = Probe.objects.filter(
+                            identification=annotations['probe']).first()
+                        isp = probe.isp
+                except Exception:
+                    isp = "Unknown"
 
     # create identification for the event (must be unique)
     num_events = Event.objects.count()
