@@ -1,9 +1,9 @@
 from django.shortcuts import render
-from vsf.settings import FLAG_TESTS
 
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.mixins import PageTitleMixin
+
 import json
 # from django.utils.module_loading import import_string
 # app_label = "demo"
@@ -39,14 +39,3 @@ class PluginTableView(
         if self.url_ajax is not None:
             context['url_ajax'] = self.url_ajax
         return context
-
-
-class test(generic.TemplateView):
-    template_name = 'table.html'
-
-    def get(self, request, *args, **kwargs):
-        # methodToCall = getattr(url, 'hola_hola')
-        # result = methodToCall()
-        # print url
-        return super(test, self).get(request, args, kwargs)
-

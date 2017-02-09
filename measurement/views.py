@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils.module_loading import import_module
 from django.core.mail import EmailMessage
 from django.views import generic
 from django.http import HttpResponse
@@ -28,6 +29,7 @@ from django.db.models import (
 from measurement.front.views import DBconnection, DNSTestKey
 import json
 from vsf import conf
+from vsf.settings import FLAG_TESTS
 
 import threading
 from update_flags_manual import update_flags_manual
@@ -533,25 +535,38 @@ class UpdateFlagView(generic.UpdateView):
 
 
 def luigiUpdateFlagTask():
-    """ luigiUpdateFlagTask: Task running by thread to update flags"""
+    """
+    luigiUpdateFlagTask: Task running by thread to update flags
+    """
     global running
     running += 1
     print "comenzo a hacer el hilo"
     update_flags_manual()
+    # ----------------------------------------------
+    for module in FLAG_TESTS:
+        m = import_module("plugins.%s.views" % module['module_name'])
+        for function in module['functions']:
+            methodToCall = getattr(m, function)
+            result = methodToCall()
+    # ---------------------------------------------
     running -= 1
     print "termino el hilo"
 
 
-"""running: Global variable defined to be used by
+"""
+running: Global variable defined to be used by
 LuigiUpdateFlagView and luigiUpdateFlagTask
 to control than no more than 1 thread to be
-running luigiUpdateFlagTask at the same time"""
+running luigiUpdateFlagTask at the same time
+"""
 running = 0
 
 
 class LuigiUpdateFlagView(generic.View):
-    """LuigiUpdateFlagView: View called by Ooni-pipeline which created and 
-    exclusive thread to update flags."""
+    """
+    LuigiUpdateFlagView: View called by Ooni-pipeline which created and
+    exclusive thread to update flags.
+    """
     def get(self, request, *args, **kwargs):
         global running
         if running < 1:
