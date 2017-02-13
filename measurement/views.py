@@ -34,6 +34,7 @@ from vsf.settings import FLAG_TESTS
 import threading
 from update_flags_manual import update_flags_manual
 
+
 def send_email_users():
     """docstring for send_email_users
     Send to all admins an email when hard
