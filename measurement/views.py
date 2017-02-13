@@ -544,7 +544,7 @@ def luigiUpdateFlagTask():
     update_flags_manual()
     # ----------------------------------------------
     for module in FLAG_TESTS:
-        m = import_module("plugins.%s.views" % module['module_name'])
+        m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
             methodToCall = getattr(m, function)
             result = methodToCall()
