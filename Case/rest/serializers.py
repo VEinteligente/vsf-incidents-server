@@ -1,10 +1,13 @@
 import json
+import datetime
+import calendar
 
+from django.db.models import Q
 from rest_framework import serializers
-from Case.models import Case, Update
+from Case.models import Case, Update, Category
 from measurement.models import State
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Url
+from event.models import Url, Site
 
 import django_filters
 
@@ -18,7 +21,7 @@ class CaseSerializer(serializers.ModelSerializer):
     isp = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
     domains = serializers.SerializerMethodField()
-    category = serializers.StringRelatedField()
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -57,6 +60,76 @@ class CaseSerializer(serializers.ModelSerializer):
         dm = Url.objects.filter(id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
+
+
+class GanttChartSerializer(CaseSerializer):
+
+    events = serializers.SerializerMethodField()
+
+    def get_events(self, obj):
+        events = obj.events.order_by(
+            'isp',
+            'target__site__name',
+            'start_date'
+        )
+        return EventSerializer(events, many=True).data
+
+    class Meta(CaseSerializer.Meta):
+        fields = ('events',)
+
+
+class EventsByMonthSerializer(CaseSerializer):
+
+    dates = serializers.SerializerMethodField()
+
+    def in_month_year(self, month, year):
+        d_fmt = "{0:>02}.{1:>02}.{2}"
+        date_from = datetime.datetime.strptime(
+            d_fmt.format(1, month, year), '%d.%m.%Y').date()
+        last_day_of_month = calendar.monthrange(year, month)[1]
+        date_to = datetime.datetime.strptime(
+            d_fmt.format(last_day_of_month, month, year), '%d.%m.%Y').date()
+        return self.events.filter(
+            Q(start_date__gte=date_from, start_date__lte=date_to)
+            |
+            Q(start_date__lt=date_from, start_date__gte=date_from)
+        )
+
+    def get_dates(self, obj):
+        start_date = obj.start_date
+        end_date = obj.end_date
+        self.events = obj.events.all()
+        result = {}
+        if not end_date:
+            end_date = datetime.datetime.now()
+        years = int(end_date.year) - int(start_date.year)
+        month = (years * 12) - start_date.month + end_date.month + 1
+        for i in range(0, month):
+            month = start_date.month - 1 + i
+            year = int(start_date.year + month / 12)
+            month = month % 12 + 1
+            day = min(start_date.day, calendar.monthrange(year, month)[1])
+            result[calendar.month_name[month]+' - '+str(year)] = self.in_month_year(month=month, year=year).count()
+
+        return result
+
+    class Meta(CaseSerializer.Meta):
+        fields = ('dates',)
+
 
 class UpdateSerializer(serializers.ModelSerializer):
     """UpdateSerializer: ModelSerializer
@@ -70,6 +143,7 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
     """DetailUpdateCaseSerializer: ModelSerializer
     for serialize a case with his updates (including details of the updates)"""
     updates = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -78,11 +152,28 @@ class DetailUpdateCaseSerializer(serializers.ModelSerializer):
         queryset = obj.updates.all().order_by('-date')
         return UpdateSerializer(queryset, many=True).data
 
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
+
+
 class DetailEventCaseSerializer(serializers.ModelSerializer):
     """DetailEventCaseSerializer: ModelSerializer
     for serialize a case with his events (including details of the events)"""
     events = serializers.SerializerMethodField()
     updates = serializers.StringRelatedField(many=True)
+    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -90,6 +181,21 @@ class DetailEventCaseSerializer(serializers.ModelSerializer):
     def get_events(self, obj):
         queryset = obj.events.all().order_by('-start_date')
         return EventSerializer(queryset, many=True).data
+
+    def get_category(self, obj):
+        """Name of the category
+
+        Args:
+            obj: case Objects
+
+        Returns:
+            value of dict {'name': name, 'display_name': display_name}
+        """
+        category = Category.objects.get(id=obj.category.id)
+        name = category.name
+        display_name = category.display_name
+
+        return {'name': name, 'display_name': display_name}
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -152,9 +258,11 @@ class CategorySerializer(serializers.Serializer):
             obj: dict {'category': 'value'}
 
         Returns:
-            value of dict {'category': 'value'}
+            value of dict {'category': {
+                'name': obj.name, 'display_name': obj.display_name}
+            }
         """
-        return obj.name
+        return {'name': obj.name, 'display_name': obj.display_name}
 
 
 class CategoryCaseSerializer(CategorySerializer):
@@ -163,7 +271,6 @@ class CategoryCaseSerializer(CategorySerializer):
     category and how many there are"""
     cases = serializers.SerializerMethodField()
     number_cases = serializers.SerializerMethodField()
-
 
     def get_cases(self, obj):
         """List of all cases in a specific category
@@ -281,7 +388,7 @@ class CaseFilter(django_filters.FilterSet):
         distinct=True
     )
     category = CharInFilter(
-        name='category',
+        name='category__name',
         distinct=True
     )
 

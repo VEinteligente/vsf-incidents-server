@@ -13,7 +13,7 @@ class EventForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['open_ended', 'identification', 'flags']
+        fields = ['open_ended', 'identification', 'flags', 'type']
 
     def clean(self):
         '''Data from EventForm'''

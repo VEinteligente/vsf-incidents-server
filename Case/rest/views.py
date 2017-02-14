@@ -13,7 +13,9 @@ from serializers import (
     ISPCaseSerializer,
     CategorySerializer,
     RegionSerializer,
-    ISPSerializer
+    ISPSerializer,
+    GanttChartSerializer,
+    EventsByMonthSerializer
 )
 from event.models import Event
 from Case.models import Case, Category
@@ -132,3 +134,15 @@ class ListCaseFilterView(generics.ListAPIView):
     serializer_class = CaseSerializer
     filter_backends = (DjangoFilterBackend,)
     filter_class = CaseFilter
+
+
+class GanttChart(generics.RetrieveAPIView):
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    lookup_url_kwarg = 'case_id'
+    queryset = Case.objects.filter(draft=False)
+    serializer_class = GanttChartSerializer
+
+
+class EventsByMonth(GanttChart):
+    serializer_class = EventsByMonthSerializer
