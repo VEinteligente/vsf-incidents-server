@@ -172,7 +172,8 @@ def change_to_flag_and_create_event(metrics_sql, list_ip):
                         target=url,
                         region='CCS',
                         medicion=metric_sql['id'],
-                        ip=ip)
+                        ip=ip,
+                        type_med='DNS')
                     # Save object in database
                     flag.save()
                     
@@ -188,7 +189,8 @@ def change_to_flag_and_create_event(metrics_sql, list_ip):
                         metric_id=metric_sql['id'],
                         manual_flag=True,
                         target=target.url,
-                        ip=ip)
+                        ip=ip,
+                        type_med='DNS')
 
                 else:
                     for flag in flags:
