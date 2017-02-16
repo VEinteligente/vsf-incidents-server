@@ -1,0 +1,67 @@
+{% extends 'dashboard/layout.html' %}
+{% load key_value %}
+{% load bootstrap3 %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <form action="." method="post">
+                {% csrf_token %}
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                    </div>
+                    <div class="box-body">
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                    &times;
+                                </button>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% bootstrap_field form.identification %}
+                        {% bootstrap_field form.type %}
+                        <div class="row">
+                        <div class="col-xs-4">
+                                {% bootstrap_field form.start_date %}
+                            </div>
+                            <div class="col-xs-4">
+                                {% bootstrap_field form.end_date %}
+                            </div>
+                            <div class="col-xs-4">
+                        		{% bootstrap_field form.open_ended %}       
+                            </div>
+
+						</div>
+                        {% bootstrap_field form.isp %}
+                        {% bootstrap_field form.target_site %}
+                        {% bootstrap_field form.target_url %}
+                        {% bootstrap_field form.target_ip %}
+
+                        {% bootstrap_field form.public_evidence %}
+                        {% bootstrap_field form.private_evidence %}
+
+						
+                    </div>
+                    <div class="box-footer text-right">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Create">
+                    </div>   
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    $(document).ready(function () {
+        $('#id_start_date').datepicker({
+        });
+        $('#id_end_date').datepicker({
+        });
+    })
+</script>
+
+{% endblock %}

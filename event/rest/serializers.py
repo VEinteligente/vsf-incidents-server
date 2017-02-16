@@ -29,7 +29,7 @@ class EventSerializer(serializers.ModelSerializer):
         model = Event
         fields = (
             'isp', 'start_date', 'end_date', 'target',
-            'identification', 'type', 'flags')
+            'identification', 'type', 'flags', 'public_evidence')
 
 
 class SiteSerializer(serializers.ModelSerializer):

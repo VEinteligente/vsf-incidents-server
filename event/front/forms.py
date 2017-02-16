@@ -1,5 +1,5 @@
 from django import forms
-from event.models import Event
+from event.models import Event, Site
 from measurement.models import Flag
 
 
@@ -65,3 +65,33 @@ class EventExtendForm(forms.ModelForm):
     class Meta():
         model = Event
         fields = ['open_ended', 'identification', 'isp', 'type']
+
+
+class EventEvidenceForm(forms.ModelForm):
+    """
+    EventEvidenceForm: ModelForm of Event model adding url model attributes
+    to create event target.
+    This is used to create/update an event with external evidence
+    """
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+
+    target_url = forms.URLField(
+        label="Target URL",
+        required=False)
+    target_ip = forms.GenericIPAddressField(
+        label="Target IP",
+        required=False)
+    target_site = forms.ModelChoiceField(
+        queryset=Site.objects.all(),
+        empty_label="(Nothing)",
+        label="Target Site",
+        required=False)
+
+    class Meta():
+        model = Event
+        exclude = [
+            'draft',
+            'target'
+        ]
+
