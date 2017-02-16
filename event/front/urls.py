@@ -48,4 +48,14 @@ urlpatterns = [
         views.CreateEventMeasurementView.as_view(),
         name='create-event-from-measurements'
     ),
+    url(
+        r'^create-with-evidence/$',
+        views.CreateEventEvidenceView.as_view(),
+        name='create-event-evidence'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/update-with-evidence/$',
+        views.UpdateEventEvidenceView.as_view(),
+        name='update-event-evidence'
+    ),
 ]

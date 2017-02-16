@@ -6,11 +6,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag, MetricFlag
-from event.models import Url
 from django.db.models import Q
-from .forms import EventForm, EventExtendForm
+from .forms import EventForm, EventExtendForm, EventEvidenceForm
 from .utils import suggestedFlags
-from event.models import Event
+from event.models import Event, Site, Url
 import json
 import re
 
@@ -308,9 +307,11 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
         suggested_events=None).prefetch_related('suggested_events', 'flags')
 
 
-class CreateEventMeasurementView(UpdateEvent,
-                  PageTitleMixin,
-                  generic.UpdateView):
+class CreateEventMeasurementView(
+    UpdateEvent,
+    PageTitleMixin,
+    generic.UpdateView
+):
     """CreateEventMeasurementView: CreateView extends of UpdateEvent than
     create a new event from a list of measurements"""
     form_class = EventExtendForm
@@ -375,6 +376,133 @@ class CreateEventMeasurementView(UpdateEvent,
         for flag in flags:
             flag.suggested_events.clear()
         suggestedFlags(self.object)
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+# Event with external evidence views
+
+class CreateEventEvidenceView(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateEventEvidenceView: CreateView for create
+    Event with external evidence
+    """
+    form_class = EventEvidenceForm
+    page_header = "New Event with External Evidence"
+    page_header_description = ""
+    breadcrumb = ["Events", "New Event with External Evidence"]
+    success_url = reverse_lazy('events:event_front:list-event')
+    template_name = 'create_event_evidence.html'
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        if (form.cleaned_data['end_date'] is None) and (form.cleaned_data['open_ended'] is False):
+            form.add_error(
+                None,
+                'You must give an end date to this event or select open ended'
+            )
+            form.add_error('end_date', '')
+            form.add_error('open_ended', '')
+            return self.form_invalid(form)
+        # Object to save
+        self.object = form.save(commit=False)
+
+        if Event.objects.filter(id=self.object.id).exists():
+            msg = 'Se ha modificado el evento'
+        else:
+            msg = 'Se ha creado el evento'
+
+        if form.cleaned_data['open_ended']:
+            self.object.end_date = None
+
+        # Get or create Url object to be used as event target
+        target, created = Url.objects.get_or_create(
+            site=form.cleaned_data['target_site'],
+            url=form.cleaned_data['target_url'],
+            ip=form.cleaned_data['target_ip'])
+
+        self.object.target = target
+
+        self.object.save()  # Save object in the Database
+
+        messages.success(self.request, msg)
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class UpdateEventEvidenceView(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateEventEvidenceView: UpdateView for update 
+    Event with external evidence
+    """
+    model = Event
+    context_object_name = 'event'
+    form_class = EventEvidenceForm
+    page_header = "Update Event with External Evidence"
+    page_header_description = ""
+    breadcrumb = ["Events", "Update Event with External Evidence"]
+    success_url = reverse_lazy('events:event_front:list-event')
+    template_name = 'create_event_evidence.html'
+
+    def get_form(self, form_class=None):
+        form = super(UpdateEventEvidenceView, self).get_form(form_class)
+        # get event to be updated
+        event = Event.objects.get(id=self.kwargs['pk'])
+
+        # get initial values of target attributes
+        form.fields['target_ip'].initial = event.target.ip
+        form.fields['target_url'].initial = event.target.url
+        form.fields['target_site'].initial = event.target.site
+
+        # check if event is open ended
+        if event.end_date is None:
+            form.fields['open_ended'].initial = True
+        return form
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        if (form.cleaned_data['end_date'] is None) and (form.cleaned_data['open_ended'] is False):
+            form.add_error(
+                None,
+                'You must give an end date to this event or select open ended'
+            )
+            form.add_error('end_date', '')
+            form.add_error('open_ended', '')
+            return self.form_invalid(form)
+        # Object to save
+        self.object = form.save(commit=False)
+
+        if Event.objects.filter(id=self.object.id).exists():
+            msg = 'Se ha modificado el evento'
+        else:
+            msg = 'Se ha creado el evento'
+
+        if form.cleaned_data['open_ended']:
+            self.object.end_date = None
+
+        # Get or create Url object to be used as event target
+        target, created = Url.objects.get_or_create(
+            site=form.cleaned_data['target_site'],
+            url=form.cleaned_data['target_url'],
+            ip=form.cleaned_data['target_ip'])
+
+        self.object.target = target
+
+        self.object.save()  # Save object in the Database
 
         messages.success(self.request, msg)
 
