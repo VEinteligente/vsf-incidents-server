@@ -83,7 +83,11 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
+                                    {% if event.flags.all %}
                                     <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
+                                    {% else %}
+                                    <li><a href={% url 'events:event_front:update-event-evidence' event.id %}>Edit</a></li>
+                                    {% endif %}
                                     <li><a href={% url 'events:event_front:change-event-status' event.id %}>{% if event.draft %}Change status to Public{% else %}Change status to Draft{% endif %}</a></li>
                                     <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{event.id}}">Delete</a></li>
                                 </ul>
