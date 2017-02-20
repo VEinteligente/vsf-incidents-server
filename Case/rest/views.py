@@ -15,7 +15,8 @@ from serializers import (
     RegionSerializer,
     ISPSerializer,
     GanttChartSerializer,
-    EventsByMonthSerializer
+    EventsByMonthSerializer,
+    ListCountEventsByRegionByCaseSerializer
 )
 from event.models import Event
 from Case.models import Case, Category
@@ -83,6 +84,20 @@ class ListRegionCaseView(generics.ListAPIView):
         num=Count('probes__flags__event__cases')).filter(
         num__gt=0)
     serializer_class = RegionCaseSerializer
+
+
+class ListCountEventsByRegionByCase(generics.RetrieveAPIView):
+    """
+    ListCountEventsByRegionByCase: RetrieveAPIView
+    for displaying a list of regions with number of events
+    gived one case
+    """
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Case.objects.filter(draft=False)
+    serializer_class = ListCountEventsByRegionByCaseSerializer
+    lookup_url_kwarg = 'case_id'
+    lookup_field = 'pk'
 
 
 class ListCategoryView(generics.ListAPIView):

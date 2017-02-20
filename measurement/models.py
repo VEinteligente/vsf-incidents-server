@@ -171,6 +171,9 @@ class Probe(models.Model):
     plan = models.ForeignKey(
         Plan, null=True, blank=True, related_name='probes')
 
+    def __unicode__(self):
+        return u"%s - %s" % (self.identification, self.region)
+
 
 class DNS(models.Model):
 

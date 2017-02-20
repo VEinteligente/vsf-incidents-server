@@ -5,7 +5,7 @@ import calendar
 from django.db.models import Q
 from rest_framework import serializers
 from Case.models import Case, Update, Category
-from measurement.models import State
+from measurement.models import State, Probe
 from event.rest.serializers import EventSerializer, UrlSerializer
 from event.models import Url, Site
 
@@ -354,6 +354,29 @@ class ISPCaseSerializer(ISPSerializer):
             events__isp=obj['isp'])
         cases = set(cases)
         return len(cases)
+
+
+class ListCountEventsByRegionByCaseSerializer(CaseSerializer):
+
+    regions = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_regions(obj):
+        events = obj.events.all()
+        result = {}
+        for event in events:
+            flags = event.flags.all()
+            for flag in flags:
+                probe = flag.probe
+                if probe.region.name not in result:
+                    result[probe.region.name] = 1
+                else:
+                    result[probe.region.name] += 1
+        return result
+
+    class Meta(CaseSerializer):
+        model = Case
+        fields = ('regions',)
 
 
 # Django Filter CaseFilter
