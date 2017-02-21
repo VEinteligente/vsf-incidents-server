@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag, MetricFlag
-from django.db.models import Q
+from django.db.models import Q, Count, Case, When, IntegerField
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
 from .utils import suggestedFlags
 from event.models import Event, Site, Url
@@ -221,6 +221,17 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         return self.delete(request, *args, **kwargs)
 
 
+class DetailEvent(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
+    """DetailEvent: DetailView than
+    give the details of a specific Event object"""
+    model = Event
+    context_object_name = "event"
+    template_name = "detail_event.html"
+    page_header = "Event Details"
+    page_header_description = ""
+    breadcrumb = ["Events", "Event Details"]
+    
+
 class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
@@ -242,7 +253,6 @@ class FlagsTable(LoginRequiredMixin, DatatablesView):
             json.dumps(data, cls=DjangoJSONEncoder),
         )
 
-from django.db.models import Count, Case, When, IntegerField
 
 class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     """UpdateFlagsTable: DatatablesView used to display

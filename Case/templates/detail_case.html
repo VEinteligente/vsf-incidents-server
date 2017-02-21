@@ -136,7 +136,7 @@
                                     {% endif %}
                                 </td>
                                 <td>   
-                                    <a href="" class="btn btn-primary btn-flat">Check Event</a>
+                                    <a href="{% url 'events:event_front:detail-event' event.id %}" class="btn btn-primary btn-flat">Check Event</a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -320,7 +320,6 @@
             $(document).on('click', '.update-delete-btn', function(event) {
                 event.preventDefault();
                 /* Act on the event */
-                console.log("holaaaaaaaaaaaaaaaa")
                 var delete_id = $(this).data('id')
                 var url = '/cases/__ID__/delete-update/'.replace('__ID__', delete_id)
                 $('#update-delete-form').attr('action', url);
