@@ -553,6 +553,9 @@ class DNSTableView(
         return context
 
 
+from django.core.paginator import Paginator
+
+
 class DNSTableAjax(DatatablesView):
 
     queryset = Metric.objects.filter(test_name='dns_consistency').annotate(
@@ -560,15 +563,15 @@ class DNSTableAjax(DatatablesView):
             "test_keys->>'annotation'", ()
         ),
         queries=RawSQL(
-            "test_keys->>'queries'", ()
+            "test_keys->'queries'", ()
         )
     )
     fields = {
         'checkbox': 'input',
-        'Flag': 'flags__flag',
-        'flag_id': 'flags__id',
-        'manual_flag': 'flags__manual_flag',
-        'ip': 'flags__ip',
+        'Flag': 'id',
+        'flag_id': 'id',
+        'manual_flag': 'id',
+        'ip': 'id',
         'annotation': 'annotation',
         'queries': 'queries',
         'id': 'id',
@@ -595,6 +598,167 @@ class DNSTableAjax(DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder)
         )
+
+    def get_rows(self, rows):
+        '''Format all rows'''
+        page_rows = [self.get_row(row) for row in rows]
+        clone_rows = []
+
+        metric_ids = []
+        for row in page_rows:
+            metric_ids.append(row['id'])
+
+        flags = Flag.objects.filter(medicion__in=metric_ids)
+        print flags
+        for row in page_rows:
+            row['flag_id'] = None
+            row['manual_flag'] = None
+            row['Flag'] = None
+            # fill original rows with all data
+            # from annotation and queries field
+            try:
+                probe = Probe.objects.get(
+                    identification=row['annotation']['probe'])
+                dns_isp = probe.isp
+            except Exception:
+                dns_isp = 'Unknown'
+            row['dns isp'] = dns_isp
+
+            queries = self.clean_queries_field(row['queries'])
+
+            if not queries[0]['failure'] and queries[0]['answers']:
+                # Get answers #
+                answers = queries[0]['answers']
+                control_resolver = []
+
+                # Get control resolver from answer_type A #
+                for a in answers:
+                    if a['answer_type'] == 'A' and \
+                       a['ipv4'] not in control_resolver:
+
+                        control_resolver += [a['ipv4']]
+
+                row['control resolver'] = control_resolver
+
+                #Verify each result from queries with control resolver #
+                for query in queries:
+                    
+                    dns_result = []
+                    dns_name = query['resolver_hostname']
+                    match = False
+                    # flag_status = 'No flag'
+
+                    # If query has failure, dns result #
+                    # is a failure response and match is False #
+
+                    # If query doesn't has failure, then find dns result #
+                    # from answer type A and later compare it with control #
+                    # resolver. If both are the same, match is True otherwise #
+                    # match is False #
+
+                    if query['failure']:
+                        dns_result += query['failure']
+
+                    answers = query['answers']
+
+                    for a in answers:
+                        if a['answer_type'] == 'A' and \
+                           a['ipv4'] not in dns_result:
+                            dns_result += [a['ipv4']]
+
+                    if all(map(lambda v: v in control_resolver, dns_result)):
+                        match = True
+
+                    # If dns_name is in DNS, find its name #
+                    if DNS.objects.filter(ip=dns_name).exists():
+                        dns_table_name = DNS.objects\
+                                            .get(ip=dns_name).verbose
+                    else:
+                        dns_table_name = dns_name
+
+                    if query == queries[0]:
+                        row['dns name'] = dns_table_name
+                        row['dns result'] = dns_result
+                        row['match'] = match
+
+                        if flags.filter(
+                            medicion=row['id'],
+                            type_med='MED'
+                        ).exists():
+
+                            flag = flags.filter(
+                                medicion=row['id'],
+                                type_med='MED'
+                            ).first()
+                            row['flag_id'] = flag.id
+                            row['manual_flag'] = flag.manual_flag
+                            row['Flag'] = flag.flag
+                    else:
+                        # Aqui voy a crear clones
+                        clone_row = {}
+                        clone_row['checkbox'] = row['checkbox']
+                        clone_row['Flag'] = row['Flag']
+                        clone_row['flag_id'] = row['flag_id']
+                        clone_row['manual_flag'] = row['manual_flag']
+                        clone_row['ip'] = row['ip']
+                        clone_row['annotation'] = row['annotation']
+                        clone_row['queries'] = row['queries']
+                        clone_row['id'] = row['id']
+                        clone_row['input'] = row['input']
+                        clone_row['match'] = row['match']
+                        clone_row['dns isp'] = row['dns isp']
+                        clone_row['control resolver'] = row['control resolver']
+                        clone_row['dns name'] = dns_table_name
+                        clone_row['dns result'] = dns_result
+                        clone_row['measurement_start_time'] = row[
+                            'measurement_start_time']
+                        clone_row['report_id'] = row['report_id']
+
+                        if flags.filter(
+                            medicion=row['id'],
+                            ip=dns_name,
+                            type_med='DNS'
+                        ).exists():
+
+                            flag = flags.filter(
+                                medicion=row['id'],
+                                ip=dns_name,
+                                type_med='DNS'
+                            ).first()
+                            clone_row['flag_id'] = flag.id
+                            clone_row['manual_flag'] = flag.manual_flag
+                            clone_row['Flag'] = flag.flag
+
+                        clone_rows.append(clone_row)
+            else:
+                row['match'] = False
+                row['dns name'] = None
+                row['dns result'] = None
+                row['control resolver'] = None
+
+        page_rows += clone_rows
+        page_rows = sorted(page_rows, key=lambda k: k['id'])
+        return page_rows
+
+    def clean_queries_field(self, json_queries):
+        public_dns = [dns.ip for dns in DNS.objects.filter(public=True)]
+
+        queries = json_queries
+        if queries:
+            for q in queries:
+                if queries[0] == q:
+                    pass
+                elif q['resolver_hostname'] in public_dns:
+                    q.pop('resolver_hostname', None)
+                    q.pop('resolver_port', None)
+                    q.pop('query_type', None)
+                    q.pop('hostname', None)
+                    q.pop('failure', None)
+                    q.pop('answers', None)
+
+            queries = filter(None, queries)
+
+        return queries
 
 
 class TCPTableView(
