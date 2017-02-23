@@ -353,7 +353,8 @@ class CreateEventMeasurementView(
         context['form'] = form(initial={'identification': event.identification,
                                         'open_ended': open_ended,
                                         'isp': event.isp,
-                                        'type': event.type
+                                        'type': event.type,
+                                        'flags_type': flags.first().type_med
                                         })
         context['flags'] = flags
         return context
@@ -366,6 +367,7 @@ class CreateEventMeasurementView(
         event = self.object
         flags = event.flags.values_list('id', flat=True)
         flags = Flag.objects.filter(id__in=flags)
+        flags_type = form.cleaned_data['flags_type']
 
         # Object to save
         self.object = form.save(commit=False)
@@ -385,6 +387,8 @@ class CreateEventMeasurementView(
         # remove all events from the related flag
         for flag in flags:
             flag.suggested_events.clear()
+            flag.type_med = flags_type
+            flag.save()
         suggestedFlags(self.object)
 
         messages.success(self.request, msg)

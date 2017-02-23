@@ -1,9 +1,11 @@
 import time
+import json
 from django.db.models import Q
 
 from measurement.models import Metric, Flag, Probe, MetricFlag
 from event.models import Url, Event
 from event.front.utils import suggestedFlags
+from random import randint
 
 def change_to_manual_flag_sql(metric_sql):
     """
@@ -48,6 +50,17 @@ def change_to_manual_flag_sql(metric_sql):
         return False
 
 
+def get_type_med(test_name):
+    if test_name == 'dns_consistency':
+        return 'DNS'
+    elif test_name == 'http_header_field_manipulation' or test_name == 'http_invalid_request_line':
+        return 'HTTP'
+    elif test_name == 'web_connectivity':
+        return 'TCP'
+    else:
+        return 'MED'
+
+
 def change_to_manual_flag_and_create_event(metrics_sql):
     """
     Create event from measurements selected in list.
@@ -69,13 +82,22 @@ def change_to_manual_flag_and_create_event(metrics_sql):
             url, created = Url.objects\
                               .get_or_create(url=metric_sql['input'])
 
+            type_med = get_type_med(metric_sql['test_name'])
+
+            try:
+                probe_id = metric_sql['annotations']['probe']
+                probe = Probe.objects.filter(identification=probe_id).first()
+                region = probe.region
+            except Exception:
+                region = 'CCS'
             # Create Manual Flag
             flag = Flag.objects.create(
                 manual_flag=True,
                 date=metric_sql['measurement_start_time'],
                 target=url,
-                region='CCS',
-                medicion=metric_sql['id'])
+                region=region,
+                medicion=metric_sql['id'],
+                type_med=type_med)
 
             # Save object in database
             flag.save()
@@ -182,3 +204,16 @@ def validate_metrics(metrics_sql):
             return False
     else:
         return False
+
+
+# def add_probe_to_ndt():
+#     metrics = Metric.objects.filter(test_name='ndt')
+#     for metric in metrics:
+#         rand = randint(1000, 1009)
+#         metric.annotations['probe'] = str(rand)
+#         metric.annotations = json.dumps(metric.annotations)
+#         metric.options = json.dumps(metric.options)
+#         metric.test_helpers = json.dumps(metric.test_helpers)
+#         metric.test_keys = json.dumps(metric.test_keys)
+#         metric.save()
+

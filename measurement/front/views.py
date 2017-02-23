@@ -1072,8 +1072,9 @@ class ManualFlagsView(generic.FormView):
 
 # Create Events From Measurements
 
+
 class EventFromMeasurementView(PageTitleMixin, generic.FormView):
-    """ManualFlagsView: CreateView for create manual flags
+    """EventFromMeasurementView: CreateView for create manual flags
     in DB"""
     page_header = "Measurement List"
     page_header_description = ""
