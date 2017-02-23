@@ -116,7 +116,7 @@
                                         class="selected"
                                     {% endif %}>
                                         <td>{{event.id}}</td>
-                                        <td>{{event.identification}}</td>
+                                        <td><a href="{% url 'events:event_front:detail-event' event.id %}" target="_blank">{{event.identification}}</a></td>
                                         <td>{{event.isp}}</td>
                                         <td>{{event.start_date.date}}</td>
                                         <td>

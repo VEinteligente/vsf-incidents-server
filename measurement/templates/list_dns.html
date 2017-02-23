@@ -79,10 +79,10 @@
                     return '<input type="checkbox" name="' + data + '" value="1">'
                     }
                 },
-                { "mData": "Flag",  "mRender": function ( data, type, full ) {
+                { "mData": "Flag", "bSortable": false, "bSearchable": false,
+                    "mRender": function ( data, type, full ) {
 
                         var flag_icon = "";
-                        console.log("pedro flag:", full);
                         if(full.flag_id != null){
 
                             if (data == true){
@@ -115,7 +115,7 @@
                    }
                 },
                 { "mData": "input" },
-                { "mData": "match",
+                { "mData": "match", "bSortable": false, "bSearchable": false,
                    "mRender": function ( data ) {
                         console.log("match", data)
                         if(data == true){
@@ -125,11 +125,11 @@
                         }
                    }
                 },
-                { "mData": "dns isp"},
-                { "mData": "control resolver"},
-                { "mData": "dns name"},
-                { "mData": "dns result"},
-                { "mData": "measurement_start_time" },
+                { "mData": "dns isp", "bSortable": false, "bSearchable": false,},
+                { "mData": "control resolver", "bSortable": false, "bSearchable": false,},
+                { "mData": "dns name", "bSortable": false, "bSearchable": false,},
+                { "mData": "dns result", "bSortable": false, "bSearchable": false,},
+                { "mData": "measurement_start_time"},
                 { "mData": "report_id",
                    "mRender": function ( data ) {
                         if (data != null){
@@ -434,7 +434,10 @@
                }
 
                var metrics = $( '#id_metrics' );
+               var ips = $( '#id_metric_ip' );
+
                var measurement = $( this ).context.childNodes[2].innerText;
+               var dns_name = $( this ).context.childNodes[7].innerText;
                $( '#create-manual-flag').removeClass('disabled');
                 $( '#create-event').removeClass('disabled');
 
@@ -443,9 +446,12 @@
                if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
                 metrics.val( metrics.val() + '\'' + measurement + '\', ');
+                ips.val( ips.val() + '\'' + measurement + '@' + dns_name + '\', ');
             }else{
                 $(this).find(":checkbox").prop("checked", false);
                 var metric_index = metrics.val().indexOf(measurement);
+                var ip = measurement + '@' + dns_name;
+                var ip_index = ips.val().indexOf(ip);
                 metrics.val(
                         metrics.val().substring(
                                 0,
@@ -456,8 +462,19 @@
                         )
                 );
 
+                ips.val(
+                        ips.val().substring(
+                                0,
+                                ip_index - 1
+                        ) +
+                        ips.val().substring(
+                                ip_index + ip.length + 2
+                        )
+                );
+
                 if (!metrics.val().match(/([^,\']+)\w/)){
                     metrics.val("");
+                    ips.val("");
                     $( '#create-manual-flag').toggleClass('disabled');
                     $( '#create-event').toggleClass('disabled');
 
@@ -468,6 +485,10 @@
             $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
 
             $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+            $( '#id_metric_ip' ).val(ips.val().replace(/.$/,""));
+
+            $( '#id_metric_ip' ).val(ips.val().replace(" ", ","));
 
             });
 

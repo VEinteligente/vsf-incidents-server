@@ -19,7 +19,9 @@ from django.contrib import admin
 from event import urls as event_urls
 from Case import urls as case_urls
 from measurement import urls as measurement_urls
+from plugins import urls as plugins_urls
 from vsf_user import urls as user_urls
+from plugins import urls as plugin_urls
 from dashboard import urls as dashboard_urls
 from dashboard.views import HomeView
 from django.conf import settings
@@ -38,7 +40,9 @@ urlpatterns = [
           url(r'^events/', include(event_urls, namespace='events')),
           url(r'^cases/', include(case_urls, namespace='cases')),
           url(r'^measurements/', include(measurement_urls, namespace='measurements')),
+          url(r'^custom-tests/', include(plugin_urls, namespace='custom-tests')),
           url(r'^users/', include(user_urls, namespace='users')),
+          url(r'^plugins/', include(plugins_urls, namespace='plugins')),
           url(r'^debug/', include(debug_toolbar.urls))
       ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
       + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

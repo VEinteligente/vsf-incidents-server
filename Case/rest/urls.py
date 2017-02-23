@@ -33,6 +33,11 @@ urlpatterns = [
         name='list-region-case-rest'
     ),
     url(
+        r'^events/region/(?P<case_id>[0-9]+)/$',
+        views.ListCountEventsByRegionByCase.as_view(),
+        name='events-regions'
+    ),
+    url(
         r'^category/$',
         views.ListCategoryView.as_view(),
         name='category-rest'

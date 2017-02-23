@@ -1,0 +1,41 @@
+{% extends 'dashboard/layout.html' %}
+{% load eztables %}
+
+{% block extracss %}
+    {% datatables_bootstrap_css %}
+{% endblock %}
+
+{% block content %}
+    <div class="table-responsive">
+        <table id="my-table">
+            <thead>
+                {% for table_title in titles %}
+                    <th> {{ table_title }} </th>
+                {% endfor %}
+            </thead>
+        </table>
+    </div>
+
+{% endblock %}
+
+
+{% block extrajs %}
+{% datatables_js %}
+{% datatables_bootstrap_js %}
+<script>
+
+    $(function () {
+        
+        var url_datatable = '{{url_ajax}}';
+
+        $('#my-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": url_datatable,
+            "aoColumns": {{ aoColumns_json|safe }},
+        });
+
+    })
+
+</script>
+{% endblock %}

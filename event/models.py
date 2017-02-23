@@ -40,6 +40,8 @@ class Event(models.Model):
     target = models.ForeignKey(Url)  # input in metrics
     identification = models.CharField(max_length=50, unique=True)
     draft = models.BooleanField(default=True)
+    public_evidence = models.TextField(null=True, blank=True)
+    private_evidence = models.TextField(null=True, blank=True)
     type = models.CharField(max_length=100, choices=TYPES)
 
     def __unicode__(self):

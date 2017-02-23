@@ -1,9 +1,23 @@
 import time
+import json
 from django.db.models import Q
 
 from measurement.models import Metric, Flag, Probe, MetricFlag
 from event.models import Url, Event
 from event.front.utils import suggestedFlags
+from random import randint
+
+
+def get_type_med(test_name):
+    if test_name == 'dns_consistency':
+        return 'DNS'
+    elif test_name == 'http_header_field_manipulation' or test_name == 'http_invalid_request_line':
+        return 'HTTP'
+    elif test_name == 'web_connectivity':
+        return 'TCP'
+    else:
+        return 'MED'
+
 
 def change_to_manual_flag_sql(metric_sql):
     """
@@ -22,12 +36,17 @@ def change_to_manual_flag_sql(metric_sql):
             url, created = Url.objects\
                               .get_or_create(url=metric_sql['input'])
 
+            type_med = get_type_med(metric_sql['test_name'])
+
             # Create Manual Flag
-            flag = Flag.objects.create(manual_flag=True,
-                                       date=metric_sql['measurement_start_time'],
-                                       target=url,
-                                       region='CCS',
-                                       medicion=metric_sql['id'])
+            flag = Flag.objects.create(
+                manual_flag=True,
+                date=metric_sql['measurement_start_time'],
+                target=url,
+                region='CCS',
+                medicion=metric_sql['id'],
+                type_med=type_med
+            )
 
             # Save object in database
             flag.save()
@@ -64,13 +83,22 @@ def change_to_manual_flag_and_create_event(metrics_sql):
             url, created = Url.objects\
                               .get_or_create(url=metric_sql['input'])
 
+            type_med = get_type_med(metric_sql['test_name'])
+
+            try:
+                probe_id = metric_sql['annotations']['probe']
+                probe = Probe.objects.filter(identification=probe_id).first()
+                region = probe.region
+            except Exception:
+                region = 'CCS'
             # Create Manual Flag
             flag = Flag.objects.create(
                 manual_flag=True,
                 date=metric_sql['measurement_start_time'],
                 target=url,
-                region='CCS',
-                medicion=metric_sql['id'])
+                region=region,
+                medicion=metric_sql['id'],
+                type_med=type_med)
 
             # Save object in database
             flag.save()
@@ -86,11 +114,8 @@ def change_to_manual_flag_and_create_event(metrics_sql):
                 metric_id=metric_sql['id'],
                 manual_flag=True,
                 target=target.url)
-            print "Pedro Metric Flag:"
-            print m_flag
-            print created
         else:
-            print "Pedro: entre aqui"
+
             for flag in flags:
                 flags_event.append(flag)
                 id_flags.append(flag.id)
@@ -136,7 +161,7 @@ def change_to_manual_flag_and_create_event(metrics_sql):
     return event
 
 
-def change_to_flag_and_create_event(metrics_sql, list_ip):
+def change_to_flag_and_create_event(metrics_sql, list_ip, type_med):
     """
     Create event from measurements selected in list.
 
@@ -173,7 +198,7 @@ def change_to_flag_and_create_event(metrics_sql, list_ip):
                         region='CCS',
                         medicion=metric_sql['id'],
                         ip=ip,
-                        type_med='DNS')
+                        type_med=type_med)
                     # Save object in database
                     flag.save()
                     
@@ -190,7 +215,7 @@ def change_to_flag_and_create_event(metrics_sql, list_ip):
                         manual_flag=True,
                         target=target.url,
                         ip=ip,
-                        type_med='DNS')
+                        type_med=type_med)
 
                 else:
                     for flag in flags:
@@ -249,21 +274,15 @@ def validate_metrics(metrics_sql):
     metric_test_names = []
     metric_isp = []
     metric_ids = []
-    print 'Pedro: Comenzando'
-    print metrics_sql
     for metric_sql in metrics_sql:
-        print 'Pedro: itero'
         metric_ids.append(metric_sql['id'])
         metric_inputs.append(metric_sql['input'])
         metric_test_names.append(metric_sql['test_name'])
         try:
-            print 'Pedro: annotations'
             annotations = metric_sql['annotations']
             if annotations['probe'] != "":
                 probe = Probe.objects.filter(
                     identification=annotations['probe']).first()
-                print 'Pedro: probe'
-                print probe
                 metric_isp.append(probe.isp)
         except Exception:
             return False
@@ -274,7 +293,6 @@ def validate_metrics(metrics_sql):
     if flags != 0:
         return False
 
-    print 'Pedro: Antes de los sets'
     # Builds sets of inputs ans test_names.
     # If there is a set with lenght differet
     # to 1, then there most be two differrents
@@ -291,3 +309,16 @@ def validate_metrics(metrics_sql):
             return False
     else:
         return False
+
+
+# def add_probe_to_ndt():
+#     metrics = Metric.objects.filter(test_name='ndt')
+#     for metric in metrics:
+#         rand = randint(1000, 1009)
+#         metric.annotations['probe'] = str(rand)
+#         metric.annotations = json.dumps(metric.annotations)
+#         metric.options = json.dumps(metric.options)
+#         metric.test_helpers = json.dumps(metric.test_helpers)
+#         metric.test_keys = json.dumps(metric.test_keys)
+#         metric.save()
+

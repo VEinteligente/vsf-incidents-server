@@ -66,7 +66,7 @@
                 </tfoot>
                 {% for event in events %}
                     <tr>
-                        <td>{{event.identification}}</td>
+                        <td><a href="{% url 'events:event_front:detail-event' event.id %}">{{event.identification}}</a></td>
                         <td>{{event.isp}}</td>
                         <td>{{event.target}}</td>
                         <td>{{event.start_date}}</td>
@@ -83,7 +83,12 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
+                                    <li><a href={% url 'events:event_front:detail-event' event.id %}>Detail</a></li>
+                                    {% if event.flags.all %}
                                     <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
+                                    {% else %}
+                                    <li><a href={% url 'events:event_front:update-event-evidence' event.id %}>Edit</a></li>
+                                    {% endif %}
                                     <li><a href={% url 'events:event_front:change-event-status' event.id %}>{% if event.draft %}Change status to Public{% else %}Change status to Draft{% endif %}</a></li>
                                     <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{event.id}}">Delete</a></li>
                                 </ul>

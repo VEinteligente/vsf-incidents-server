@@ -553,9 +553,6 @@ class DNSTableView(
         return context
 
 
-from django.core.paginator import Paginator
-
-
 class DNSTableAjax(DatatablesView):
 
     queryset = Metric.objects.filter(test_name='dns_consistency').annotate(
@@ -682,13 +679,11 @@ class DNSTableAjax(DatatablesView):
                         row['match'] = match
 
                         if flags.filter(
-                            medicion=row['id'],
-                            type_med='MED'
+                            medicion=row['id']
                         ).exists():
 
                             flag = flags.filter(
-                                medicion=row['id'],
-                                type_med='MED'
+                                medicion=row['id']
                             ).first()
                             row['flag_id'] = flag.id
                             row['manual_flag'] = flag.manual_flag
@@ -1238,7 +1233,7 @@ class ManualFlagsView(generic.FormView):
 
         # Create database object #
         database = DBconnection('titan_db')
-        query = "select id, input, measurement_start_time "
+        query = "select id, input, measurement_start_time, test_name, annotations "
         query += "from metrics where id in (" + metric_inputs + ")"
 
         # Results from execute queries #
@@ -1263,8 +1258,9 @@ class ManualFlagsView(generic.FormView):
 
 
 class EventFromMeasurementView(PageTitleMixin, generic.FormView):
-    """EventFromMeasurementView: FormView for create event from measurements
-    in DB"""
+    """
+    EventFromMeasurementView: FormView for create event from measurements
+    """
     page_header = "Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "All"]
@@ -1343,7 +1339,7 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
         if metric_ips.endswith(','):
             metric_ips = metric_ips[:-1]
 
-        list_metric_ips =  metric_ips.split(',')
+        list_metric_ips = metric_ips.split(',')
 
         # Create database object #
         try:
@@ -1360,7 +1356,11 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
             if validate_metrics(rows_ids):
 
                 # Change or create flag to Manual Flag
-                event = change_to_flag_and_create_event(rows_ids, metric_ips)
+                event = change_to_flag_and_create_event(
+                    rows_ids,
+                    metric_ips,
+                    'DNS'
+                )
                 if event is not False:
                     msg = 'New event created'
                     messages.success(self.request, msg)
