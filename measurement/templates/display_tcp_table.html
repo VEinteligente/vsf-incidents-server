@@ -95,7 +95,6 @@ $(function () {
             { "mData": "Flag",  "mRender": function ( data, type, full ) {
 
                         var flag_icon = "";
-                        console.log("Pedro:", full.flag_id )
                         if(full.flag_id != null){
 
                             if (data == true){
@@ -132,7 +131,6 @@ $(function () {
             { "mData": "port"},
             { "mData": "blocked", "bSortable": false, "bSearchable": false,
                    "mRender": function ( data ) {
-                        console.log("match", data)
                         if(data == true){
                            return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
                         }else{
@@ -142,7 +140,6 @@ $(function () {
                 },
             { "mData": "success", "bSortable": false, "bSearchable": false,
                    "mRender": function ( data ) {
-                        console.log("match", data)
                         if(data == true){
                            return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
                         }else{
