@@ -92,7 +92,8 @@ $(function () {
                     return '<input type="checkbox" name="' + data + '" value="1">'
                     }
             },
-            { "mData": "Flag",  "mRender": function ( data, type, full ) {
+            { "mData": "Flag",  "bSortable": false, "bSearchable": false,
+                "mRender": function ( data, type, full ) {
 
                         var flag_icon = "";
                         if(full.flag_id != null){
@@ -127,8 +128,8 @@ $(function () {
                    }
             },
             { "mData": "input" },
-            { "mData": "ip" },
-            { "mData": "port"},
+            { "mData": "ip", "bSortable": false, "bSearchable": false},
+            { "mData": "port", "bSortable": false, "bSearchable": false},
             { "mData": "blocked", "bSortable": false, "bSearchable": false,
                    "mRender": function ( data ) {
                         if(data == true){
