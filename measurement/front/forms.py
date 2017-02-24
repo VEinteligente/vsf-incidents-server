@@ -19,11 +19,11 @@ class ProbeForm(forms.ModelForm):
 
 class ManualFlagForm(forms.Form):
 
-    metrics = forms.CharField(widget=forms.TextInput(attrs={'required': False}),
+    metrics = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden', 'required': False}),
                               label="")
 
 
 class MeasurementToEventForm(ManualFlagForm):
 
-    metric_ip = forms.CharField(widget=forms.TextInput(attrs={'required': False}),
+    metric_ip = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden', 'required': False}),
                               label="")

@@ -63,7 +63,7 @@ def change_to_manual_flag_sql(metric_sql):
         return False
 
 
-def change_to_manual_flag_and_create_event(metrics_sql):
+def change_to_manual_flag_and_create_event(metrics_sql, type_med):
     """
     Create event from measurements selected in list.
 
@@ -83,12 +83,13 @@ def change_to_manual_flag_and_create_event(metrics_sql):
             url, created = Url.objects\
                               .get_or_create(url=metric_sql['input'])
 
-            type_med = get_type_med(metric_sql['test_name'])
+            if type_med == "MED":
+                type_med = get_type_med(metric_sql['test_name'])
 
             try:
                 probe_id = metric_sql['annotations']['probe']
                 probe = Probe.objects.filter(identification=probe_id).first()
-                region = probe.region
+                region = probe.region.name
             except Exception:
                 region = 'CCS'
             # Create Manual Flag
@@ -285,13 +286,13 @@ def validate_metrics(metrics_sql):
                     identification=annotations['probe']).first()
                 metric_isp.append(probe.isp)
         except Exception:
-            return False
+            return "no probe"
 
     # This validates if there's one metric with an event
     flags = Flag.objects.filter(
         medicion__in=metric_ids, event__isnull=False).count()
     if flags != 0:
-        return False
+        return "already in event"
 
     # Builds sets of inputs ans test_names.
     # If there is a set with lenght differet
@@ -301,14 +302,18 @@ def validate_metrics(metrics_sql):
     test_names_set = set(
         [x for x in metric_test_names if metric_test_names.count(x) >= 1])
     isp_set = set([x for x in metric_isp if metric_isp.count(x) >= 1])
+    print "Pedro sets:"
+    print input_set
+    print test_names_set
+    print isp_set
 
     if (len(input_set) == 1) and (len(test_names_set) == 1):
         if (len(isp_set) <= 1):
             return True
         else:
-            return False
+            return "no same isp"
     else:
-        return False
+        return "no same input or test_name"
 
 
 # def add_probe_to_ndt():

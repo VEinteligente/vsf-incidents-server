@@ -692,9 +692,9 @@ class DNSTableAjax(DatatablesView):
                         # Aqui voy a crear clones
                         clone_row = {}
                         clone_row['checkbox'] = row['checkbox']
-                        clone_row['Flag'] = row['Flag']
-                        clone_row['flag_id'] = row['flag_id']
-                        clone_row['manual_flag'] = row['manual_flag']
+                        clone_row['Flag'] = None
+                        clone_row['flag_id'] = None
+                        clone_row['manual_flag'] = None
                         clone_row['ip'] = row['ip']
                         clone_row['annotation'] = row['annotation']
                         clone_row['queries'] = row['queries']
@@ -767,7 +767,7 @@ class TCPTableView(
     page_header = "TCP Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "TCP"]
-    form_class = ManualFlagForm
+    form_class = MeasurementToEventForm
     template_name = 'display_tcp_table.html'
 
     # def get_context_data(self, **kwargs):
@@ -865,20 +865,21 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
     # queryset = Metric.objects.filter(test_name='web_connectivity')
     queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
         tcp=RawSQL(
-            "test_keys->>'tcp_connect'", ()
+            "test_keys->'tcp_connect'", ()
         ),
     )
     fields = {
-        'Flag': 'flags__flag',
-        'flag_id': 'flags__id',
-        'manual_flag': 'flags__manual_flag',
+        'checkbox': 'id',
+        'Flag': 'id',
+        'flag_id': 'id',
+        'manual_flag': 'id',
         'tcp': 'tcp',
         'id': 'id',
         'input': 'input',
-        'ip': 'flags__ip',
+        'ip': 'id',
         'port': 'id',
         'blocked': 'id',
-        'success': 'id',
+        '': 'id',
         'probe_cc': 'probe_cc',
         'probe_ip': 'probe_ip',
         'measurement_start_time': 'measurement_start_time',
@@ -889,6 +890,81 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
         )
+
+    def get_rows(self, rows):
+        '''Format all rows'''
+        page_rows = [self.get_row(row) for row in rows]
+        clone_rows = []
+
+        metric_ids = []
+        for row in page_rows:
+            metric_ids.append(row['id'])
+
+        flags = Flag.objects.filter(medicion__in=metric_ids)
+
+        for row in page_rows:
+            row['flag_id'] = None
+            row['manual_flag'] = None
+            row['Flag'] = None
+            tcp_connect = row['tcp']
+            for tcp in tcp_connect:
+                if tcp == tcp_connect[0]:
+
+                    row['ip'] = tcp['ip']
+                    row['port'] = tcp['port']
+                    row['blocked'] = tcp['status']['blocked']
+                    row['success'] = tcp['status']['success']
+                    if flags.filter(
+                        medicion=row['id'], ip=row['ip']
+                    ).exists():
+
+                        flag = flags.filter(
+                            medicion=row['id'], ip=row['ip']
+                        ).first()
+                        row['flag_id'] = flag.id
+                        row['manual_flag'] = flag.manual_flag
+                        row['Flag'] = flag.flag
+
+
+                else:
+                    # Aqui voy a crear clones
+                    clone_row = {}
+                    clone_row['checkbox'] = row['checkbox']
+                    clone_row['Flag'] = None
+                    clone_row['flag_id'] = None
+                    clone_row['manual_flag'] = None
+                    clone_row['ip'] = tcp['ip']
+                    clone_row['port'] = tcp['port']
+                    clone_row['blocked'] = tcp['status']['blocked']
+                    clone_row['id'] = row['id']
+                    clone_row['input'] = row['input']
+                    clone_row['tcp'] = row['tcp']
+                    clone_row['probe_cc'] = row['probe_cc']
+                    clone_row['probe_ip'] = row['probe_ip']
+                    clone_row['success'] = tcp['status']['success']
+                    clone_row['measurement_start_time'] = row[
+                        'measurement_start_time']
+                    clone_row['report_id'] = row['report_id']
+                    if flags.filter(
+                        medicion=row['id'],
+                        ip=tcp['ip'],
+                        type_med='TCP'
+                    ).exists():
+                        print "hola entre"
+                        flag = flags.filter(
+                            medicion=row['id'],
+                            ip=tcp['ip'],
+                        type_med='TCP'
+                        ).first()
+                        clone_row['flag_id'] = flag.id
+                        clone_row['manual_flag'] = flag.manual_flag
+                        clone_row['Flag'] = flag.flag
+
+                    clone_rows.append(clone_row)
+
+        page_rows += clone_rows
+        page_rows = sorted(page_rows, key=lambda k: k['id'])
+        return page_rows
 
 
 class HTTPTableView(
@@ -911,7 +987,9 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
     populate a DataTable with all metrics with web_connectivity
     as test_name"""
 
-    queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
+    queryset = Metric.objects.filter(
+        Q(test_name='web_connectivity') | Q(test_name='http_header_field_manipulation') | Q(test_name='http_invalid_request_line')
+    ).annotate(
         body_length_match=RawSQL(
             "test_keys->>'body_length_match'", ()
         ),
@@ -943,6 +1021,7 @@ class HTTPListDatatablesView(LoginRequiredMixin, DatatablesView):
         'status_code_match': 'status_code_match',
         'title_match': 'title_match',
         'report_id': 'report_id',
+        'test_name': 'test_name'
     }
 
     def json_response(self, data):
@@ -1267,6 +1346,7 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
     form_class = ManualFlagForm
     success_url = ""
     template_name = 'display_table.html'
+    measurement_type = 'MED'
 
     def get_success_url(self, id):
         return reverse_lazy(
@@ -1296,19 +1376,25 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
             error_msg = "Database connection error"
         if metrics:
             rows_ids = metrics['rows']
-            if validate_metrics(rows_ids):
+            validation = validate_metrics(rows_ids)
+            if validation is True:
 
                 # Change or create flag to Manual Flag
-                event = change_to_manual_flag_and_create_event(rows_ids)
+                event = change_to_manual_flag_and_create_event(
+                    rows_ids,
+                    self.measurement_type
+                )
                 if event is not False:
                     msg = 'New event created'
                     messages.success(self.request, msg)
 
                     return HttpResponseRedirect(self.get_success_url(event.id))
-            else:
+            elif validation == "no probe":
+                error_msg = "Measurements must have a probe in annotations. "
+            elif validation == "no same input or test_name":
                 error_msg = "Measurements must have the same Input and Test Name. "
-                error_msg += "Measurements must have a probe in annotations."
-                error_msg += "One measurement have already an event"
+            elif validation == "already in event":
+                error_msg = "One measurement have already an event"
 
         msg = 'Error creating new Event. ' + error_msg
         messages.error(self.request, msg)
@@ -1323,6 +1409,7 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
     breadcrumb = ["Measurements", "DNS"]
     form_class = MeasurementToEventForm
     template_name = 'list_dns.html'
+    measurement_type = 'DNS'
 
     def form_valid(self, form):
         """
@@ -1339,7 +1426,7 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
         if metric_ips.endswith(','):
             metric_ips = metric_ips[:-1]
 
-        list_metric_ips = metric_ips.split(',')
+        # list_metric_ips = metric_ips.split(',')
 
         # Create database object #
         try:
@@ -1353,23 +1440,26 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
             error_msg = "Database connection error"
         if metrics:
             rows_ids = metrics['rows']
-            if validate_metrics(rows_ids):
+            validation = validate_metrics(rows_ids)
+            if validation is True:
 
                 # Change or create flag to Manual Flag
                 event = change_to_flag_and_create_event(
                     rows_ids,
                     metric_ips,
-                    'DNS'
+                    self.measurement_type
                 )
                 if event is not False:
                     msg = 'New event created'
                     messages.success(self.request, msg)
 
                     return HttpResponseRedirect(self.get_success_url(event.id))
-            else:
+            elif validation == "no probe":
+                error_msg = "Measurements must have a probe in annotations. "
+            elif validation == "no same input or test_name":
                 error_msg = "Measurements must have the same Input and Test Name. "
-                error_msg += "Measurements must have a probe in annotations."
-                error_msg += "One measurement have already an event"
+            elif validation == "already in event":
+                error_msg = "One measurement have already an event"
 
         msg = 'Error creating new Event. ' + error_msg
         messages.error(self.request, msg)
@@ -1382,8 +1472,63 @@ class EventFromTCPMeasurementView(EventFromMeasurementView):
     page_header = "TCP Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "TCP"]
-    form_class = ManualFlagForm
+    form_class = MeasurementToEventForm
     template_name = 'display_tcp_table.html'
+    measurement_type = 'TCP'
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        # Get metrics values
+        error_msg = ""
+        metric_inputs = form.cleaned_data['metrics']
+        metric_ips = form.cleaned_data['metric_ip']
+
+        if metric_inputs.endswith(','):
+            metric_inputs = metric_inputs[:-1]
+
+        if metric_ips.endswith(','):
+            metric_ips = metric_ips[:-1]
+
+        # list_metric_ips = metric_ips.split(',')
+
+        # Create database object #
+        try:
+            database = DBconnection('titan_db')
+
+            query = "select id, input, measurement_start_time, test_name, annotations "
+            query += "from metrics where id in (" + metric_inputs + ")"
+            # Results from execute queries #
+            metrics = database.db_execute(query)
+        except Exception:
+            error_msg = "Database connection error"
+        if metrics:
+            rows_ids = metrics['rows']
+            validation = validate_metrics(rows_ids)
+            if validation is True:
+
+                # Change or create flag to Manual Flag
+                event = change_to_flag_and_create_event(
+                    rows_ids,
+                    metric_ips,
+                    self.measurement_type
+                )
+                if event is not False:
+                    msg = 'New event created'
+                    messages.success(self.request, msg)
+
+                    return HttpResponseRedirect(self.get_success_url(event.id))
+            elif validation == "no probe":
+                error_msg = "Measurements must have a probe in annotations. "
+            elif validation == "no same input or test_name":
+                error_msg = "Measurements must have the same Input and Test Name. "
+            elif validation == "already in event":
+                error_msg = "One measurement have already an event"
+
+        msg = 'Error creating new Event. ' + error_msg
+        messages.error(self.request, msg)
+        return self.form_invalid(form)
 
 
 class EventFromHTTPMeasurementView(EventFromMeasurementView):
@@ -1394,6 +1539,8 @@ class EventFromHTTPMeasurementView(EventFromMeasurementView):
     breadcrumb = ["Measurements", "HTTP"]
     form_class = ManualFlagForm
     template_name = 'display_http_table.html'
+    measurement_type = 'HTTP'
+
 
 ######################## PRUEBA #######################################
 

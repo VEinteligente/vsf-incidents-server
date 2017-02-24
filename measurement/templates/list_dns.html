@@ -420,9 +420,6 @@
         $('#example-select-all').on('click', function(){
             // Get all rows with search applied
             var rows = $('#my-table').find('tbody').find('tr');
-            $(rows).each(function() {
-                console.log("Pedro:", $( this ).context);
-            });
             // Check/uncheck checkboxes for all rows in the table
             $('input[type="checkbox"]', rows).prop('checked', this.checked);
             $(rows).each(function() {
@@ -492,7 +489,7 @@
 
             });
 
-            console.log("METRICS", $("#id_metrics").val());
+            // console.log("METRICS", $("#id_metrics").val());
 
         });
 
@@ -503,7 +500,7 @@
 
             var measurement = $( this ).context.childNodes[2].innerText;
             var dns_name = $( this ).context.childNodes[7].innerText;
-            console.log("Pedro DNS:", dns_name);
+            // console.log("Pedro DNS:", dns_name);
             $( this ).toggleClass('selected');
 
             $( '#create-manual-flag').removeClass('disabled');
