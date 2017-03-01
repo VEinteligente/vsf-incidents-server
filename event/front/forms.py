@@ -59,8 +59,18 @@ class EventForm(forms.ModelForm):
 
 
 class EventExtendForm(forms.ModelForm):
+    TYPE_CHOICES = (
+        ('MED', 'MED'),
+        ('DNS', 'DNS'),
+        ('TCP', 'TCP'),
+        ('HTTP', 'HTTP')
+    )
     open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
                                     required=False)
+    flags_type = forms.ChoiceField(
+        choices=TYPE_CHOICES,
+        required=False,
+        label='Chance all Measurements type to:')
 
     class Meta():
         model = Event
