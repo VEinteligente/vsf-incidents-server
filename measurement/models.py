@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from event.models import Event, Url
 
@@ -7,12 +8,11 @@ from event.models import Event, Url
 class Metric(models.Model):
 
     _DATABASE = 'titan_db'
-    manage = False
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
     id = models.UUIDField(primary_key=True, editable=False)
     input = models.CharField(max_length=50)
-    annotations = models.TextField()
+    annotations = JSONField()
     report_id = models.CharField(max_length=100)
     report_filename = models.CharField(max_length=150)
     options = models.TextField()
@@ -25,7 +25,7 @@ class Metric(models.Model):
     measurement_start_time = models.DateTimeField()
     test_runtime = models.FloatField()
     test_helpers = models.TextField()
-    test_keys = models.TextField()
+    test_keys = JSONField()
     software_name = models.CharField(max_length=15)
     software_version = models.CharField(max_length=10)
     test_version = models.CharField(max_length=10)
@@ -33,12 +33,12 @@ class Metric(models.Model):
 
     class Meta:
         db_table = 'metrics'
+        managed = False
 
 
 class MetricFlag(models.Model):
 
     _DATABASE = 'titan_db'
-    manage = False
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
     ip = models.GenericIPAddressField(null=True, blank=True)
@@ -57,6 +57,7 @@ class MetricFlag(models.Model):
 
     class Meta:
         db_table = 'flag'
+        managed = False
 
 
 class Country(models.Model):
@@ -159,7 +160,7 @@ class Probe(models.Model):
     COUNTRIES_CHOICES = (
         ('venezuela', 'Venezuela'),
     )
-    identification = models.CharField(max_length=50)
+    identification = models.CharField(max_length=50, unique=True)
     region = models.ForeignKey(
         State, related_name='probes', default=3479
     )
