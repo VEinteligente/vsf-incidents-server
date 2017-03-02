@@ -66,7 +66,7 @@
                 </tfoot>
                 {% for event in events %}
                     <tr>
-                        <td>{{event.identification}}</td>
+                        <td><a href="{% url 'events:event_front:detail-event' event.id %}">{{event.identification}}</a></td>
                         <td>{{event.isp}}</td>
                         <td>{{event.target}}</td>
                         <td>{{event.start_date}}</td>
@@ -83,29 +83,36 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
+                                    <li><a href={% url 'events:event_front:detail-event' event.id %}>Detail</a></li>
+                                    {% if event.flags.all %}
                                     <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
+                                    {% else %}
+                                    <li><a href={% url 'events:event_front:update-event-evidence' event.id %}>Edit</a></li>
+                                    {% endif %}
                                     <li><a href={% url 'events:event_front:change-event-status' event.id %}>{% if event.draft %}Change status to Public{% else %}Change status to Draft{% endif %}</a></li>
-                                    <li><a href="" style="color:red;" data-toggle="modal" data-target="#del{{event.id}}">Delete Event</a></li>
+                                    <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{event.id}}">Delete</a></li>
                                 </ul>
                             </div>
                         </td>
                     </tr>
 
-                <div class="modal fade" id="del{{event.id}}" tabindex="-1" role="dialog" aria-labelledby="del{{event.id}}" aria-hidden="true">
-                    <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <div class="modal fade" id="modal_delete" role="dialog">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
                                 <h4 class="modal-title">Delete Event</h4>
-                              </div>
-                              <div class="modal-body">
-                                <label class="control-label">Are you sure of this action? It will delete all data asociated to {{ event.identification }}</label>
-                              <div class="modal-footer">
-                                 <a class="btn btn-danger" href={% url 'events:event_front:delete-event' event.id %}>Delete</a>
-                                 <button type="button" class="btn btn-default " data-dismiss="modal">Cancel</button>  
-                              </div>
-                              </div>
-                            </div><!-- /.modal-content -->
+                            </div>
+                            <form id="event-delete-form" action="" method="post">{% csrf_token %}
+                                <div class="modal-body">
+                                    <p>Are you sure of this action? It will delete all data asociated to this event</p>
+                                </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                <input type="submit" class="btn btn-danger" value="Confirm" />
+                            </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -127,7 +134,16 @@
                     { "asSorting": false, "aTargets": [5] }
                 ],
             }
-            );        
+            );     
+
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#event-delete-form').attr('action', url);
+            });
+         
         })
     </script>
     <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>

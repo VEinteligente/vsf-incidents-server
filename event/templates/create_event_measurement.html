@@ -1,0 +1,143 @@
+{% extends 'dashboard/layout.html' %}
+{% load key_value %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+    {% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
+    <div class="row">
+        <div class="col-xs-12">
+            <form action="." method="post">
+                {% csrf_token %}
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">This Event was successfully created. Check all his information and save it</h3>
+                    </div>
+                    <div class="box-body">
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                    &times;
+                                </button>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% bootstrap_field form.identification %}
+                        {% bootstrap_field form.open_ended %}
+                        {% bootstrap_field form.isp %}
+                        {% bootstrap_field form.type %}
+                        <label for="">Flags selected:</label>
+                            <div class="responsive-table">
+                                <table id="measurement_id" class="table table-bordered table-hover dataTable">
+                                    <thead>
+                                        <th>Measurement</th>
+                                        <th>Flag</th>
+                                        <th>Date</th>
+                                        <th>Target</th>
+                                        <th>ISP</th>
+                                        <th>IP Address</th>
+                                        <th>Measurement type</th>
+                                    </thead>
+                                    <tfoot>
+                                        <th>Measurement</th>
+                                        <th>Flag</th>
+                                        <th>Date</th>
+                                        <th>Target</th>
+                                        <th>ISP</th>
+                                        <th>IP Address</th>
+                                        <th>Measurement type</th>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for flag in  flags %}
+                                        <tr>
+                                            <td>{{flag.medicion}}</td>
+                                            <td>{{flag.flag}}</td>
+                                            <td>{{flag.date}}</td>
+                                            <td>{{flag.target}}</td>
+                                            <td>{{flag.isp}}</td>
+                                            <td>{{flag.ip}}</td>
+                                            <td>{{flag.type_med}}</td>
+                                        </tr>
+                                    </tbody>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        <div class="pull-right" style="width:30%; padding-top:20px;">
+                            <div class="pull-left">  
+                                {% bootstrap_label "Change all Measurements type to:" label_for="flags_type" %} 
+                            </div>
+                            <div class="pull-right" style="width:50%;">  
+                                {% bootstrap_field form.flags_type show_label=False%}
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+                    <div class="box-footer text-right">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Save">
+                        <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Event</h4>
+                </div>
+                <form id="event-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure of this action? It will delete all data asociated to {{ event.identification }}</p>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-danger" value="Confirm" />
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+    $(function() {
+            $('#measurement_id').DataTable({
+                }
+            );  
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#event-delete-form').attr('action', url);
+            });
+        })
+</script>
+{% endblock %}

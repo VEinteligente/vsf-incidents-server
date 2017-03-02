@@ -1,10 +1,15 @@
 {% extends 'dashboard/layout.html' %}
+{% load eztables %}
+
+{% block extracss %}
+    {% datatables_bootstrap_css %}
+{% endblock %}
 
 {% block content %}
 <table id="my-table">
     <thead>
         <th>id</th>
-        <th>test_keys</th>
+        <th>Test keys</th>
     </thead>
     <tbody></tbody>
 </table>
@@ -12,87 +17,19 @@
 
 
 {% block extrajs %}
+{% datatables_js %}
+{% datatables_bootstrap_js %}
 <script>
 
-$(function () {
+    $(function () {
 
-    $('#my-table').dataTable({
-        ajax: {
-            url: "/measurements/prueba-ajax/",
-            dataSrc: ''
-        },
-        columns: [
-            { data: 'id' },
-            { data: 'test_keys.status_code_match' },
-        ],
-        'deferRender': true
-    });
+        $('#my-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": '/measurements/prueba-ajax/'
+        });
 
-{#    $('#content1').DataTable({#}
-{##}
-{#        'processing': true,#}
-{#        'serverSide': true,#}
-{#        'ajax': "/measurements/http-table-ajax/",#}
-{##}
-{#        "columnDefs": [#}
-{#            {#}
-{#                "targets": [ 0 ],#}
-{#                "visible": false,#}
-{#                "searchable": false#}
-{#            }#}
-{#        ],#}
-{##}
-{#        initComplete: function () {#}
-{#            this.api().columns().every( function () {#}
-{#                var column = this;#}
-{#                var select = $('<select><option value=""></option></select>')#}
-{#                    .appendTo( $(column.footer()).empty() )#}
-{#                    .on( 'change', function () {#}
-{#                        var val = $.fn.dataTable.util.escapeRegex(#}
-{#                            $(this).val()#}
-{#                        );#}
-{##}
-{#                        column#}
-{#                            .search( val ? '^'+val+'$' : '', true, false )#}
-{#                            .draw();#}
-{#                    } );#}
-{##}
-{#                column.data().unique().sort().each( function ( d, j ) {#}
-{#                    if(column.search() === '^'+d+'$'){#}
-{#                        select.append( '<option value="'+d+'" selected="selected">'+d+'</option>' )#}
-{#                    } else {#}
-{#                        select.append( '<option value="'+d+'">'+d+'</option>' )#}
-{#                    }#}
-{#                } );#}
-{#            } );#}
-{#        },#}
-{##}
-{#        language: {#}
-{#            processing:     "Procesando...",#}
-{#            search:         "Buscar:",#}
-{#            lengthMenu:    "Mostrar _MENU_ elementos",#}
-{#            info:           "Mostrando elementos de _START_ a _END_ de _TOTAL_ elementos",#}
-{#            infoEmpty:      "Mostrando elementos de 0 a 0 de 0 elementos",#}
-{#            infoFiltered:   "(artículos _MAX_ filtrados en total)",#}
-{#            infoPostFix:    "",#}
-{#            loadingRecords: "Cargando",#}
-{#            zeroRecords:    "Ningún elemento en la muestra",#}
-{#            emptyTable:     "No hay datos disponibles en la tabla",#}
-{#            paginate: {#}
-{#                first:      "Primero",#}
-{#                previous:   "Anterior",#}
-{#                next:       "Siguiente",#}
-{#                last:       "Último"#}
-{#            },#}
-{#            aria: {#}
-{#                sortAscending:  ": Habilitar para ordenar la columna en orden ascendente",#}
-{#                sortDescending: ": Habilitar para ordenar la columna en orden descendente"#}
-{#            }#}
-{#        }#}
-{##}
-{#    });#}
-
-})
+    })
 
 </script>
 {% endblock %}

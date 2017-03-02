@@ -1,148 +1,254 @@
 {% extends 'dashboard/layout.html' %}
 {% load key_value %}
 {% load prettyjson %}
+{% load eztables %}
 
-{% block content %}
-    <!-- <div class="table-responsive">
-        <table role="grid" id="content1" class="table table-bordered table-striped table-hover dataTable">
-            <thead>
-                <tr>
-                  {% for item in columns %}
-                    <th>
-                        {{ item }}
-                    </th>
-                  {% endfor %}
-                </tr>
-            </thead>
-            <tfoot>
-                <tr>
-                  {% for item in columns %}
-                    <th>
-                        {{ item }}
-                    </th>
-                  {% endfor %}
-                </tr>
-            </tfoot>
-            <tbody>
-                {% for item in rows %}
-                <tr>
-                {% for key in columns %}
-                    <td>
-                    {% if key == 'test_keys' or key == 'options' or key == 'test_helpers' %}
-                        {% prettyjson item|key_value:key %}
-                    {% elif key == 'flag' %}
-                        {% if item|key_value:key == True %}
-                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>
-                        {% elif item|key_value:key == False %}
-                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>
-                        {% elif item|key_value:key == 'not' %}
-                        {% else %}
-                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>
-                        {% endif %}
-                    {% else %}
-                        {{ item|key_value:key }}
-                    {% endif %}    
-                    </td>
-                {% endfor %}                
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div> -->
-    <div class="table-responsive">
-    <table id="my-table">
-        <thead>
-            {% for item in columns %}
-                <th>{{ item }}</th>
-            {% endfor %}
-        </thead>
-        <tfoot>
-            {% for item in columns %}
-                <th>{{ item }}</th>
-            {% endfor %}
-        </tfoot>
-        <tbody></tbody>
-    </table>
-</div>
+{% block extracss %}
+    {% datatables_bootstrap_css %}
 {% endblock %}
 
+{% block content %}
+
+
+{% if messages %}
+    <div class="box">
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools -->
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="table-responsive">
+
+        <table id="my-table">
+            <thead>
+                <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
+                <th>Flag</th>
+                <th>ID</th>
+                <th>Input</th>
+                <th>Report ID</th>
+                <th>Test Name</th>
+                <th>Test Start Time</th>
+                <th>Measurement Start Time</th>
+            </thead>
+        </table>
+        <div class="text-right">
+            <form id="form" action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+                <input id="create-manual-flag" class="btn btn-flat btn-primary" type="submit" value="Create Manual Flags">
+                <input id="create-event" class="btn btn-flat btn-primary event-btn" type="submit" value="Create Event">
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+
 {% block extrajs %}
+
 {% prettyjson_setup jquery=False %}
+
 <script>
 
-/*$(function () {
-    $('#content1').DataTable({
+    $(function () {
 
-        'deferRender': true,
+        $( '#id_metrics' ).val('');
 
-        initComplete: function () {
-            this.api().columns().every( function () {
-                var column = this;
-                var select = $('<select><option value=""></option></select>')
-                    .appendTo( $(column.footer()).empty() )
-                    .on( 'change', function () {
-                        var val = $.fn.dataTable.util.escapeRegex(
-                            $(this).val()
-                        );
+        $( '#create-manual-flag').toggleClass('disabled');
+        $( '#create-event').toggleClass('disabled');
 
-                        column
-                            .search( val ? '^'+val+'$' : '', true, false )
-                            .draw();
-                    } );
-
-                column.data().unique().sort().each( function ( d, j ) {
-                    if(column.search() === '^'+d+'$'){
-                        select.append( '<option value="'+d+'" selected="selected">'+d+'</option>' )
-                    } else {
-                        select.append( '<option value="'+d+'">'+d+'</option>' )
-                    }
-                } );
-            } );
-        },
-            
-        
-        language: {
-            processing:     "Procesando...",
-            search:         "Buscar:",
-            lengthMenu:    "Mostrar _MENU_ elementos",
-            info:           "Mostrando elementos de _START_ a _END_ de _TOTAL_ elementos",
-            infoEmpty:      "Mostrando elementos de 0 a 0 de 0 elementos",
-            infoFiltered:   "(artículos _MAX_ filtrados en total)",
-            infoPostFix:    "",
-            loadingRecords: "Cargando",
-            zeroRecords:    "Ningún elemento en la muestra",
-            emptyTable:     "No hay datos disponibles en la tabla",
-            paginate: {
-                first:      "Primero",
-                previous:   "Anterior",
-                next:       "Siguiente",
-                last:       "Último"
-            },
-            aria: {
-                sortAscending:  ": Habilitar para ordenar la columna en orden ascendente",
-                sortDescending: ": Habilitar para ordenar la columna en orden descendente"
+        $('#my-table').dataTable({
+            "bProcessing": true,
+            "bServerSide": true,
+            "sAjaxSource": '/measurements/measurement-ajax/',
+            "aoColumns": [
+                { "mData": "checkbox","bSortable": false, "bSearchable": false,
+                "mRender": function ( data ) {
+                return '<input type="checkbox" name="' + data + '" value="1">'
             }
-        }
+                },
+                { "mData": "Flag",  "mRender": function ( data, type, full ) {
 
-    });
-    
-})*/
-$(function () {
+                        var flag_icon = "";
 
-    $('#my-table').dataTable({
-        ajax: {
-            url: "/measurements/measurement-ajax/",
-            dataSrc: ''
-        },
-        columns: [
-            { data: 'flag' },
-            { data: 'id' },
-        ],
-        'deferRender': true
-    });
+                        if(full.flag_id != null){
 
-    
-})
+                            if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == false){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == null){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                        }
+
+                        if(full.manual_flag){
+                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
+                        }
+
+                        return flag_icon;
+                    }
+                },
+                { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }else{
+                            return '';
+                        }
+                   }
+                },
+                { "mData": "input" },
+                { "mData": "report_id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                            return url_report
+                        }else{
+                            return '';
+                        }
+                   }
+                },
+                { "mData": "test_name" },
+                { "mData": "test_start_time" },
+                { "mData": "measurement_start_time" }
+            ],
+        });
+
+        // Handle click on "Select all" control
+        $('#example-select-all').on('click', function(){
+            // Get all rows with search applied
+            var rows = $('#my-table').find('tbody').find('tr');
+            // Check/uncheck checkboxes for all rows in the table
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+            $(rows).each(function() {
+               var checked = $('input[type="checkbox"]', rows).prop('checked');
+               if(checked){
+                $(this).addClass('selected', checked);
+               }else{
+                $(this).removeClass('selected');
+               }
+
+               var metrics = $( '#id_metrics' );
+               var measurement = $( this ).context.childNodes[2].innerText;
+               $( '#create-manual-flag').removeClass('disabled');
+                $( '#create-event').removeClass('disabled');
+
+
+
+               if( $( this ).hasClass( 'selected' ) ){
+                $(this).find(":checkbox").prop("checked", true);
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');
+            }else{
+                $(this).find(":checkbox").prop("checked", false);
+                var metric_index = metrics.val().indexOf(measurement);
+                metrics.val(
+                        metrics.val().substring(
+                                0,
+                                metric_index - 1
+                        ) +
+                        metrics.val().substring(
+                                metric_index + measurement.length + 2
+                        )
+                );
+
+                if (!metrics.val().match(/([^,\']+)\w/)){
+                    metrics.val("");
+                    $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
+                }
+
+            }
+
+            $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+            $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+            });
+
+            console.log("METRICS", $("#id_metrics").val());
+
+        });
+
+        $('#my-table tbody').on('click', 'tr', function () {
+
+            var metrics = $( '#id_metrics' );
+            var measurement = $( this ).context.childNodes[2].innerText;
+
+            $( this ).toggleClass('selected');
+
+            $( '#create-manual-flag').removeClass('disabled');
+            $( '#create-event').removeClass('disabled');
+
+
+            if( $( this ).hasClass( 'selected' ) ){
+                $(this).find(":checkbox").prop("checked", true);
+                metrics.val( metrics.val() + '\'' + measurement + '\', ');
+            }else{
+                $(this).find(":checkbox").prop("checked", false);
+                var metric_index = metrics.val().indexOf(measurement);
+                metrics.val(
+                        metrics.val().substring(
+                                0,
+                                metric_index - 1
+                        ) +
+                        metrics.val().substring(
+                                metric_index + measurement.length + 2
+                        )
+                );
+
+                if (!metrics.val().match(/([^,\']+)\w/)){
+                    metrics.val("");
+                    $( '#create-manual-flag').toggleClass('disabled');
+                    $( '#create-event').toggleClass('disabled');
+
+                }
+
+            }
+
+            $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+            $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+        });
+
+        $('#create-manual-flag').on('click', function(event) {
+            /* Act on the event */
+            var url = '/measurements/create-manual-flags/'
+            $('#form').attr('action', url);
+        });
+
+
+        $(document).on('click', '.event-btn', function(event) {
+            /* Act on the event */
+            var url = '/measurements/create_event/'
+            $('#form').attr('action', url);
+        });
+
+    })
 
 </script>
 {% endblock %}

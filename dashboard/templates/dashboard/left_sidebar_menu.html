@@ -9,6 +9,7 @@
         <li><a href="{% url 'measurements:measurement_front:dns-table' %}"><span class="opt-name">DNS</span></a></li>
         <li><a href="{% url 'measurements:measurement_front:tcp-table' %}"><span class="opt-name">TCP</span></a></li>
         <li><a href="{% url 'measurements:measurement_front:http-table' %}"><span class="opt-name">HTTP</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:list-report' %}"><span class="opt-name">Reports</span></a></li>
     </ul>
 </li>
 <li class="treeview">
@@ -19,6 +20,7 @@
     <ul class="treeview-menu">
         <li><a href="{% url 'events:event_front:list-event' %}"><span class="opt-name">List Events</span></a></li>
         <li><a href="{% url 'events:event_front:create-event' %}"><span class="opt-name">New Event</span></a></li>
+        <li><a href="{% url 'events:event_front:create-event-evidence' %}"><span class="opt-name">New Event (External Evidence)</span></a></li>
     </ul>
 </li>
 <li class="treeview">
@@ -30,6 +32,8 @@
         <li><a href="{% url 'cases:case_front:list-case' %}"><span class="opt-name">List Cases</span></a></li>
         <li><a href="{% url 'cases:case_front:create-case' %}"><span class="opt-name">New Case</span></a></li>
         <li><a href="{% url 'cases:case_front:create-case-from-events' %}"><span class="opt-name">New Case from events</span></a></li>
+        <li><a href="{% url 'cases:case_front:list-category' %}"><span class="opt-name">List Categories</span></a></li>
+        <li><a href="{% url 'cases:case_front:create-category' %}"><span class="opt-name">New Category</span></a></li>
     </ul>
 </li>
 <li class="treeview">
@@ -41,6 +45,19 @@
         <li><a href="{% url 'measurements:measurement_front:list-muted-input' %}"><span class="opt-name">List Muted Inputs</span></a></li>
         <li><a href="{% url 'measurements:measurement_front:create-muted-input' %}"><span class="opt-name">New Muted Input</span></a></li>
     </ul>
+</li>
+<li class="treeview">
+    <a href="#">
+        <span class="opt-name">Probes</span>
+        <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+    </a>
+    <ul class="treeview-menu">
+        <li><a href="{% url 'measurements:measurement_front:list-probe' %}"><span class="opt-name">List Probes</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:create-probe' %}"><span class="opt-name">New Probe</span></a></li>
+    </ul>
+</li>
+<li>
+    <a href="{% url 'users:user_front:api-users-list' %}"><span class="opt-name">API Users</span></a>
 </li>
 <!-- <li class="treeview">
     <a href="#">

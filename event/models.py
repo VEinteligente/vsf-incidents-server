@@ -38,9 +38,11 @@ class Event(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
     target = models.ForeignKey(Url)  # input in metrics
-    identification = models.CharField(max_length=50)
+    identification = models.CharField(max_length=50, unique=True)
     draft = models.BooleanField(default=True)
+    public_evidence = models.TextField(null=True, blank=True)
+    private_evidence = models.TextField(null=True, blank=True)
     type = models.CharField(max_length=100, choices=TYPES)
 
     def __unicode__(self):
-        return u"%s" % self.type
+        return u"%s" % self.identification

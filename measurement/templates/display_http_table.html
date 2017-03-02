@@ -1,35 +1,56 @@
 {% extends 'dashboard/layout.html' %}
 
 {% block content %}
+{% if messages %}
+<div class="box">
+    <div class="box-tools pull-right">
+        <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+    </div><!-- /.box-tools -->
+
+    {% for message in messages %}
+        {% if message.level ==  40 %}
+            <div class="callout callout-danger">
+                <p>{{ message }}</p>
+            </div>
+        {% else %}
+
+            {% if message.level ==  25 %}
+                <div class="callout callout-success">
+                  <p>{{ message }}</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="table-responsive">
-    <table id="my-table">
+    <table id="http-table">
         <thead>
+            <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
             <th>flag</th>
             <th>id</th>
             <th>measurement_start_time</th>
             <th>input</th>
+            <th>Test Name</th>
             <th>probe_cc</th>
             <th>body_length_match</th>
             <th>body_proportion</th>
             <th>headers_match</th>
             <th>status_code_match</th>
             <th>title_match</th>
+            <th>report_id</th>
         </thead>
-        <tfoot>
-            <th>flag</th>
-            <th>id</th>
-            <th>measurement_start_time</th>
-            <th>input</th>
-            <th>probe_cc</th>
-            <th>body_length_match</th>
-            <th>body_proportion</th>
-            <th>headers_match</th>
-            <th>status_code_match</th>
-            <th>title_match</th>
-        </tfoot>
         <tbody></tbody>
     </table>
 </div>
+<div class="text-right">
+            <form id="form" action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+                <input id="create-event" class="btn btn-flat btn-primary event-btn" type="submit" value="Create Event">
+            </form>
+        </div>
 {% endblock %}
 
 
@@ -38,7 +59,12 @@
 
 $(function () {
 
-    $('#my-table').DataTable({
+    $( '#id_metrics' ).val('');
+
+    $( '#create-manual-flag').toggleClass('disabled');
+    $( '#create-event').toggleClass('disabled');
+
+    $('#http-table').DataTable({
         'deferRender': true,
         "bPaginate": true,
         "sPaginationType": "full_numbers",
@@ -46,11 +72,19 @@ $(function () {
         "bServerSide": true,
         "sAjaxSource": "/measurements/http-table-ajax/",
         "aoColumns": [
-              { "mData": 'flag',
-                       "mRender": function ( data ) {
-                           var flag_icon = "";
+            { "mData": "checkbox","bSortable": false, "bSearchable": false,
+                    "mRender": function ( data ) {
+                    return '<input type="checkbox" name="' + data + '" value="1">'
+                }
+            },
+            { "mData": "Flag",  "mRender": function ( data, type, full ) {
+                        
+                        var flag_icon = "";
+
+                        if(full.flag_id != null){
+
                             if (data == true){
-                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
                             }
                             if (data == false){
                                 flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
@@ -58,21 +92,192 @@ $(function () {
                             if (data == null){
                                 flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
                             }
+                        }
+                        console.log(full.manual_flag);
+                        if(full.manual_flag){
+                            flag_icon += '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
+                        }
 
-                           return flag_icon;
-                       }
-                   },
-            { "mData": "id" },
+                        return flag_icon;
+                    }
+            },
+            { "mData": "id",
+                   "mRender": function ( data ) {
+                        if (data != null){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement;
+                        }else{
+                            return '';
+                        }
+                   }
+            },
             { "mData": "measurement_start_time" },
             { "mData": "input" },
+            { "mData": "test_name" },
             { "mData": "probe_cc" },
-            { "mData": 'body_length_match'},
+            { "mData": 'body_length_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
             { "mData": 'body_proportion'},
-            { "mData": 'headers_match'},
-            { "mData": 'status_code_match'},
-            { "mData": 'title_match'}
+            { "mData": 'headers_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": 'status_code_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": 'title_match',
+                "mRender": function ( data ) {
+                    if (data == "true"){
+                        return '<i class="fa fa-check" style="color: green;" aria-hidden="true"></i>';
+                    }else if (data == "false"){
+                        return '<i class="fa fa-times" style="color: red;" aria-hidden="true"></i>';    
+                    }else{
+                        return '';
+                    }
+               }
+            },
+            { "mData": "report_id",
+               "mRender": function ( data ) {
+                    if (data != null){
+                        var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                        url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                        return url_report;
+                    }else{
+                        return '';
+                    }
+               }
+            }
 
         ]
+    });
+
+    // Handle click on "Select all" control
+    $('#example-select-all').on('click', function(){
+        // Get all rows with search applied
+        var rows = $('#http-table').find('tbody').find('tr');
+        // Check/uncheck checkboxes for all rows in the table
+        $('input[type="checkbox"]', rows).prop('checked', this.checked);
+        $(rows).each(function() {
+           var checked = $('input[type="checkbox"]', rows).prop('checked');
+           if(checked){
+            $(this).addClass('selected', checked);
+           }else{
+            $(this).removeClass('selected');
+           }
+
+           var metrics = $( '#id_metrics' );
+           var measurement = $( this ).context.childNodes[2].innerText;
+           $( '#create-manual-flag').removeClass('disabled');
+            $( '#create-event').removeClass('disabled');
+
+
+
+           if( $( this ).hasClass( 'selected' ) ){
+            $(this).find(":checkbox").prop("checked", true);
+            metrics.val( metrics.val() + '\'' + measurement + '\', ');
+        }else{
+            $(this).find(":checkbox").prop("checked", false);
+            var metric_index = metrics.val().indexOf(measurement);
+            metrics.val(
+                    metrics.val().substring(
+                            0,
+                            metric_index - 1
+                    ) +
+                    metrics.val().substring(
+                            metric_index + measurement.length + 2
+                    )
+            );
+
+            if (!metrics.val().match(/([^,\']+)\w/)){
+                metrics.val("");
+                $( '#create-manual-flag').toggleClass('disabled');
+                $( '#create-event').toggleClass('disabled');
+
+            }
+
+        }
+
+        $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+        $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+        });
+
+        console.log("METRICS", $("#id_metrics").val());
+
+    });
+
+    $('#http-table tbody').on('click', 'tr', function () {
+
+        var metrics = $( '#id_metrics' );
+        var measurement = $( this ).context.childNodes[2].innerText;
+
+        $( this ).toggleClass('selected');
+
+        $( '#create-manual-flag').removeClass('disabled');
+        $( '#create-event').removeClass('disabled');
+
+
+        if( $( this ).hasClass( 'selected' ) ){
+            $(this).find(":checkbox").prop("checked", true);
+            metrics.val( metrics.val() + '\'' + measurement + '\', ');
+        }else{
+            $(this).find(":checkbox").prop("checked", false);
+            var metric_index = metrics.val().indexOf(measurement);
+            metrics.val(
+                    metrics.val().substring(
+                            0,
+                            metric_index - 1
+                    ) +
+                    metrics.val().substring(
+                            metric_index + measurement.length + 2
+                    )
+            );
+
+            if (!metrics.val().match(/([^,\']+)\w/)){
+                metrics.val("");
+                $( '#create-manual-flag').toggleClass('disabled');
+                $( '#create-event').toggleClass('disabled');
+
+            }
+
+        }
+
+        $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
+
+        $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+
+    });
+
+    $(document).on('click', '.event-btn', function(event) {
+        /* Act on the event */
+        var url = '/measurements/create_event/HTTP/'
+        $('#form').attr('action', url);
     });
 
 })

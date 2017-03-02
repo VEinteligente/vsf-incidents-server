@@ -1,19 +1,31 @@
 from django.shortcuts import render
 from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
+from vsf.vsf_authentication import VSFTokenAuthentication
+from vsf_user.rest.serializers import ApiKeyUserSerializer
+
+
+class DetailApiKeyUser(generics.RetrieveAPIView):
+    authentication_classes = (BasicAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = User.objects.filter(groups__name='api')
+    lookup_url_kwarg = 'user_id'
+    serializer_class = ApiKeyUserSerializer
 
 
 class GenerateToken(APIView):
-    permission_classes = (AllowAny,)
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        print request.user
+        token = Token.objects.get(user=request.user)
         content = {
-            'token': 'o.o'
+            'token': token.key
         }
         return Response(content)
 

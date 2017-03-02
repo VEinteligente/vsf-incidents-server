@@ -29,6 +29,11 @@ urlpatterns = [
         name='delete-event'
     ),
     url(
+        r'^(?P<pk>[0-9]+)/detail/$',
+        views.DetailEvent.as_view(),
+        name='detail-event'
+    ),
+    url(
         r'^update-ajax/$',
         views.UpdateFlagsTable.as_view(),
         name='update-ajax'
@@ -42,5 +47,20 @@ urlpatterns = [
         r'^suggestions/$',
         views.ListEventSuggestedFlags.as_view(),
         name='suggestions-event'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/create_from_measurements/$',
+        views.CreateEventMeasurementView.as_view(),
+        name='create-event-from-measurements'
+    ),
+    url(
+        r'^create-with-evidence/$',
+        views.CreateEventEvidenceView.as_view(),
+        name='create-event-evidence'
+    ),
+    url(
+        r'^(?P<pk>[0-9]+)/update-with-evidence/$',
+        views.UpdateEventEvidenceView.as_view(),
+        name='update-event-evidence'
     ),
 ]

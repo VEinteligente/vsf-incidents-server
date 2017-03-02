@@ -1,12 +1,22 @@
 from django.db.models import Q
 
 from django.shortcuts import render
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import BasicAuthentication
+from vsf.vsf_authentication import VSFTokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
-from .serializers import UrlSerializer, SiteSerializer
+from .serializers import (
+    UrlSerializer,
+    SiteSerializer,
+    EventSerializer,
+    EventGroupSerializer,
+    EventGroupFilter,
+    BlockedSiteSerializer
+)
+from django_filters.rest_framework import DjangoFilterBackend
 
 from event.models import Event, Url, Site
+from datetime import datetime
 
 
 class BlockedDomains(generics.ListAPIView):
@@ -18,8 +28,8 @@ class BlockedDomains(generics.ListAPIView):
     pertenecer a un sitio.
     Ej. http://www.midominiobloqueado.com
     """
-
-    permission_classes = (AllowAny,)
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
 
     queryset = Event.objects.filter(
         Q(type='bloqueo por DPI') |
@@ -43,7 +53,7 @@ class BlockedSites(BlockedDomains):
     Ej. Mi Sitio Bloqueado
     """
 
-    serializer_class = SiteSerializer
+    serializer_class = BlockedSiteSerializer
 
     def get_queryset(self):
         queryset = super(BlockedSites, self).get_queryset()
@@ -51,3 +61,32 @@ class BlockedSites(BlockedDomains):
         site_list = queryset.values('site')
         queryset = Site.objects.filter(id__in=site_list)
         return queryset
+
+
+class EventList(generics.ListAPIView):
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
+    queryset = Event.objects.filter(draft=False)
+    serializer_class = EventSerializer
+
+
+class ListEventGroupView(generics.ListAPIView):
+    """ListEventGroupView: ListAPIView
+    for displaying a list of events filtered by
+    start date, end date and isp"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Event.objects.filter(draft=False)
+    serializer_class = EventGroupSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = EventGroupFilter
+
+
+class ListSiteView(generics.ListAPIView):
+    """ListSiteView: ListAPIView
+    for displaying a list of all sites"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer

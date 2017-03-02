@@ -1,5 +1,5 @@
 from django import forms
-from event.models import Event
+from event.models import Event, Site
 from measurement.models import Flag
 
 
@@ -13,7 +13,7 @@ class EventForm(forms.ModelForm):
 
     class Meta:
         model = Event
-        fields = ['open_ended', 'identification', 'flags']
+        fields = ['open_ended', 'identification', 'flags', 'type']
 
     def clean(self):
         '''Data from EventForm'''
@@ -35,10 +35,10 @@ class EventForm(forms.ModelForm):
             # Get flags from database with same target, isp
             # and type
 
-            for f in flags:
-                split = f.split('/')
+            for f in filter(None, flags):
+                split = f.split('&')
                 bd_flags += Flag.objects.filter(medicion=split[0],
-                                                target=split[1],
+                                                target__url=split[1],
                                                 isp=split[2],
                                                 ip=split[3],
                                                 type_med=split[4])
@@ -56,3 +56,52 @@ class EventForm(forms.ModelForm):
         else:
             self.add_error(None,
                        'The Event must have measurements and identification asociated')
+
+
+class EventExtendForm(forms.ModelForm):
+    TYPE_CHOICES = (
+        ('MED', 'MED'),
+        ('DNS', 'DNS'),
+        ('TCP', 'TCP'),
+        ('HTTP', 'HTTP')
+    )
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+    flags_type = forms.ChoiceField(
+        choices=TYPE_CHOICES,
+        required=False,
+        label='Chance all Measurements type to:')
+
+    class Meta():
+        model = Event
+        fields = ['open_ended', 'identification', 'isp', 'type']
+
+
+class EventEvidenceForm(forms.ModelForm):
+    """
+    EventEvidenceForm: ModelForm of Event model adding url model attributes
+    to create event target.
+    This is used to create/update an event with external evidence
+    """
+    open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
+                                    required=False)
+
+    target_url = forms.URLField(
+        label="Target URL",
+        required=False)
+    target_ip = forms.GenericIPAddressField(
+        label="Target IP",
+        required=False)
+    target_site = forms.ModelChoiceField(
+        queryset=Site.objects.all(),
+        empty_label="(Nothing)",
+        label="Target Site",
+        required=False)
+
+    class Meta():
+        model = Event
+        exclude = [
+            'draft',
+            'target'
+        ]
+

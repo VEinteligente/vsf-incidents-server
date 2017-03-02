@@ -25,6 +25,7 @@
                         {% bootstrap_field form.identification %}
                         {% bootstrap_field form.open_ended %}
                         {% bootstrap_field form.flags %}
+                         <input id="flags_id" type="text" style="width: 100%;" name="flags_id" value="{{ flags_id }}">
                         <div class="box box-solid box-primary">
                 <div class="box-header with-border">
                     <h3 class="box-title"> Select Measurement(s)</h3>
@@ -40,6 +41,7 @@
                                 <th>ISP</th>
                                 <th>IP Address</th>
                                 <th>Measurement type</th>
+                                <th>selected</th>
                             </thead>
                             <tfoot>
                                 <th>Measurement</th>
@@ -49,6 +51,7 @@
                                 <th>ISP</th>
                                 <th>IP Address</th>
                                 <th>Measurement type</th>
+                                <th>selected</th>
                             </tfoot>
                             <tbody></tbody>
                         </table>
@@ -57,10 +60,33 @@
             </div>
                     </div>
                     <div class="box-footer text-right">
-                        <input class="btn btn-flat btn-primary" type="submit" value="Update">
+                        <input class="btn btn-flat btn-primary" type="submit" value="Save">
+                        <a href="" class="btn btn-danger delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete</a>
+                        <button type="button" id="btn" class="btn btn-flat btn-primary" data-clipboard-text="{{ flags_id }}">
+                            Copy Measurements Ids
+                        </button>
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Event</h4>
+                </div>
+                <form id="event-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure of this action? It will delete all data asociated to {{ event.identification }}</p>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <input type="submit" class="btn btn-danger" value="Confirm" />
+                </div>
+                </form>
+            </div>
         </div>
     </div>
 {% endblock %}
@@ -69,50 +95,88 @@
 <script>
     $(document).ready(function () {
 
-        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' ');        
+        var flags = $( '#id_flags' ).val($( '#id_flags' ).val() + ' '); 
+
+        var flags_id = $( '#flags_id' ).val($( '#flags_id' ).val() + ' ');
 
         var table = $('#measurement_id').DataTable({
-            "order": [[ 0, "desc" ]],
+            "order": [[ 7, "desc" ]],
             "bPaginate": true,
             "sPaginationType": "full_numbers",
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": "{% url 'events:event_front:update-ajax'%}",
+            "columnDefs": [
+                {
+                    "targets": [ 7 ],
+                    "visible": false,
+                    "searchable": false
+                }
+            ],
             "fnServerParams": function ( aoData ) {
                 aoData.push( { "name": "pk", "value": {{ event.id }} } );
             },
             "rowCallback": function( row, data, index ) {
-
+                console.log($('#id_flags'));
                 $('#id_flags').each(function(){
-
+                    console.log($(this));
                     $.each($(this).val().split(' '), function(){
 
-                        var split = this.split('/');
+                        var split = this.split('&');
+                        console.log("SPLIT 0", data['Measurement']);
+                        console.log("SPLIT 0", split[0]);
+                        console.log("SPLIT 1", data['Target'] == split[1]);
+                        console.log("SPLIT 2", data['ISP']);
+                        console.log("SPLIT 2", split[2]);
+                        console.log("SPLIT 2", data['ISP'] == split[2]);
+                        console.log("SPLIT 3", data['IP Address'] == split[3]);
+                        console.log("SPLIT 4", data['Measurement type'] == split[4]);
 
-                        if (data['Measurement'] == split[0] && data['Target'] == split[1] && data['ISP'] == split[2] && data['IP Address'] == split[3] && data['Measurement type'] == split[4]) 
+                        if (data['Measurement'] == split[0] && data['Target'] == split[1] && (data['ISP'] == split[2] || data['ISP'] == null) && (data['IP Address'] == split[3] || data['Address'] == null) && data['Measurement type'] == split[4])
                         {
+                            console.log("HOLAAAA");
                             $(row).addClass('selected');
-                        }
+                        } 
                     });
                 });
             },
             "aoColumns": [
                 { "mData": "Measurement" },
                 { "mData": "Flag",  "mRender": function ( data ) {
-                        if (data){
-                            return '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>';
+                       var flag_icon = "";
+                        if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
                         }
-                        else{
-                            return '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>';
+                        if (data == false){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                        }
+                        if (data == null){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                        }
 
-                        }
+                        return flag_icon;
                     }
                 },
                 { "mData": 'Date' },
                 { "mData": 'Target' },
-                { "mData": 'ISP' },
-                { "mData": "IP Address" },
-                { "mData": "Measurement type" }
+                { "mData": 'ISP', "mRender": function ( data ) {
+                        if (data == null){
+                            data = "Unknown"
+                        }
+
+                        return data;
+                    }
+                },
+                { "mData": "IP Address", "mRender": function ( data ) {
+                        if (data == null){
+                            data = "Unknown"
+                        }
+
+                        return data;
+                    }
+                },
+                { "mData": "Measurement type" },
+                { "mData": "selected" }
 
             ]
         });
@@ -120,6 +184,7 @@
         $('#measurement_id tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
+            var flags_id = $( '#flags_id' );
             var target = $( this ).context.childNodes[3].innerText;
             var isp = $( this ).context.childNodes[4].innerText;
             var ip = $( this ).context.childNodes[5].innerText;
@@ -129,8 +194,13 @@
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
-                flags.val( flags.val() + measurement + '/' + target + '/' + isp + '/' +
-                           ip + '/' + type + ' ');
+                flags.val( flags.val() + measurement + '&' + target + '&' + isp + '&' +
+                           ip + '&' + type + ' ');
+                flags_id.val( flags_id.val() + measurement + ' ');
+
+                var text_flags = flags_id.val();
+                
+                $("#btn").attr("data-clipboard-text", text_flags);
             }else{
                 var flag_index = flags.val().indexOf(measurement);
                 flags.val(
@@ -146,9 +216,69 @@
                         )
                 );
                 flags.val().replace(" ", "");
+
+                var flags_id_index = flags_id.val().indexOf(measurement);
+                flags_id.val(
+                        flags_id.val().substring(
+                                0,
+                                flags_id_index
+                        ) +
+                        flags_id.val().substring(
+                                flags_id_index + measurement.length 
+                        )
+                );
+                flags_id.val().replace(" ", "");
+
+                var text_flags = flags_id.val();
+                
+                $("#btn").attr("data-clipboard-text", text_flags);
             }
         });
 
-    })
+        // Tooltip
+
+        $('button').tooltip({
+          trigger: 'click',
+          placement: 'bottom'
+        });
+
+        function setTooltip(btn, message) {
+          $(btn).tooltip('hide')
+            .attr('data-original-title', message)
+            .tooltip('show');
+        }
+
+        function hideTooltip(btn) {
+          setTimeout(function() {
+            $(btn).tooltip('hide');
+          }, 8000); 
+        }
+
+        // Clipboard
+
+        var btn = document.getElementById('btn');
+        var clipboard = new Clipboard(btn);
+            
+        clipboard.on('success', function(e) {
+            setTooltip(e.trigger, 'Copied!');
+            hideTooltip(e.trigger);
+        });
+
+        clipboard.on('error', function(e) {
+            setTooltip(e.trigger, 'Failed!');
+            hideTooltip(e.trigger);
+        });
+
+    });
+
+    $(function() {
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#event-delete-form').attr('action', url);
+            });
+        })
 </script>
 {% endblock %}

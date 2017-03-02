@@ -1,0 +1,302 @@
+{% extends 'dashboard/layout.html' %}
+{% load key_value %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+{% block content %}
+
+    {% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
+
+    <div class="box">
+        <div class="box-header with-border">
+            <h3 class="box-title">API Users List</h3>
+            <div class="pull-right">
+                <span id="success-delete-alert" class="alert alert-danger alert-dismissible fade in"
+                      style="margin-right: 5px; display: none;">
+                    User Deleted
+                </span>
+                <span id="success-add-alert" class="alert alert-success alert-dismissible fade in"
+                      style="margin-right: 5px; display: none;">
+                    User Added Successfully
+                </span>
+                <a class="btn btn-primary" data-toggle="modal" data-target="#addApiUserModal">Add API User</a>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <div class="table">
+                <table id="api-list" class="table table-bordered table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <!-- /.box-body -->
+
+    </div>
+
+    <div class="modal fade" id="addApiUserModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <form action="" method="post" id="id-create-user-form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">Add API User</h4>
+                    </div>
+                    <div class="modal-body">
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                                    &times;
+                                </button>
+                                {% for non_field_error in form.non_field_errors %}
+                                    {{ non_field_error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% csrf_token %}
+                        {% bootstrap_field form.username %}
+                        {% bootstrap_field form.password %}
+                        {% bootstrap_field form.confirm_password %}
+                        {% bootstrap_field form.first_name %}
+                        {% bootstrap_field form.last_name %}
+                        {% bootstrap_field form.email %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <input type="submit" class="btn btn-primary" value="Create user">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="detailApiUserModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="detailApiUserTitle"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_username">Username:</label>
+                            <span id="id_detail_username"></span>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_first_name">First name:</label>
+                            <span id="id_detail_first_name"></span>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_last_name">Last name:</label>
+                            <span id="id_detail_last_name"></span>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_date_joined">Date joined:</label>
+                            <span id="id_detail_date_joined"></span>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_last_used">Last used:</label>
+                            <span id="id_detail_last_used"></span>
+                        </div>
+                        <div class="col-md-4 col-sm-4 col-xs-12 col-lg-4">
+                            <label class="control-label" for="id_detail_times_used">Times used:</label>
+                            <span id="id_detail_times_used"></span>
+                        </div>
+                        <div class="col-md-6 col-sm-6 col-xs-12 col-lg-6">
+                            <label class="control-label" for="id_detail_email">Email:</label>
+                            <span id="id_detail_email"></span>
+                        </div>
+                        <div class="col-md-12 col-sm-12 col-xs-12 col-lg-12 form-group">
+                            <label class="control-label" for="id_detail_token">Key:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="id_detail_token">
+                                <span class="input-group-btn">
+                                    <a class="btn btn-default copy-token"><span class="glyphicon glyphicon-copy"></span></a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12 col-lg-12">
+                            <a class="btn btn-danger delete-apiuser">Delete</a>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+
+            var token_input = $("#id_detail_token");
+            var detail_modal = $( "#detailApiUserModal" );
+            var listTable = $('#api-list').DataTable({
+                'deferRender': true,
+                "bPaginate": true,
+                "sPaginationType": "full_numbers",
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": "/users/list-apikey-ajax/",
+                "aoColumns": [
+                    { "aaData": 'user__username'},
+                    { "aaData": "user__first_name" },
+                    { "aaData": "user__last_name" },
+                    { "aaData": "user__email" },
+                    { "aaData": "user_id",
+                       "mRender": function ( data ) {
+                           var url_subscriber = 'btn btn-xs btn-info apiuser-detail" name="apiuser-0'.replace('0', data);
+                           url_subscriber = '<a class="' + url_subscriber + '">';
+                           return url_subscriber + "Detail</a>";
+                       }
+                    }
+
+                ]
+            });
+
+            token_input.focus(function () {
+                $(this).select();
+            });
+
+            detail_modal.on('shown.bs.modal', function () {
+                token_input.focus();
+            });
+
+            $(".copy-token").on('click', function () {
+
+                token_input.focus();
+                try {
+                    var successful = document.execCommand('copy');
+                    var msg = successful ? 'successful' : 'unsuccessful';
+                    console.log('Copying text command was ' + msg);
+                } catch (err) {
+                    console.log('Oops, unable to copy');
+                }
+
+            });
+
+            $(".delete-apiuser").on('click', function () {
+
+                var uid = $(this).attr('name');
+                var url = '/users/' + uid + '/delete-apikey/';
+                if(confirm("R u sure? o.o")){
+                    $.ajax({
+                        url:url,
+                        method:'POST'
+                    }).done(function (data) {
+                        listTable.ajax.reload( null, false );
+                        $("#success-delete-alert").fadeIn();
+                        detail_modal.modal('hide');
+                        setTimeout(function(){
+                            $("#success-delete-alert").fadeOut();
+                        }, 3000);
+                    });
+                }
+
+            });
+
+            $("#id-create-user-form").on('submit', function(event){
+                event.preventDefault();
+                var formData = $(this).serializeArray();
+                $.ajax({
+                    url: '{% url 'users:user_front:api-users-list' %}',
+                    method: 'POST',
+                    data: formData,
+                    error: function (a, b, c) {
+                        console.log(a);
+                        alert(JSON.stringify(a.responseJSON));
+                    }
+                }).done(function(data){
+                    listTable.ajax.reload( null, false );
+                    $("#success-add-alert").fadeIn();
+                    $('#addApiUserModal').modal('hide');
+                    setTimeout(function(){
+                        $("#success-add-alert").fadeOut();
+                    }, 3000);
+                });
+            });
+
+            $(document).on('click', '.apiuser-detail', function(){
+
+                var id = $(this).attr('name').split('-');
+                id = id[1];
+                var url = '/users/api/retrieve-apiuser/' + id + '/';
+                var self = $(this);
+
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    data: id
+                }).done(function(data){
+                    console.log(data);
+                    var dj = new Date(data.date_joined);
+                    var lu = new Date(data.token_control.last_used);
+
+                    $("#detailApiUserTitle").html('Detail of  <b>' + data.username + '</b>');
+                    $( "#id_detail_username" ).html(data.username);
+                    $("#id_detail_first_name").html(data.first_name);
+                    $("#id_detail_last_name").html(data.last_name);
+                    $("#id_detail_date_joined").html(dj.getDate() + '/' + (dj.getMonth()+1) + '/' + dj.getFullYear() +
+                            ' - ' + dj.getHours() + ':' + dj.getMinutes());
+                    $("#id_detail_last_used").html(lu.getDate() + '/' + (lu.getMonth()+1) + '/' + lu.getFullYear() +
+                            ' - ' + lu.getHours() + ':' + lu.getMinutes());
+                    $("#id_detail_times_used").html(data.token_control.count);
+                    $("#id_detail_email").html(data.email);
+                    $(".delete-apiuser").attr('name', data.id);
+                    $(".update-apiuser").attr('name', data.id);
+                    token_input.val('Token ' + data.token_control.token);
+
+                });
+
+                detail_modal.modal('show');
+            });
+         
+        });
+
+
+    </script>
+{% endblock extrajs %}
