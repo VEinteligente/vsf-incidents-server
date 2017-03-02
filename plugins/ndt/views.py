@@ -1,10 +1,47 @@
+import json
+from plugins.views import PluginTableView
+from eztables.views import DatatablesView
+from django.http import HttpResponse
+from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models.expressions import RawSQL
+
 from django.views import generic
 from datetime import datetime
-from eztables.views import DatatablesView
 from measurement.models import Metric, Probe
 from models import DayTest
 # from measurement.models import Country, State, Probe
 # import random
+
+
+class DemoTableView(PluginTableView):
+    page_header = "DEMO Measurement List"
+    page_header_description = "Demo example"
+    breadcrumb = ["Measurement", "NDT"]
+    titles = ['flags', 'id', 'input', 'queries']
+    url_ajax = '/plugins/demo/demo-ajax/'
+
+
+class NdtAjaxView(DatatablesView):
+    fields = {
+        'id': 'id',
+        'annotations': 'annotations',
+        'probe': 'queries'
+    }
+    queryset = Metric.objects.filter(test_name='ndt').annotate(
+        queries=RawSQL(
+            "test_keys->>'queries'", ()
+        )
+    )
+
+    def get_rows(self, rows):
+        return super(NdtAjaxView, self).get_rows(rows)
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder)
+        )
+
+# --------------------------------------------------------
 
 
 class PuraPrueba(generic.TemplateView):

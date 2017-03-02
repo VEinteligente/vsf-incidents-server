@@ -597,7 +597,9 @@ class DNSTableAjax(DatatablesView):
         )
 
     def get_rows(self, rows):
-        '''Format all rows'''
+        """
+        Format all rows
+        """
         page_rows = [self.get_row(row) for row in rows]
         clone_rows = []
 
