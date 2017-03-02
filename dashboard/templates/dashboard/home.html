@@ -129,6 +129,7 @@
                     <th>Start</th>
                     <th>Finish</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tfoot>
@@ -139,6 +140,7 @@
                     <th>Start</th>
                     <th>Finish</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </tfoot>
             {% for event in events %}
@@ -150,6 +152,9 @@
                     <td>{{event.end_date}}</td>
                     <td>{% if event.draft %} sketch {% else %}
                     Published {% endif %}</td>
+                    <td>
+                        <a href="{% url 'events:event_front:detail-event' event.id %}" class="btn btn-warning btn-flat">Details</a>
+                    </td>
                 </tr>
 
             {% endfor %}
@@ -229,7 +234,7 @@
 	</div>
 	<div class="box-footer">
 		<div class="pull-right">
-			<a href="{% url 'events:event_front:suggestions-event' %}" class="btn bg-purple btn-flat">Go to Suggested Events</a>
+			<!-- <a href="{% url 'events:event_front:suggestions-event' %}" class="btn bg-purple btn-flat">Go to Suggested Events</a> -->
             <a href="{% url 'measurements:measurement_front:measurement-table' %}" class="btn bg-purple btn-flat">Go to Measurements</a>
         </div>
 	</div>

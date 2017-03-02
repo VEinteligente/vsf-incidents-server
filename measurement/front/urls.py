@@ -113,6 +113,21 @@ urlpatterns = [
         name='measurements_to_event'
     ),
     url(
+        r'^create_event/DNS/$',
+        views.EventFromDNSMeasurementView.as_view(),
+        name='measurements_to_event'
+    ),
+    url(
+        r'^create_event/TCP/$',
+        views.EventFromTCPMeasurementView.as_view(),
+        name='measurements_to_event'
+    ),
+    url(
+        r'^create_event/HTTP/$',
+        views.EventFromHTTPMeasurementView.as_view(),
+        name='measurements_to_event'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
@@ -126,7 +141,7 @@ urlpatterns = [
         views.DNSTableAjax.as_view()
     ),
     url(
-        r'^prueba-tcp/$',
+        r'^datatable-tcp/$',
         views.TCPTableAjax.as_view()
     ),
 ]

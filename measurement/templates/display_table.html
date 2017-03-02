@@ -48,7 +48,7 @@
                 <th>Measurement Start Time</th>
             </thead>
         </table>
-        <div class="box-footer text-right">
+        <div class="text-right">
             <form id="form" action="{% url 'measurements:measurement_front:create-manual-flags' %}" method="post">
             {% csrf_token %}
             {{ form.as_p }}
@@ -64,8 +64,7 @@
 {% block extrajs %}
 
 {% prettyjson_setup jquery=False %}
-{% datatables_js %}
-{% datatables_bootstrap_js %}
+
 <script>
 
     $(function () {

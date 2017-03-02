@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
 from measurement.models import Flag, MetricFlag
-from django.db.models import Q
+from django.db.models import Q, Count, Case, When, IntegerField
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
 from .utils import suggestedFlags
 from event.models import Event, Site, Url
@@ -221,6 +221,17 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         return self.delete(request, *args, **kwargs)
 
 
+class DetailEvent(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
+    """DetailEvent: DetailView than
+    give the details of a specific Event object"""
+    model = Event
+    context_object_name = "event"
+    template_name = "detail_event.html"
+    page_header = "Event Details"
+    page_header_description = ""
+    breadcrumb = ["Events", "Event Details"]
+    
+
 class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
@@ -242,7 +253,6 @@ class FlagsTable(LoginRequiredMixin, DatatablesView):
             json.dumps(data, cls=DjangoJSONEncoder),
         )
 
-from django.db.models import Count, Case, When, IntegerField
 
 class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
     """UpdateFlagsTable: DatatablesView used to display
@@ -343,7 +353,8 @@ class CreateEventMeasurementView(
         context['form'] = form(initial={'identification': event.identification,
                                         'open_ended': open_ended,
                                         'isp': event.isp,
-                                        'type': event.type
+                                        'type': event.type,
+                                        'flags_type': flags.first().type_med
                                         })
         context['flags'] = flags
         return context
@@ -356,6 +367,7 @@ class CreateEventMeasurementView(
         event = self.object
         flags = event.flags.values_list('id', flat=True)
         flags = Flag.objects.filter(id__in=flags)
+        flags_type = form.cleaned_data['flags_type']
 
         # Object to save
         self.object = form.save(commit=False)
@@ -375,6 +387,8 @@ class CreateEventMeasurementView(
         # remove all events from the related flag
         for flag in flags:
             flag.suggested_events.clear()
+            flag.type_med = flags_type
+            flag.save()
         suggestedFlags(self.object)
 
         messages.success(self.request, msg)
