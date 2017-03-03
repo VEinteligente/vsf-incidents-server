@@ -115,3 +115,5 @@ MODELTRANSLATION_DEFAULT_LANGUAGE = local_settings.MODELTRANSLATION_DEFAULT_LANG
 
 # VSF plugin function
 FLAG_TESTS = local_settings.FLAG_TESTS
+
+LOGGING = local_settings.LOGGING
