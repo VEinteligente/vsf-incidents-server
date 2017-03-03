@@ -3,13 +3,13 @@ import views
 
 urlpatterns = [
     url(
-        r'^test/$',
-        views.PuraPrueba.as_view(),
-        name='nam'
+        r'^table/$',
+        views.NdtTableView.as_view(),
+        name='ndt-table'
     ),
-    # url(
-    #     r'^demo-ajax/$',
-    #     views.DemoAjaxView.as_view(),
-    #     name='demo-ajax'
-    # ),
+    url(
+        r'^ndt-ajax/$',
+        views.NdtAjaxView.as_view(),
+        name='ndt-ajax'
+    ),
 ]

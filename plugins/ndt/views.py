@@ -13,28 +13,94 @@ from models import DayTest
 # import random
 
 
-class DemoTableView(PluginTableView):
-    page_header = "DEMO Measurement List"
-    page_header_description = "Demo example"
+class NdtTableView(PluginTableView):
+    page_header = "NDT Measurement List"
+    page_header_description = "All NDT measurements"
     breadcrumb = ["Measurement", "NDT"]
-    titles = ['flags', 'id', 'input', 'queries']
-    url_ajax = '/plugins/demo/demo-ajax/'
+    titles = [
+        'annotations',
+        'probe',
+        'probe isp',
+        'probe plan',
+        'date',
+        'report',
+        'download',
+        'upload',
+        'ping',
+        'max ping',
+        'min ping',
+        'time out',
+        '% package loss',
+    ]
+    url_ajax = '/plugins/ndt/ndt-ajax/'
 
 
 class NdtAjaxView(DatatablesView):
     fields = {
-        'id': 'id',
         'annotations': 'annotations',
-        'probe': 'queries'
+        'probe': 'probe',
+        'probe_isp': 'id',
+        'probe_plan': 'id',
+        'date': 'test_start_time',
+        'id': 'id',
+        'report': 'report_id',
+        'upload': 'upload',
+        'download': 'download',
+        'ping': 'ping',
+        'min ping': 'min_ping',
+        'max ping': 'max_ping',
+        'time out': 'time_out',
+        '% package loss': 'package_loss',
     }
     queryset = Metric.objects.filter(test_name='ndt').annotate(
-        queries=RawSQL(
-            "test_keys->>'queries'", ()
-        )
+        probe=RawSQL(
+            "annotations->>'probe'", ()
+        ),
+        download=RawSQL(
+            "test_keys->'simple'->'download'", ()
+        ),
+        upload=RawSQL(
+            "test_keys->'simple'->'upload'", ()
+        ),
+        ping=RawSQL(
+            "test_keys->'simple'->'ping'", ()
+        ),
+        min_ping=RawSQL(
+            "test_keys->'advanced'->'min_rtt'", ()
+        ),
+        max_ping=RawSQL(
+            "test_keys->'advanced'->'max_rtt'", ()
+        ),
+        time_out=RawSQL(
+            "test_keys->'advanced'->'timeouts'", ()
+        ),
+        package_loss=RawSQL(
+            "test_keys->'advanced'->'packet_loss'", ()
+        ),
     )
 
     def get_rows(self, rows):
-        return super(NdtAjaxView, self).get_rows(rows)
+        page_rows = super(NdtAjaxView, self).get_rows(rows)
+        for row in page_rows:
+            try:
+                probe = Probe.objects.get(
+                    identification=row['annotations']['probe'])
+                probe_isp = probe.isp
+                probe_plan = probe.plan
+            except Probe.DoesNotExist:
+                probe_isp = 'Unknown'
+                probe_plan = 'Unknown'
+
+            row['probe isp'] = probe_isp
+            row['probe plan'] = probe_plan
+            row['annotations'] = str(row['annotations'])
+
+            try:
+                row['% package loss'] = float(row['% package loss']) * 100
+            except TypeError:
+                row['% package loss'] = 'Unknown'
+
+        return page_rows
 
     def json_response(self, data):
         return HttpResponse(
