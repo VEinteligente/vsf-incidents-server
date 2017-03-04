@@ -94,7 +94,35 @@
             "bServerSide": true,
             "sAjaxSource": "{% url 'events:event_front:create-ajax'%}",
             "aoColumns": [
-                { "mData": "Measurement" },
+                { "mData": "Measurement",  "mRender": function ( data ) {
+
+                        var test_keys = 'Loading...';
+
+                        $('[data-toggle="popover"]').popover({
+                            container: 'body'
+                        });
+
+                        $.ajax({
+                            url: '/events/test-keys-ajax/' + data + '/',
+                            method: 'get',
+                            error: function(a, b ,c){
+                                console.log(a + ' ' + b + ' ' + c);
+                                $('.' + data).attr('data-content', 'Measurement not found.');
+                            }
+                        }).done(function(tk){
+                            test_keys = JSON.stringify(tk);
+                            $('.' + data).attr('data-content', test_keys);
+                            $('[data-toggle="popover"]').popover({
+                                container: 'body'
+                            });
+                        });
+
+                        return '<a href="/measurements/' + data + '/detail/" target="blank">' + data + '</a> ' +
+                            '<a data-toggle="popover" class="btn btn-xs btn-default '+ data +'" ' +
+                            'data-content="' + test_keys + '">test keys</a>'
+
+                    }
+                },
                 { "mData": "Flag",  "mRender": function ( data ) {
                         
                         var flag_icon = "";
@@ -212,4 +240,9 @@
 
     })
 </script>
+    <style type="text/css">
+        .popover{
+            max-width:800px;
+        }
+    </style>
 {% endblock %}
