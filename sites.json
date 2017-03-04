@@ -1,0 +1,9 @@
+[
+{
+  "model": "event.site",
+  "pk": 1,
+  "fields": {
+    "name": "dolartoday.com"
+  }
+}
+]
