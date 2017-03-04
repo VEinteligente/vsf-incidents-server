@@ -2,10 +2,10 @@
 from django.views import generic
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
-from measurement.models import Flag, MetricFlag
+from measurement.models import Flag, MetricFlag, Metric
 from django.db.models import Q, Count, Case, When, IntegerField
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
 from .utils import suggestedFlags
@@ -521,3 +521,16 @@ class UpdateEventEvidenceView(
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+class TestKeysCreateEventAjax(generic.DetailView):
+
+    slug_field = 'id'
+    slug_url_kwarg = 'id'
+    model = Metric
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return JsonResponse(
+            {'test_keys': self.object.test_keys}
+        )

@@ -403,6 +403,8 @@ def update_flags_manual():
 
     except Exception as e:
 
-        print e
+        logger.info("ERROR DEL ALGORITMO")
+        logger.info(e)
+        logger.info("ERROR DEL ALGORITMO")
 
         return "400 error )="

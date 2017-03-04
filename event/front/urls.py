@@ -63,4 +63,9 @@ urlpatterns = [
         views.UpdateEventEvidenceView.as_view(),
         name='update-event-evidence'
     ),
+    url(
+        r'^test-keys-ajax/(?P<id>[\w-]+)/$',
+        views.TestKeysCreateEventAjax.as_view(),
+        name='create-event-ajax'
+    ),
 ]
