@@ -92,15 +92,15 @@ def update_dns_flags(rows):
                                 dns_isp = 'Unknown'
                                 flag = None
 
-                            flag = Flag.objects.create(medicion=row['id'],
-                                                       date=date,
-                                                       target=url,
-                                                       isp=dns_isp,
-                                                       region='CCS',
-                                                       ip=dns_name,
-                                                       flag=flag,
-                                                       type_med='DNS')
-                            flag.save(using='default')
+                            # flag = Flag.objects.create(medicion=row['id'],
+                            #                            date=date,
+                            #                            target=url,
+                            #                            isp=dns_isp,
+                            #                            region='CCS',
+                            #                            ip=dns_name,
+                            #                            flag=flag,
+                            #                            type_med='DNS')
+                            # flag.save(using='default')
 
                     else:
 
@@ -113,7 +113,7 @@ def update_dns_flags(rows):
 
                         # If doesn't match, generate soft flag in measurement #
                         # if control_resolver != dns_result:
-                        if not all(map(lambda v: v in control_resolver, dns_result)):
+                        if (not all(map(lambda v: v in control_resolver, dns_result))) or (control_resolver == dns_result):
 
                             if not Flag.objects.filter(ip=dns_name,
                                                        medicion=row['id'],
