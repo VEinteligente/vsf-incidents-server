@@ -374,19 +374,19 @@ def update_flags_manual():
 
         # Results from execute queries #
         print "antes del query for DNS"
-         logger.info("antes del query for DNS")
-         logger.warning("antes del query for DNS --test sin dns")
+        logger.info("antes del query for DNS")
+        logger.warning("antes del query for DNS --test sin dns")
 ## !!! solo temporal para probar dns
 #         result_dns = database.db_execute(query_dns)
         print "Terminado el de DNS y antes del query for TCP"
         logger.info("Terminado el de DNS y antes del query for TCP")
         logger.warning("listo DNS saltando resto")
-         result_tcp = database.db_execute(query_tcp)
-         print "Terminado el de TCP"
-         logger.info("Terminado el de TCP")
+        result_tcp = database.db_execute(query_tcp)
+        print "Terminado el de TCP"
+        logger.info("Terminado el de TCP")
  
-         rows_dns = {}
-         rows_tcp = {}
+        rows_dns = {}
+        rows_tcp = {}
 ## !!! solo temporal para probar 
 
         if result_dns:
@@ -406,16 +406,16 @@ def update_flags_manual():
 
 # 
 #         # print "update 2 Update TCP"
-         logger.info("update 2 Update TCP")
+        logger.info("update 2 Update TCP")
 # 
 #         # Update TCP Flags #
-         update_tcp = update_tcp_flags(rows_tcp)
+        update_tcp = update_tcp_flags(rows_tcp)
 # 
 #         # print "update 3 Update HTTP"
-         logger.info("update 3 Update HTTP")
+        logger.info("update 3 Update HTTP")
 # 
 #         # Update HTTP Flags #
-         update_http = update_http_flags(rows_tcp)
+        update_http = update_http_flags(rows_tcp)
  
 #         # print "update 4 Update Muted"
 #         logger.info("update 4 Update Muted")
