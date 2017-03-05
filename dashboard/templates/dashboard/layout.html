@@ -1,4 +1,5 @@
 {% extends "dashboard/base.html" %}
+{% load static %}
 
 {% block wrapper %}
     <!-- Main Header -->
@@ -78,17 +79,19 @@
     <!-- Main Footer -->
     {% block footer %}
         <footer class="main-footer">
-            <div class="pull-right hidden-xs">
-                <b>Developed by <a href="http://turpialdev.com" title="http://turpialdev.com" target="_blank">Turpial Development</a></b>
-            </div>
+
             {% block footer_copyright %}
-                <strong>Copyright &copy; {% now "Y" %} CLIENT.</strong> All rights reserved.
+                <a href="http://veinteligente.org">
+                    <img src="{% static "img/logo-vi.png" %}">
+                    {# <strong>{% now "Y" %} VE inteligente</strong> #}
+                </a>
             {% endblock footer_copyright %}
         </footer>
     {% endblock footer %}
     <!-- End Main Footer -->
     <!-- =============================================== -->
 
+{% comment %} 
     <!-- Control Sidebar -->
     {% block control_sidebar %}
         <aside class="control-sidebar control-sidebar-dark">
@@ -101,5 +104,7 @@
         <div class="control-sidebar-bg"></div>
     {% endblock control_sidebar %}
     <!-- End Control Sidebar -->
+{% endcomment %} 
+
     <!-- =============================================== -->
 {% endblock wrapper %}
