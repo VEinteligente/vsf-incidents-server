@@ -162,23 +162,28 @@ def update_tcp_flags(rows):
         tcp_connect = test_key.get_tcp_connect()
 
         date = row['measurement_start_time']
-
+        logger.debug('saved date')
         # Get isp and region #
         if 'annotations' in row:
             if row['annotations']['probe']:
                 probe = Probe.objects.get(identification=row['annotations']['probe'])
                 dns_isp = probe.isp
                 region = probe.region.name
+                logger.debug('obtencion de probe (id: %s region: %s) %s', probe, row['annotations'])
         else:
             dns_isp = None
             region = 'CCS'
+            logger.debug('No se pudo obtener probe (id: %s region forzada: %s) %s', probe, row['annotations'])
+
 
         url, created = Url.objects\
                           .get_or_create(url=row['input'])
 
         for tcp in tcp_connect:
-
+        logger.debug('tcp loop')
             if tcp['status']['blocked']:
+                logger.debug('status bloqued')
+
 
                 if not Flag.objects.filter(ip=tcp['ip'],
                                            medicion=row['id'],
@@ -199,6 +204,9 @@ def update_tcp_flags(rows):
                                                medicion=row['id'],
                                                type_med='TCP')
                     flag.save(using='default')
+                    logger.debug('New_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
+            else
+                logger.debug('_no_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
 
     return True
 
