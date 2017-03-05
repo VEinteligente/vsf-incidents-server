@@ -392,31 +392,30 @@ def update_flags_manual():
         if result_tcp:
 
             rows_tcp = result_tcp['rows']
-        logger.warning("nos vamos directo a Update Hard")
 
-#         # print "update 1 update DNS"
-#         logger.info("update 1 update DNS")
-# 
-#         # Update DNS Flags #
-#         update_dns = update_dns_flags(rows_dns)
-# 
-#         # print "update 2 Update TCP"
-#         logger.info("update 2 Update TCP")
-# 
-#         # Update TCP Flags #
-#         update_tcp = update_tcp_flags(rows_tcp)
-# 
-#         # print "update 3 Update HTTP"
-#         logger.info("update 3 Update HTTP")
-# 
-#         # Update HTTP Flags #
-#         update_http = update_http_flags(rows_tcp)
-# 
-#         # print "update 4 Update Muted"
-#         logger.info("update 4 Update Muted")
-# 
-#         # Update Muted Flags #
-#         update_muted = update_muted_flags()
+        # print "update 1 update DNS"
+        logger.info("update 1 update DNS")
+
+        # Update DNS Flags #
+        update_dns = update_dns_flags(rows_dns)
+
+        # print "update 2 Update TCP"
+        logger.info("update 2 Update TCP")
+
+        # Update TCP Flags #
+        update_tcp = update_tcp_flags(rows_tcp)
+
+        # print "update 3 Update HTTP"
+        logger.info("update 3 Update HTTP")
+
+        # Update HTTP Flags #
+        update_http = update_http_flags(rows_tcp)
+
+        # print "update 4 Update Muted"
+        logger.info("update 4 Update Muted")
+
+        # Update Muted Flags #
+        update_muted = update_muted_flags()
 
         # print "update 5 Update hard"
         logger.info("update 5 Update hard")
