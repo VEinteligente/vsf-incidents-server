@@ -143,7 +143,7 @@ def update_dns_flags(rows):
                                                                medicion=row['id'],
                                                                type_med='DNS')
                                     # !!!To-do: remove before prodcution
-                                    logger.info("si flag DNS|"+"_url?_"+"control "+str(control_resolver_server)+": "+str(control_resolver)+" "+str(dns_isp)+" "+str(dns_name)+": "+str(dns_result))
+                                    #logger.info("si flag DNS|"+"_url?_"+"control "+str(control_resolver_server)+": "+str(control_resolver)+" "+str(dns_isp)+" "+str(dns_name)+": "+str(dns_result))
                                     flag.save(using='default')
                             # !!!To-do: remove before prodcution
                             #else:
