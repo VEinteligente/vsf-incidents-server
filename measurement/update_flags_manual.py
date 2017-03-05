@@ -164,11 +164,12 @@ def update_tcp_flags(rows):
         date = row['measurement_start_time']
         logger.debug('saved date')
         # Get isp and region #
-        if ('annotations' in row) and row['annotations']['probe']:
-            probe = Probe.objects.get(identification=row['annotations']['probe'])
-            dns_isp = probe.isp
-            region = probe.region.name
-            logger.debug('probe info (id: %s region: %s) %s', probe, row['annotations'])
+        if 'annotations' in row:
+            if row['annotations']['probe']:
+                probe = Probe.objects.get(identification=row['annotations']['probe'])
+                dns_isp = probe.isp
+                region = probe.region.name
+                logger.debug('obtencion de probe (id: %s region: %s) %s', probe, row['annotations'])
         else:
             dns_isp = None
             region = 'CCS'
@@ -188,16 +189,12 @@ def update_tcp_flags(rows):
                                            medicion=row['id'],
                                            type_med='TCP').exists():
 
-                    logger.debug('interna flag onject creation and check true')
-
                     flag = False
-
-                    # !!! possible bug, this runs only Flag.objects.filter is FALSE!
 
                     if dns_isp is None:
                         dns_isp = 'Unknown'
                         flag = None
-                    
+
                     flag = Flag.objects.create(ip=tcp['ip'],
                                                flag=flag,
                                                date=date,
@@ -208,10 +205,8 @@ def update_tcp_flags(rows):
                                                type_med='TCP')
                     flag.save(using='default')
                     logger.debug('New_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
-                else
-                    logger.debug('interna flag onject creation and check false')
             else
-                logger.debug('_no_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
+                logger.debug('_no_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', tcp['ip'], dns_isp, row['id'] )
 
     return True
 
@@ -220,44 +215,38 @@ def update_http_flags(rows):
 
     for row in rows:
 
-        logger.debug('in hhtp row loop')
         # Convert json test_keys into python object
         test_key = DNSTestKey(json.dumps(row['test_keys']))
 
         date = row['measurement_start_time']
+
         # Get isp and region #
-        if ('annotations' in row) and row['annotations']['probe']:
+        if 'annotations' in row:
+            if row['annotations']['probe']:
                 probe = Probe.objects.get(identification=row['annotations']['probe'])
                 dns_isp = probe.isp
                 region = probe.region.name
-                logger.debug('probe info (id: %s region: %s) %s', probe, row['annotations'])
         else:
             dns_isp = None
             region = 'CCS'
-            logger.debug('probe info retrival failed (id: %s forced region: %s) %s', probe, row['annotations'])
 
         url, created = Url.objects\
                           .get_or_create(url=row['input'])
-        logger.debug('Url.objects.get_or_create sucessful')
 
         if not test_key.get_headers_match() and \
            not test_key.get_body_length_match() or \
            not test_key.get_status_code_match():
 
-            logger.debug('check conditions true')
-
             if not Flag.objects.filter(ip=test_key.get_client_resolver(),
                                        medicion=row['id'],
                                        type_med='HTTP').exists():
-                                       
-                logger.debug('interna flag onject creation and check true')
 
                 flag = False
-                
-               # !!! possible bug, this runs only Flag.objects.filter is FALSE!
+
                 if dns_isp is None:
                     dns_isp = 'Unknown'
                     flag = None
+
                 flag = Flag.objects.create(ip=test_key.get_client_resolver(),
                                            flag=flag,
                                            date=date,
@@ -267,13 +256,6 @@ def update_http_flags(rows):
                                            medicion=row['id'],
                                            type_med='HTTP')
                 flag.save(using='default')
-                logger.debug('New_ HTTP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
-            else
-                logger.debug('interna flag onject creation and check false')
-
-        else
-            logger.debug('check conditions false')
-            logger.debug('_no_ HTTP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
 
     return True
 
@@ -293,14 +275,13 @@ def update_muted_flags():
 
 
 def update_hard_flags():
-    logger.info('update_hard_flags')
+
     # Evaluating first condition for hard flags
     ids = Metric.objects.values_list('id', flat=True)
     ids = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
-    
+
     flags = Flag.objects\
                 .filter(medicion__in=ids)
-    logger.debug('Got flags')
 
     result = flags\
         .values('isp', 'target', 'type_med')\
@@ -308,7 +289,6 @@ def update_hard_flags():
                            When(flag=False, then=1),
                            output_field=CharField())))\
         .filter(total_soft=conf.SOFT_FLAG_REPEATED_X1)
-    logger.debug('Set results')
 
     if result:
 
@@ -318,11 +298,9 @@ def update_hard_flags():
                                            type_med=r['type_med'])
 
             map(soft_to_hard_flag, flags_to_update)
-            logger.debug('mapped in results loop')
 
     else:
 
-        logger.debug('no results')
         # Evaluating second condition for hard flags
         ids = Metric.objects.values_list('id', flat=True)
         ids = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
@@ -330,7 +308,6 @@ def update_hard_flags():
         flags = Flag.objects\
                     .filter(medicion__in=ids)
 
-        logger.debug('set flag no result')
         result = flags\
             .values('isp', 'target', 'type_med', 'region')\
             .annotate(total_soft=Count(Case(
@@ -347,7 +324,6 @@ def update_hard_flags():
                                                region=r['region'])
 
                 map(soft_to_hard_flag, flags_to_update)
-                logger.debug('mapped in results loop after no result')
 
     return True
 
@@ -398,7 +374,6 @@ def update_flags_manual():
 
         # Results from execute queries #
         # print "antes del query for DNS"
-
         logger.info("antes del query for DNS")
         result_dns = database.db_execute(query_dns)
         # print "Terminado el de DNS y antes del query for TCP"
