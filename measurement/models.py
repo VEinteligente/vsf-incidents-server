@@ -178,7 +178,7 @@ class Probe(models.Model):
 class DNS(models.Model):
 
     isp = models.CharField(verbose_name='Operadora', max_length=50)
-    verbose = models.CharField(max_length=50)
+    verbose = models.CharField(max_length=50, unique=True)
     ip = models.GenericIPAddressField()
     public = models.BooleanField(default=True)
 

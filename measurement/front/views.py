@@ -29,6 +29,7 @@ from event.models import Url
 from measurement.utils import *
 import re
 import json
+import socket
 from django.db.models.expressions import RawSQL
 
 from dashboard.mixins import PageTitleMixin
@@ -380,165 +381,17 @@ class DNSTableView(
     LoginRequiredMixin, PageTitleMixin,
     generic.TemplateView, generic.edit.FormMixin
 ):
-    """DNSTableView: TemplateView than
+    """
+    DNSTableView: TemplateView than
     display a list of metrics in DB
-    with dns_consistency as test_name"""
+    with dns_consistency as test_name
+    """
 
     page_header = "DNS Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "DNS"]
     form_class = MeasurementToEventForm
-    # template_name = 'display_dns_table.html'
     template_name = 'list_dns.html'
-
-    # def get_context_data(self, **kwargs):
-
-    #     context = super(DNSTableView, self).get_context_data(**kwargs)
-
-    #     try:
-
-    #         # Create database object #
-    #         database = DBconnection('titan_db')
-    #         query = "select id, input, test_keys, measurement_start_time "
-    #         query += "from metrics where test_name='dns_consistency'"
-
-    #         result = database.db_execute(query)
-    #         rows = {}
-    #         columns = {}
-
-    #         if result:
-
-    #             rows = result['rows']
-    #             columns = result['columns']
-
-    #         # Adding columns
-    #         columns_final = ['flag'] + columns[:len(columns) / 2]
-    #         columns_final += ['match', 'dns isp',
-    #                           'control result',
-    #                           'dns name', 'dns result']
-    #         columns_final += columns[len(columns) / 2:]
-    #         columns_final.remove('test_keys')
-
-    #         # Answers
-    #         ans = self.get_answers(rows)
-
-    #         # Context data variables #
-    #         context['rows'] = [dict(zip(columns_final, row)) for row in ans]
-    #         context['columns'] = columns_final
-
-    #     except Exception as e:
-    #         print e
-
-    #     return context
-
-    # def get_answers(self, rows):
-    #     """ Create from every row a Test Key object to
-    #     extract the data to display in the list
-    #     Args:
-    #         rows: DB rows
-    #     """
-
-    #     ans = []
-
-    #     for row in rows:
-
-    #         # Convert json test_keys into python object
-    #         test_key = DNSTestKey(json.dumps(row['test_keys']))
-
-    #         # Get sonda isp and public DNS #
-    #         if 'annotation' in row:
-    #             probe = Probe.objects.get(identification=row['annotation']['probe'])
-    #             dns_isp = probe.isp
-    #         else:
-    #             dns_isp = None
-
-    #         if dns_isp is None:
-    #             dns_isp = 'Unknown'
-
-    #         # dns_isp = 'cantv' #VALOR MIENTRAS SE HACE TABLA DE SONDA
-    #         public_dns = [dns.ip
-    #                       for dns in DNS.objects.filter(public=True)]
-
-    #         # Ignore data from test_key #
-    #         if test_key.ignore_data(dns_isp, public_dns):
-
-    #             # Get queries #
-    #             queries = test_key.get_queries()
-
-    #             if not queries[0]['failure'] and queries[0]['answers']:
-
-    #                 # Get answers #
-    #                 answers = queries[0]['answers']
-    #                 control_resolver = []
-    #                 dns_result = []
-
-    #                 # Get control resolver from answer_type A #
-    #                 for a in answers:
-    #                     if a['answer_type'] == 'A' and \
-    #                        a['ipv4'] not in control_resolver:
-    #                         control_resolver += [a['ipv4']]
-
-    #                 # Verify each result from queries with control resolver #
-    #                 for query in queries:
-
-    #                     dns_name = query['resolver_hostname']
-    #                     match = False
-    #                     flag_status = 'No flag'
-
-    #                     # If query has failure, dns result #
-    #                     # is a failure response and match is False #
-
-    #                     # If query doesn't has failure, then find dns result #
-    #                     # from answer type A and later compare it with control #
-    #                     # resolver. If both are the same, match is True otherwise #
-    #                     # match is False #
-
-    #                     if query['failure']:
-    #                         dns_result += query['failure']
-
-    #                     answers = query['answers']
-
-    #                     for a in answers:
-    #                         if a['answer_type'] == 'A' and \
-    #                            a['ipv4'] not in dns_result:
-    #                             dns_result += [a['ipv4']]
-
-    #                     if all(map(lambda v: v in control_resolver, dns_result)):
-    #                         match = True
-    #                     else:
-    #                         # Search flag #
-
-    #                         if Flag.objects.filter(ip=dns_name,
-    #                                                medicion=row['id'],
-    #                                                type_med='DNS').exists():
-
-    #                             f = Flag.objects.get(ip=dns_name,
-    #                                                  medicion=row['id'],
-    #                                                  type_med='DNS')
-
-    #                             if f.flag:
-    #                                 flag_status = 'hard'
-    #                             elif f.flag is False:
-    #                                 flag_status = 'soft'
-    #                             elif f.flag is None:
-    #                                 flag_status = 'muted'
-
-    #                     # If dns_name is in DNS table, find its name #
-    #                     if DNS.objects.filter(ip=dns_name).exists():
-    #                         dns_table_name = DNS.objects\
-    #                                             .get(ip=dns_name).verbose
-    #                     else:
-    #                         dns_table_name = dns_name
-
-    #                     #print control_resolver
-    #                     #print sdns_result
-    #                     # Formating the answers #
-    #                     ans += [[flag_status, row['id'], row['input'],
-    #                             match, dns_isp,','.join(control_resolver),
-    #                             dns_table_name,','.join(dns_result),
-    #                             row['measurement_start_time']]]
-
-    #     return ans
 
     def get_context_data(self, **kwargs):
 
@@ -548,7 +401,7 @@ class DNSTableView(
                                                             'ip',
                                                             'verbose')))
         context['dns_public'] = json.dumps(list(DNS.objects.values_list('ip', flat=True).filter(public=True)))
-        context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
+        context['probes'] = json.dumps(list(Probe.objects.values('identification', 'isp')))
 
         return context
 
@@ -581,15 +434,6 @@ class DNSTableAjax(DatatablesView):
         'measurement_start_time': 'measurement_start_time',
         'report_id': 'report_id'
     }
-    # queryset = Metric.objects.filter(test_name='dns_consistency')\
-    #                          .annotate(
-    #     # flag=connections['default'].cursor().execute(
-    #     #     "SELECT flag FROM measurement_flag WHERE type_med='DNS'")
-    #     # ,
-    #     flag=RawSQL(
-    #         "SELECT flag FROM vsf_db.measurement_flag WHERE type_med='DNS'", ()
-    #     )
-    # )
 
     def json_response(self, data):
         return HttpResponse(
@@ -597,7 +441,9 @@ class DNSTableAjax(DatatablesView):
         )
 
     def get_rows(self, rows):
-        '''Format all rows'''
+        """
+        Format all rows
+        """
         page_rows = [self.get_row(row) for row in rows]
         clone_rows = []
 
@@ -606,7 +452,6 @@ class DNSTableAjax(DatatablesView):
             metric_ids.append(row['id'])
 
         flags = Flag.objects.filter(medicion__in=metric_ids)
-        print flags
         for row in page_rows:
             row['flag_id'] = None
             row['manual_flag'] = None
@@ -1402,8 +1247,10 @@ class EventFromMeasurementView(PageTitleMixin, generic.FormView):
 
 
 class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
-    """EventFromMeasurementView: EventFromMeasurementView extention
-    for create event from DNS measurements in DB"""
+    """
+    EventFromMeasurementView: EventFromMeasurementView extention
+    for create event from DNS measurements in DB
+    """
     page_header = "DNS Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurements", "DNS"]
@@ -1425,8 +1272,6 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
 
         if metric_ips.endswith(','):
             metric_ips = metric_ips[:-1]
-
-        # list_metric_ips = metric_ips.split(',')
 
         # Create database object #
         try:
@@ -1464,6 +1309,142 @@ class EventFromDNSMeasurementView(EventFromMeasurementView, DNSTableView):
         msg = 'Error creating new Event. ' + error_msg
         messages.error(self.request, msg)
         return self.form_invalid(form)
+
+
+class ManualFlagsFromDnsTable(generic.CreateView):
+    form_class = MeasurementToEventForm
+    model = Flag
+    success_url = '/measurements/dns-table/'
+    template_name = 'list_dns.html'
+    measurement_type = Flag.DNS
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        self.object = Flag.objects.all().first()
+        if form.is_valid():
+
+            error_msg = ""
+            metric_inputs = form.cleaned_data['metrics']
+            metric_ips = form.cleaned_data['metric_ip']
+
+            if metric_inputs.endswith(','):
+                metric_inputs = metric_inputs[:-1]
+
+            if metric_ips.endswith(','):
+                metric_ips = metric_ips[:-1]
+
+            # Create database object #
+            try:
+                database = DBconnection('titan_db')
+
+                query = "select id, input, measurement_start_time, test_name, annotations "
+                query += "from metrics where id in (" + metric_inputs + ")"
+                # Results from execute queries #
+                metrics = database.db_execute(query)
+            except Exception:
+                msg = 'Error creating new Event. Database connection error'
+                messages.error(self.request, msg)
+                return self.form_invalid(form)
+
+            if metrics:
+                rows_ids = metrics['rows']
+                validation = validate_metrics(rows_ids)
+                if validation:
+                    return self.manual_flags_form_valid(rows_ids, metric_ips)
+                elif validation == "no probe":
+                    error_msg = "Measurements must have a probe in annotations. "
+                elif validation == "no same input or test_name":
+                    error_msg = "Measurements must have the same Input and Test Name. "
+                elif validation == "already in event":
+                    error_msg = "One measurement have already an event"
+                else:
+                    error_msg = "STUFF =/"
+            else:
+                error_msg = "other STUFF =/"
+
+            msg = 'Error creating new Flags. ' + error_msg
+            messages.error(self.request, msg)
+            return self.form_invalid(form)
+        else:
+            return self.form_invalid(form)
+
+    def manual_flags_form_valid(self, metrics_sql, list_ip):
+        """
+        If the form is valid, save the associated model.
+        Create event from measurements selected in list.
+
+        metrics_sql: list of Object Metric
+        list_ip: list of ['metric_id@ip']
+        """
+        type_med = self.measurement_type
+        list_ip = list_ip.split(",")
+
+        for metric_sql in metrics_sql:
+
+            for metric in list_ip:
+                metric = metric.replace("'", "")
+                m_ip = metric.split("@")
+                if str(m_ip[0]) == str(metric_sql['id']):
+                    ip = m_ip[1]
+                    try:
+                        # legal ip
+                        socket.inet_aton(ip)
+                    except socket.error:
+                        # not legal ip
+                        try:
+                            dns_obj = DNS.objects.get(verbose=ip)
+                            ip = dns_obj.ip
+                            isp = dns_obj.isp
+                        except DNS.DoesNotExist:
+                            ip = 'Unknown'
+                            isp = 'Unknown'
+                    # Get all flags associated with metric_sql object
+                    flags = Flag.objects.filter(medicion=metric_sql['id'], ip=ip, type_med=type_med)
+
+                    try:
+                        probe = Probe.objects.get(identification=metric_sql['annotations']['probe'])
+                        region = probe.region.name
+                    except KeyError:
+                        region = "Unknown"
+                    except Probe.DoesNotExist:
+                        region = "Unknown"
+
+                    if not flags:
+                        # Get or Create Url Input
+                        url, created = Url.objects \
+                            .get_or_create(url=metric_sql['input'])
+
+                        # Create Manual Flag
+                        self.object = Flag.objects.create(
+                            manual_flag=True,
+                            date=metric_sql['measurement_start_time'],
+                            target=url,
+                            region=region,
+                            medicion=metric_sql['id'],
+                            isp=isp,
+                            ip=ip,
+                            type_med=type_med
+                        )
+                        # Save object in database
+                        self.object.save()
+
+                        target = url
+
+                        # Save objects in remote database if is not already
+                        # m_flag, created = MetricFlag.objects.get_or_create( fixme: no tengo acceso a escribir en titan
+                        #     metric_id=metric_sql['id'],
+                        #     manual_flag=True,
+                        #     target=target.url,
+                        #     ip=ip,
+                        #     type_med=type_med
+                        # )
+
+        msg = 'New flags created'
+        messages.success(self.request, msg)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect('/measurements/dns-table/')
 
 
 class EventFromTCPMeasurementView(EventFromMeasurementView):
