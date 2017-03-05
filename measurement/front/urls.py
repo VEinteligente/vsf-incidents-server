@@ -115,7 +115,12 @@ urlpatterns = [
     url(
         r'^create_event/DNS/$',
         views.EventFromDNSMeasurementView.as_view(),
-        name='measurements_to_event'
+        name='dns_to_event'
+    ),
+    url(
+        r'^create_manual_flags/DNS/$',
+        views.ManualFlagsFromDnsTable.as_view(),
+        name='dns_to_manual_flags'
     ),
     url(
         r'^create_event/TCP/$',
