@@ -169,11 +169,11 @@ def update_tcp_flags(rows):
                 probe = Probe.objects.get(identification=row['annotations']['probe'])
                 dns_isp = probe.isp
                 region = probe.region.name
-                logger.debug('obtencion de probe (id: %s region: %s) %s', probe, row['annotations'])
+                logger.debug('obtencion de probe (id: %s region: %s) %s', probe, region, row['annotations'])
         else:
             dns_isp = None
             region = 'CCS'
-            logger.debug('No se pudo obtener probe (id: %s region forzada: %s) %s', probe, row['annotations'])
+            logger.debug('No se pudo obtener probe (id: %s region forzada: %s) %s', probe, region, row['annotations'])
 
 
         url, created = Url.objects\
@@ -373,49 +373,50 @@ def update_flags_manual():
             query_tcp += " and id not in " + ids
 
         # Results from execute queries #
-        # print "antes del query for DNS"
-        logger.info("antes del query for DNS")
-        result_dns = database.db_execute(query_dns)
-        # print "Terminado el de DNS y antes del query for TCP"
+        print "antes del query for DNS"
+         logger.info("antes del query for DNS")
+         logger.warning("antes del query for DNS --test sin dns")
+## !!! solo temporal para probar dns
+#         result_dns = database.db_execute(query_dns)
+        print "Terminado el de DNS y antes del query for TCP"
         logger.info("Terminado el de DNS y antes del query for TCP")
         logger.warning("listo DNS saltando resto")
-## !!! solo temporal para probar dns
-#         result_tcp = database.db_execute(query_tcp)
-#         # print "Terminado el de TCP"
-#         logger.info("Terminado el de TCP")
-# 
-#         rows_dns = {}
-#         rows_tcp = {}
+         result_tcp = database.db_execute(query_tcp)
+         print "Terminado el de TCP"
+         logger.info("Terminado el de TCP")
+ 
+         rows_dns = {}
+         rows_tcp = {}
+## !!! solo temporal para probar 
 
         if result_dns:
 
             rows_dns = result_dns['rows']
-## !!! solo temporal para probar dns
-# 
-#         if result_tcp:
-# 
-#             rows_tcp = result_tcp['rows']
+ 
+         if result_tcp:
+ 
+             rows_tcp = result_tcp['rows']
+        logger.warning("solo TCP y HTTP")
 
         # print "update 1 update DNS"
         logger.info("update 1 update DNS")
 
         # Update DNS Flags #
-        update_dns = update_dns_flags(rows_dns)
+#        update_dns = update_dns_flags(rows_dns)
 
-        logger.warning("listo DNS saltando resto")
 # 
 #         # print "update 2 Update TCP"
-#         logger.info("update 2 Update TCP")
+         logger.info("update 2 Update TCP")
 # 
 #         # Update TCP Flags #
-#         update_tcp = update_tcp_flags(rows_tcp)
+         update_tcp = update_tcp_flags(rows_tcp)
 # 
 #         # print "update 3 Update HTTP"
-#         logger.info("update 3 Update HTTP")
+         logger.info("update 3 Update HTTP")
 # 
 #         # Update HTTP Flags #
-#         update_http = update_http_flags(rows_tcp)
-# 
+         update_http = update_http_flags(rows_tcp)
+ 
 #         # print "update 4 Update Muted"
 #         logger.info("update 4 Update Muted")
 # 
@@ -433,10 +434,12 @@ def update_flags_manual():
            update_muted:
 
             # print "Fin"
-            logger.info("Fin Algoritmo Flags")
 
+            logger.info("Fin Algoritmo Flags")
             return "200 ok (="
 
+
+        logger.info("Fin ciclo")
     except Exception as e:
 
         print e
