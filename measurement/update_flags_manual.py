@@ -205,7 +205,7 @@ def update_tcp_flags(rows):
                                                type_med='TCP')
                     flag.save(using='default')
                     logger.debug('New_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
-            else
+            else:
                 logger.debug('_no_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', tcp['ip'], dns_isp, row['id'] )
 
     return True
