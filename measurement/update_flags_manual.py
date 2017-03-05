@@ -393,9 +393,9 @@ def update_flags_manual():
 
             rows_dns = result_dns['rows']
  
-         if result_tcp:
+        if result_tcp:
  
-             rows_tcp = result_tcp['rows']
+            rows_tcp = result_tcp['rows']
         logger.warning("solo TCP y HTTP")
 
         # print "update 1 update DNS"
