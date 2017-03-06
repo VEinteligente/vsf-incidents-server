@@ -143,11 +143,13 @@ def update_dns_flags(rows):
                                                                medicion=row['id'],
                                                                type_med='DNS')
                                     # !!!To-do: remove before prodcution
-                                    logger.info("NEW_ flag DNS| _url?_ %s control=%s : %s | %s : %s", url, control_resolver_server, control_resolver, dns_name, dns_result)
+                                    logger.debug("NEW_ flag DNS| _url?_ %s control=%s : %s | %s : %s", url, control_resolver_server, control_resolver, dns_name, dns_result)
                                     flag.save(using='default')
                             # !!!To-do: remove before prodcution
                             else:
-                                logger.info("_no_ flag DNS| _url?_%s control=%s : %s | %s : %s", url, control_resolver_server, control_resolver, dns_name, dns_result )
+                                logger.debug("_no_ flag DNS| _url?_%s control=%s : %s | %s : %s", url, control_resolver_server, control_resolver, dns_name, dns_result )
+                    else:
+                        logger.debug("_no_ flag DNS| >>>Control resolver mismo que dns_name <<< _url?_%s control=%s : %s | %s : %s", url, control_resolver_server, control_resolver, dns_name, dns_result )
                                     
                         
     return True
@@ -164,16 +166,28 @@ def update_tcp_flags(rows):
         date = row['measurement_start_time']
         logger.debug('saved date')
         # Get isp and region #
-        if 'annotations' in row:
+        if ('annotations' in row):
+            logger.debug('has annotations info: %s', row['annotations'])
             if row['annotations']['probe']:
+                logger.debug('has probe')
                 probe = Probe.objects.get(identification=row['annotations']['probe'])
                 dns_isp = probe.isp
                 region = probe.region.name
                 logger.debug('obtencion de probe (id: %s region: %s) %s', probe, region, row['annotations'])
+                
+            else:
+                logger.debug('doesnt have probe in the annotations' )
+                dns_isp = None
+                region = 'CCS'
+                logger.debug('No se pudo obtener probe ( region forzada: %s) %s', region, row['annotations'])
         else:
+            logger.debug('doesnt have annotations.' )
             dns_isp = None
+            logger.debug('dns_isp none' )
             region = 'CCS'
-            logger.debug('No se pudo obtener probe (id: %s region forzada: %s) %s', probe, region, row['annotations'])
+            
+            logger.debug('No se pudo obtener probe ( region forzada: %s) ', region)
+            
 
 
         url, created = Url.objects\
@@ -221,8 +235,7 @@ def update_http_flags(rows):
         date = row['measurement_start_time']
 
         # Get isp and region #
-        if 'annotations' in row:
-            if row['annotations']['probe']:
+        if 'annotations' in row and row['annotations']['probe']:
                 probe = Probe.objects.get(identification=row['annotations']['probe'])
                 dns_isp = probe.isp
                 region = probe.region.name
@@ -337,7 +350,7 @@ def soft_to_hard_flag(flag):
 def update_flags_manual():
     try:
         # print "entrando a la funcion"
-        logger.info("entrando a la funcion")
+        logger.debug("entrando a la funcion")
         # List of 'medicion' of Flags #
         list_dns = Flag.objects.using('default')\
             .values_list('medicion', flat=True)\
@@ -376,8 +389,7 @@ def update_flags_manual():
         print "antes del query for DNS"
         logger.info("antes del query for DNS")
         logger.warning("antes del query for DNS --test sin dns")
-## !!! solo temporal para probar dns
-#         result_dns = database.db_execute(query_dns)
+        result_dns = database.db_execute(query_dns)
         print "Terminado el de DNS y antes del query for TCP"
         logger.info("Terminado el de DNS y antes del query for TCP")
         logger.warning("listo DNS saltando resto")
@@ -386,8 +398,9 @@ def update_flags_manual():
         logger.info("Terminado el de TCP")
  
         rows_dns = {}
+        logger.debug("cargo rows dns")
         rows_tcp = {}
-## !!! solo temporal para probar 
+        logger.debug("cargo rows tcp")
 
         if result_dns:
 
@@ -402,15 +415,17 @@ def update_flags_manual():
         logger.info("update 1 update DNS")
 
         # Update DNS Flags #
-#        update_dns = update_dns_flags(rows_dns)
-
-# 
+        update_dns = update_dns_flags(rows_dns)
+#         logger.warning("update DNS juped")
+ 
 #         # print "update 2 Update TCP"
         logger.info("update 2 Update TCP")
 # 
+# SEEMS BROKEN !!!
 #         # Update TCP Flags #
         update_tcp = update_tcp_flags(rows_tcp)
 # 
+# To-do: EMpty!!!
 #         # print "update 3 Update HTTP"
         logger.info("update 3 Update HTTP")
 # 
@@ -418,14 +433,16 @@ def update_flags_manual():
         update_http = update_http_flags(rows_tcp)
  
 #         # print "update 4 Update Muted"
-#         logger.info("update 4 Update Muted")
+        logger.info("update 4 Update Muted")
 # 
+# SEEMS BROKEN !!!
 #         # Update Muted Flags #
-#         update_muted = update_muted_flags()
+        update_muted = update_muted_flags()
 
         # print "update 5 Update hard"
         logger.info("update 5 Update hard")
 
+# SEEMS BROKEN !!!
         # Update Hard Flags #
         update_hard = update_hard_flags()
 
@@ -435,7 +452,7 @@ def update_flags_manual():
 
             # print "Fin"
 
-            logger.info("Fin Algoritmo Flags")
+            logger.info("Fin Algoritmo Flags, todos resueltos")
             return "200 ok (="
 
 
