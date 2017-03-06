@@ -545,10 +545,12 @@ def luigiUpdateFlagTask():
     update_flags_manual()
     # ----------------------------------------------
     for module in FLAG_TESTS:
-        m = import_module("plugins.%s.flag_logic" % module['module_name'])
-        for function in module['functions']:
-            methodToCall = getattr(m, function)
-            result = methodToCall()
+#         !!! only for evading problem 
+        if module['module_name'] != "ndt":
+            m = import_module("plugins.%s.flag_logic" % module['module_name'])
+            for function in module['functions']:
+                methodToCall = getattr(m, function)
+                result = methodToCall()
     # ---------------------------------------------
     running -= 1
     print "termino el hilo"
