@@ -94,7 +94,7 @@
             "bServerSide": true,
             "sAjaxSource": "{% url 'events:event_front:create-ajax'%}",
             "aoColumns": [
-                { "mData": "Measurement",  "mRender": function ( data ) {
+                { "mData": "Measurement",  "mRender": function ( data, full ) {
 
                         var test_keys = 'Loading...';
 
@@ -117,10 +117,11 @@
                             });
                         });
 
-                        return '<a href="/measurements/' + data + '/detail/" target="blank">' + data + '</a> ' +
+                        return '<a href="/measurements/' + data + '/detail/" target="blank" class="id_measurement">' + data + '</a> ' +
                             '<a data-toggle="popover" class="btn btn-xs btn-default '+ data +'" ' +
-                            'data-content="' + test_keys + '">test keys</a>'
+                            'data-content="' + test_keys + '">test keys</a>' 
 
+                        // return data
                     }
                 },
                 { "mData": "Flag",  "mRender": function ( data ) {
@@ -144,7 +145,6 @@
                 { "mData": 'ISP' },
                 { "mData": "IP Address" },
                 { "mData": "Measurement type" }
-
             ]
         });
 
@@ -156,8 +156,7 @@
             var isp = $( this ).context.childNodes[4].innerText;
             var ip = $( this ).context.childNodes[5].innerText;
             var type = $( this ).context.childNodes[6].innerText;
-            var measurement = $( this ).context.firstChild.firstChild.data;
-
+            var measurement = $( this ).context.firstChild.firstChild.firstChild.data;
             $(this).toggleClass('selected');
 
             if( $( this ).hasClass( 'selected' ) ){
