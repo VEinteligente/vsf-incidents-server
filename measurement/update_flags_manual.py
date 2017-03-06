@@ -180,7 +180,7 @@ def update_tcp_flags(rows):
                           .get_or_create(url=row['input'])
 
         for tcp in tcp_connect:
-        logger.debug('tcp loop')
+            logger.debug('tcp loop')
             if tcp['status']['blocked']:
                 logger.debug('status bloqued')
 
@@ -205,7 +205,7 @@ def update_tcp_flags(rows):
                                                type_med='TCP')
                     flag.save(using='default')
                     logger.debug('New_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
-            else
+            else:
                 logger.debug('_no_ TCP Flag | IP=%s isp=%s target=%s measurement=%s', ip, isp, medicion )
 
     return True

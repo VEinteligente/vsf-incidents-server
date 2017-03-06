@@ -179,9 +179,9 @@
 		<table class="table table-bordered" >
 			<thead>
 				<tr>
-					<th> <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i> &nbsp Hard Flags</th>
-					<th><i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>&nbsp Soft Flags</th>
-					<th> <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>&nbsp Muted Flags</th>
+					<th> <i class="glyphicon glyphicon-flag flag flag-hard"  aria-hidden="true"></i> &nbsp Hard Flags</th>
+					<th><i class="glyphicon glyphicon-flag flag flag-std" aria-hidden="true"></i>&nbsp Soft Flags</th>
+					<th> <i class="glyphicon glyphicon-flag flag flag-muted" aria-hidden="true"></i>&nbsp Muted Flags</th>
 				</tr>
 			</thead>
 			<tbody align="center">
@@ -216,11 +216,11 @@
                 <tr>
                     <td>
 						{% if flag.flag is True %}
-                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>
+                            <i class="glyphicon glyphicon-flag flag flag-hard"  aria-hidden="true"></i>
                         {% elif flag.flag is False %}
-                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                            <i class="glyphicon glyphicon-flag flag flag-std" aria-hidden="true"></i>
                         {% else %}
-                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                            <i class="glyphicon glyphicon-flag flag flag-muted" aria-hidden="true"></i>
                         {% endif %}
                     </td>
                     <td><a href="{% url 'measurements:measurement_front:detail-measurement' flag.medicion %}">{{flag.medicion}}</a></td>

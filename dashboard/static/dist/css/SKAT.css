@@ -52,10 +52,3 @@ textarea.input-sm{
 .select2-container{
     width: 100% !important;
 }
-
-.dataTables_processing{
-    background-color: rgba(50, 50, 50, 0.4);
-    height: 60px;
-    position: fixed;
-    top: 300px;   
-}
