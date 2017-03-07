@@ -7,13 +7,12 @@
     ***/
     
     
-.dataTables_processing{
-    background-color: rgba(50, 50, 50, 0.4);
-    height: 60px;
-    position: fixed;
-    top: 300px;   
+#my-table_processing.dataTables_processing{ 
+    background-color: rgba(50, 50, 50, 0.4); 
+    height: 60px; 
+    position: fixed; 
+    top: 300px;    
 }
-
 
 
 
