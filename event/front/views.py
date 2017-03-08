@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
 from eztables.views import DatatablesView
-from measurement.models import Flag, MetricFlag
+from measurement.models import Flag
 from django.db.models import Q, Count, Case, When, IntegerField
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
 from .utils import suggestedFlags
@@ -148,8 +148,6 @@ class UpdateEvent(CreateEvent,
         if not event.end_date:
             open_ended = True
 
-        print "FLAGS"
-        print flags
         # Initial data for the form
         context['form'] = form(initial={'identification': event.identification,
                                         'flags': flags_str,

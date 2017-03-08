@@ -1,63 +1,9 @@
 from __future__ import unicode_literals
 
+import uuid
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from event.models import Event, Url
-
-
-class Metric(models.Model):
-
-    _DATABASE = 'titan_db'
-
-    # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
-    id = models.UUIDField(primary_key=True, editable=False)
-    input = models.CharField(max_length=50)
-    annotations = JSONField()
-    report_id = models.CharField(max_length=100)
-    report_filename = models.CharField(max_length=150)
-    options = models.TextField()
-    probe_cc = models.CharField(max_length=50)
-    probe_asn = models.CharField(max_length=50)
-    probe_ip = models.GenericIPAddressField()
-    data_format_version = models.CharField(max_length=10)
-    test_name = models.CharField(max_length=25)
-    test_start_time = models.DateTimeField()
-    measurement_start_time = models.DateTimeField()
-    test_runtime = models.FloatField()
-    test_helpers = models.TextField()
-    test_keys = JSONField()
-    software_name = models.CharField(max_length=15)
-    software_version = models.CharField(max_length=10)
-    test_version = models.CharField(max_length=10)
-    bucket_date = models.DateTimeField()
-
-    class Meta:
-        db_table = 'metrics'
-        managed = False
-
-
-class MetricFlag(models.Model):
-
-    _DATABASE = 'titan_db'
-
-    # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
-    ip = models.GenericIPAddressField(null=True, blank=True)
-    target = models.CharField(max_length=25)
-    isp = models.CharField(max_length=25, null=True, blank=True)
-    region = models.CharField(max_length=25, null=True, blank=True)
-    flag = models.NullBooleanField(default=False)
-    manual_flag = models.BooleanField(default=False)
-    type_med = models.CharField(verbose_name='Tipo de Medicion',
-                                max_length=25,
-                                null=False,
-                                default='medicion')
-    metric = models.ForeignKey(
-        Metric, related_name='flags'
-    )
-
-    class Meta:
-        db_table = 'flag'
-        managed = False
 
 
 class Country(models.Model):
@@ -130,36 +76,7 @@ class Plan(models.Model):
 
 
 class Probe(models.Model):
-    STATES_CHOICES = (
-        ('amazonas', 'Amazonas'),
-        ('anzoategui', 'Anzoategui'),
-        ('apure', 'Apure'),
-        ('aragua', 'Aragua'),
-        ('barinas', 'Barinas'),
-        ('bolivar', 'Bolivar'),
-        ('carabobo', 'Carabobo'),
-        ('cojedes', 'Cojedes'),
-        ('delta_amacuro', 'Delta Amacuro'),
-        ('distrito_capital', 'Distrito Capital'),
-        ('falcon', 'Falcon'),
-        ('guarico', 'Guarico'),
-        ('lara', 'Lara'),
-        ('merida', 'Merida'),
-        ('miranda', 'Miranda'),
-        ('monagas', 'Monagas'),
-        ('nueva_esparta', 'Nueva Esparta'),
-        ('portuguesa', 'Portuguesa'),
-        ('sucre', 'Sucre'),
-        ('tachira', 'Tachira'),
-        ('trujillo', 'Trujillo'),
-        ('vargas', 'Vargas'),
-        ('yaracuy', 'Yaracuy'),
-        ('zulia', 'Zulia')
-    )
 
-    COUNTRIES_CHOICES = (
-        ('venezuela', 'Venezuela'),
-    )
     identification = models.CharField(max_length=50, unique=True)
     region = models.ForeignKey(
         State, related_name='probes', default=3479
@@ -187,36 +104,91 @@ class DNS(models.Model):
         return u"%s - %s" % (self.verbose, self.ip)
 
 
+class Measurement(models.Model):
+
+    _DATABASE = 'titan_db'
+
+    # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    input = models.CharField(max_length=50)
+    annotations = JSONField()
+    report_id = models.CharField(max_length=100)
+    report_filename = models.CharField(max_length=150)
+    options = models.TextField()
+    probe_cc = models.CharField(max_length=50)
+    probe_asn = models.CharField(max_length=50)
+    probe_ip = models.GenericIPAddressField()
+    data_format_version = models.CharField(max_length=10)
+    test_name = models.CharField(max_length=25)
+    test_start_time = models.DateTimeField()
+    measurement_start_time = models.DateTimeField()
+    test_runtime = models.FloatField()
+    test_helpers = models.TextField()
+    test_keys = JSONField()
+    software_name = models.CharField(max_length=15)
+    software_version = models.CharField(max_length=10)
+    test_version = models.CharField(max_length=10)
+    bucket_date = models.DateTimeField()
+
+    class Meta:
+        db_table = 'metrics'
+        managed = False
+
+
+class Metric(models.Model):
+
+    # Test name helper:
+    # dns_consistency
+    # web_connectivity
+    # http_header_field_manipulation
+    # http_invalid_request_line
+
+    measurement = models.CharField(max_length=200)
+    input = models.CharField(max_length=50)
+    annotations = JSONField()
+    report_id = models.CharField(max_length=100)
+    report_filename = models.CharField(max_length=150)
+    options = models.TextField()
+    probe_cc = models.CharField(max_length=50)
+    probe_asn = models.CharField(max_length=50)
+    probe_ip = models.GenericIPAddressField()
+    data_format_version = models.CharField(max_length=10)
+    test_name = models.CharField(max_length=25)
+    test_start_time = models.DateTimeField()
+    measurement_start_time = models.DateTimeField()
+    test_runtime = models.FloatField()
+    test_helpers = models.TextField()
+    test_keys = JSONField()
+    software_name = models.CharField(max_length=15)
+    software_version = models.CharField(max_length=10)
+    test_version = models.CharField(max_length=10)
+    bucket_date = models.DateTimeField()
+    probe = models.ForeignKey(Probe, null=True, blank=True)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+
+        try:
+            probe = self.annotations['probe']
+            self.probe = Probe.get(identification=probe)
+        except KeyError:
+            self.probe = None
+
+        return super(Metric, self).save(force_insert=False, force_update=False, using=None,
+                                        update_fields=None)
+
+
 class Flag(models.Model):
 
-    MED = 'MED'
-    DNS = 'DNS'
-    TCP = 'TCP'
-    HTTP = 'HTTP'
+    metric_date = models.DateTimeField()
 
-    TYPE_CHOICES = (
-        (MED, 'Medicion'),
-        (DNS, 'Medicion DNS'),
-        (TCP, 'Medicion TCP'),
-        (HTTP, 'Medicion HTTP')
-    )
-
-    medicion = models.CharField(verbose_name='Id de la Medicion',
-                                max_length=40)
-    date = models.DateTimeField()
-    target = models.ForeignKey(Url) 
-    isp = models.CharField(max_length=100, null=True, blank=True)
-    probe = models.ForeignKey(
-        Probe, null=True, blank=True, related_name='flags')
-    ip = models.GenericIPAddressField(null=True, blank=True)
+    # ---------------------------------------------------
+    is_flag = models.BooleanField(default=False)
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
     manual_flag = models.BooleanField(default=False)
-    type_med = models.CharField(verbose_name='Tipo de Medicion',
-                                max_length=50,
-                                choices=TYPE_CHOICES,
-                                default=MED)
-    region = models.CharField(max_length=50, null=True, blank=True)
+    # ---------------------------------------------------
+
     event = models.ForeignKey(Event, null=True, blank=True,
                               related_name='flags')
     suggested_events = models.ManyToManyField(

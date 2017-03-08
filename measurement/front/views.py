@@ -866,7 +866,7 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
 
     # queryset = Metric.objects.filter(test_name='web_connectivity')
     queryset = Metric.objects.filter(test_name='web_connectivity').annotate(
-        tcp=RawSQL(
+        tcp_uu=RawSQL(
             "test_keys->'tcp_connect'", ()
         ),
     )
@@ -875,13 +875,13 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
         'Flag': 'id',
         'flag_id': 'id',
         'manual_flag': 'id',
-        'tcp': 'tcp',
+        'tcp': 'tcp_uu',
         'id': 'id',
         'input': 'input',
         'ip': 'id',
         'port': 'id',
         'blocked': 'id',
-        '': 'id',
+        'nam': 'id',
         'probe_cc': 'probe_cc',
         'probe_ip': 'probe_ip',
         'measurement_start_time': 'measurement_start_time',

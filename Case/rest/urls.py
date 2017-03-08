@@ -27,11 +27,11 @@ urlpatterns = [
         views.ListRegionView.as_view(),
         name='region-rest'
     ),
-    url(
-        r'^list/region/$',
-        views.ListRegionCaseView.as_view(),
-        name='list-region-case-rest'
-    ),
+    # url(
+    #     r'^list/region/$',
+    #     views.ListRegionCaseView.as_view(),
+    #     name='list-region-case-rest'
+    # ),
     url(
         r'^events/region/(?P<case_id>[0-9]+)/$',
         views.ListCountEventsByRegionByCase.as_view(),

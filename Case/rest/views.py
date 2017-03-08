@@ -74,16 +74,18 @@ class ListRegionView(generics.ListAPIView):
     serializer_class = RegionSerializer
 
 
-class ListRegionCaseView(generics.ListAPIView):
-    """ListRegionCaseView: ListAPIView
-    for displaying a list of regions with his published cases"""
-    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated,)
-    queryset = State.objects.filter(
-        country__name='Venezuela').annotate(
-        num=Count('probes__flags__event__cases')).filter(
-        num__gt=0)
-    serializer_class = RegionCaseSerializer
+# class ListRegionCaseView(generics.ListAPIView):
+#     """
+#     ListRegionCaseView: ListAPIView
+#     for displaying a list of regions with his published cases
+#     """
+#     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+#     permission_classes = (IsAuthenticated,)
+#     queryset = State.objects.filter(
+#         country__name='Venezuela').annotate(
+#         num=Count('probes__flags__event__cases')).filter(
+#         num__gt=0)
+#     serializer_class = RegionCaseSerializer
 
 
 class ListCountEventsByRegionByCase(generics.RetrieveAPIView):

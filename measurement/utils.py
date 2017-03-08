@@ -2,7 +2,7 @@ import time
 import json
 from django.db.models import Q
 
-from measurement.models import Metric, Flag, Probe, MetricFlag
+from measurement.models import Metric, Flag, Probe
 from event.models import Url, Event
 from event.front.utils import suggestedFlags
 from random import randint
@@ -50,11 +50,6 @@ def change_to_manual_flag_sql(metric_sql):
 
             # Save object in database
             flag.save()
-
-            m_flag, created = MetricFlag.objects.get_or_create(
-                metric_id=metric_sql['id'],
-                manual_flag=True,
-                target=url)
 
         return True
 
@@ -111,10 +106,6 @@ def change_to_manual_flag_and_create_event(metrics_sql, type_med):
             target = url
 
             # Save objects in remote database if is not already
-            m_flag, created = MetricFlag.objects.get_or_create(
-                metric_id=metric_sql['id'],
-                manual_flag=True,
-                target=target.url)
         else:
 
             for flag in flags:
@@ -211,12 +202,6 @@ def change_to_flag_and_create_event(metrics_sql, list_ip, type_med):
                     target = url
 
                     # Save objects in remote database if is not already
-                    m_flag, created = MetricFlag.objects.get_or_create(
-                        metric_id=metric_sql['id'],
-                        manual_flag=True,
-                        target=target.url,
-                        ip=ip,
-                        type_med=type_med)
 
                 else:
                     for flag in flags:
@@ -302,10 +287,6 @@ def validate_metrics(metrics_sql):
     test_names_set = set(
         [x for x in metric_test_names if metric_test_names.count(x) >= 1])
     isp_set = set([x for x in metric_isp if metric_isp.count(x) >= 1])
-    print "Pedro sets:"
-    print input_set
-    print test_names_set
-    print isp_set
 
     if (len(input_set) == 1) and (len(test_names_set) == 1):
         if (len(isp_set) <= 1):
@@ -314,16 +295,3 @@ def validate_metrics(metrics_sql):
             return "no same isp"
     else:
         return "no same input or test_name"
-
-
-# def add_probe_to_ndt():
-#     metrics = Metric.objects.filter(test_name='ndt')
-#     for metric in metrics:
-#         rand = randint(1000, 1009)
-#         metric.annotations['probe'] = str(rand)
-#         metric.annotations = json.dumps(metric.annotations)
-#         metric.options = json.dumps(metric.options)
-#         metric.test_helpers = json.dumps(metric.test_helpers)
-#         metric.test_keys = json.dumps(metric.test_keys)
-#         metric.save()
-

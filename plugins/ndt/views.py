@@ -38,7 +38,7 @@ class NdtTableView(PluginTableView):
 class NdtAjaxView(DatatablesView):
     fields = {
         'annotations': 'annotations',
-        'probe': 'probe',
+        'probe': 'probe_uu',
         'probe_isp': 'id',
         'probe_plan': 'id',
         'date': 'test_start_time',
@@ -53,7 +53,7 @@ class NdtAjaxView(DatatablesView):
         '% package loss': 'package_loss',
     }
     queryset = Metric.objects.filter(test_name='ndt').annotate(
-        probe=RawSQL(
+        probe_uu=RawSQL(
             "annotations->>'probe'", ()
         ),
         download=RawSQL(
