@@ -1,8 +1,4 @@
-import json
-from plugins.views import PluginTableView
-from eztables.views import DatatablesView
-from django.http import HttpResponse
-from django.core.serializers.json import DjangoJSONEncoder
+from plugins.views import PluginTableView, DatatablesView
 from django.db.models.expressions import RawSQL
 
 from django.views import generic
@@ -101,11 +97,6 @@ class NdtAjaxView(DatatablesView):
                 row['% package loss'] = 'Unknown'
 
         return page_rows
-
-    def json_response(self, data):
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder)
-        )
 
 # --------------------------------------------------------
 
