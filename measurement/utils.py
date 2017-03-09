@@ -1,12 +1,27 @@
 import time
 import json
 from django.db.models import Q
+from django.conf import settings
+from django.utils.dateparse import parse_datetime
 
-from measurement.models import Metric, Flag, Probe
+from measurement.models import Metric, Flag, Probe, Measurement
 from event.models import Url, Event
 from event.front.utils import suggestedFlags
 from random import randint
 
+SYNCRONIZE_DATE = parse_datetime(settings.SYNCRONIZE_DATE)
+
+
+def copy_from_measurements_to_metrics():
+    if SYNCRONIZE_DATE is not None:
+        measurements = Measurement.objects.filter(
+            measurement_start_time__gte=SYNCRONIZE_DATE
+        )
+        for measurement in measurements:
+            print "measurement:"
+            print measurement.id
+    else:
+        print "SYNCRONIZE_DATE is None"
 
 def get_type_med(test_name):
     if test_name == 'dns_consistency':

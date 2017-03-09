@@ -115,3 +115,7 @@ MODELTRANSLATION_DEFAULT_LANGUAGE = local_settings.MODELTRANSLATION_DEFAULT_LANG
 
 # VSF plugin function
 FLAG_TESTS = local_settings.FLAG_TESTS
+
+
+# Date since last SYNCRONIZE between measurements and metrics (None means all)
+SYNCRONIZE_DATE = local_settings.SYNCRONIZE_DATE
