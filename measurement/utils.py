@@ -1,27 +1,100 @@
 import time
 import json
+import logging
+import datetime
 from django.db.models import Q
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
+from django.utils.timezone import make_aware
+
 
 from measurement.models import Metric, Flag, Probe, Measurement
 from event.models import Url, Event
 from event.front.utils import suggestedFlags
 from random import randint
 
-SYNCRONIZE_DATE = parse_datetime(settings.SYNCRONIZE_DATE)
-
 
 def copy_from_measurements_to_metrics():
+    syncronize_logger = logging.getLogger('syncronize_logger')
+    SYNCRONIZE_DATE = settings.SYNCRONIZE_DATE
+    print SYNCRONIZE_DATE
     if SYNCRONIZE_DATE is not None:
+        SYNCRONIZE_DATE = make_aware(parse_datetime(settings.SYNCRONIZE_DATE))
+
         measurements = Measurement.objects.filter(
             measurement_start_time__gte=SYNCRONIZE_DATE
         )
-        for measurement in measurements:
-            print "measurement:"
-            print measurement.id
+        measurements_date = Measurement.objects.filter(
+            measurement_start_time__gte=SYNCRONIZE_DATE
+        ).latest('measurement_start_time').measurement_start_time
     else:
         print "SYNCRONIZE_DATE is None"
+        measurements = Measurement.objects.all()
+        measurements_date = Measurement.objects.all().latest(
+            'measurement_start_time').measurement_start_time
+
+    print "Start Creating/updating"
+    for measurement in measurements:
+        update_or_create(measurement)
+
+    settings.SYNCRONIZE_DATE = str(measurements_date)
+    syncronize_logger.info("[%s]Last syncronize date: '%s'" % (
+        datetime.datetime.now(), settings.SYNCRONIZE_DATE))
+    print settings.SYNCRONIZE_DATE
+
+
+def update_or_create(measurement):
+    try:
+        obj = Metric.objects.get(id=measurement.id)
+        obj.measurement = measurement.id,
+        obj.input = measurement.input,
+        obj.annotations = measurement.annotations,
+        obj.report_id = measurement.report_id,
+        obj.report_filename = measurement.report_filename,
+        obj.options = measurement.options,
+        obj.probe_cc = measurement.probe_cc,
+        obj.probe_asn = measurement.probe_asn,
+        obj.probe_ip = measurement.probe_ip,
+        obj.data_format_version = measurement.data_format_version,
+        obj.test_name = measurement.test_name,
+        obj.test_start_time = make_aware(measurement.test_start_time),
+        obj.measurement_start_time = make_aware(
+            measurement.measurement_start_time),
+        obj.test_runtime = measurement.test_runtime,
+        obj.test_helpers = measurement.test_helpers,
+        obj.test_keys = measurement.test_keys,
+        obj.software_name = measurement.software_name,
+        obj.software_version = measurement.software_version,
+        obj.test_version = measurement.test_version,
+        obj.bucket_date = measurement.bucket_date
+        obj.save()
+
+    except Metric.DoesNotExist:
+        obj = Metric(
+            measurement=measurement.id,
+            input=measurement.input,
+            annotations=measurement.annotations,
+            report_id=measurement.report_id,
+            report_filename=measurement.report_filename,
+            options=measurement.options,
+            probe_cc=measurement.probe_cc,
+            probe_asn=measurement.probe_asn,
+            probe_ip=measurement.probe_ip,
+            data_format_version=measurement.data_format_version,
+            test_name=measurement.test_name,
+            test_start_time=make_aware(measurement.test_start_time),
+            measurement_start_time=make_aware(
+                measurement.measurement_start_time),
+            test_runtime=measurement.test_runtime,
+            test_helpers=measurement.test_helpers,
+            test_keys=measurement.test_keys,
+            software_name=measurement.software_name,
+            software_version=measurement.software_version,
+            test_version=measurement.test_version,
+            bucket_date=measurement.bucket_date
+        )
+        obj.save()
+
 
 def get_type_med(test_name):
     if test_name == 'dns_consistency':

@@ -110,20 +110,20 @@ class Measurement(models.Model):
 
     # Test name helper: dns_consistency web_connectivity http_header_field_manipulation http_invalid_request_line
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    input = models.CharField(max_length=50)
+    input = models.CharField(max_length=50, null=True)
     annotations = JSONField()
     report_id = models.CharField(max_length=100)
-    report_filename = models.CharField(max_length=150)
-    options = models.TextField()
+    report_filename = models.CharField(max_length=250)
+    options = models.TextField(null=True)
     probe_cc = models.CharField(max_length=50)
     probe_asn = models.CharField(max_length=50)
     probe_ip = models.GenericIPAddressField()
     data_format_version = models.CharField(max_length=10)
-    test_name = models.CharField(max_length=25)
+    test_name = models.CharField(max_length=50)
     test_start_time = models.DateTimeField()
     measurement_start_time = models.DateTimeField()
     test_runtime = models.FloatField()
-    test_helpers = models.TextField()
+    test_helpers = models.TextField(null=True)
     test_keys = JSONField()
     software_name = models.CharField(max_length=15)
     software_version = models.CharField(max_length=10)
@@ -144,20 +144,20 @@ class Metric(models.Model):
     # http_invalid_request_line
 
     measurement = models.CharField(max_length=200)
-    input = models.CharField(max_length=50)
+    input = models.CharField(max_length=50, null=True)
     annotations = JSONField()
     report_id = models.CharField(max_length=100)
-    report_filename = models.CharField(max_length=150)
-    options = models.TextField()
+    report_filename = models.CharField(max_length=250)
+    options = models.TextField(null=True)
     probe_cc = models.CharField(max_length=50)
     probe_asn = models.CharField(max_length=50)
     probe_ip = models.GenericIPAddressField()
     data_format_version = models.CharField(max_length=10)
-    test_name = models.CharField(max_length=25)
+    test_name = models.CharField(max_length=50)
     test_start_time = models.DateTimeField()
     measurement_start_time = models.DateTimeField()
     test_runtime = models.FloatField()
-    test_helpers = models.TextField()
+    test_helpers = models.TextField(null=True)
     test_keys = JSONField()
     software_name = models.CharField(max_length=15)
     software_version = models.CharField(max_length=10)
@@ -170,8 +170,8 @@ class Metric(models.Model):
 
         try:
             probe = self.annotations['probe']
-            self.probe = Probe.get(identification=probe)
-        except KeyError:
+            self.probe = Probe.objects.get(identification=probe)
+        except Exception:
             self.probe = None
 
         return super(Metric, self).save(force_insert=False, force_update=False, using=None,
