@@ -6,8 +6,8 @@ from measurement.models import Flag, Metric
 
 class HTTP(models.Model):
 
-    flag = models.OneToOneField(Flag)
-    metric = models.ForeignKey(Metric)
+    flag = models.OneToOneField(Flag, null=True)
+    metric = models.ForeignKey(Metric, null=True)
 
     status_code_match = models.BooleanField(default=False)
     headers_match = models.BooleanField(default=False)

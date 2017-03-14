@@ -7,8 +7,8 @@ from measurement.models import Flag, Metric
 
 class DNS(models.Model):
 
-    flag = models.OneToOneField(Flag)
-    metric = models.ForeignKey(Metric)
+    flag = models.OneToOneField(Flag, null=True)
+    metric = models.ForeignKey(Metric, null=True)
 
     control_resolver_failure = models.CharField(max_length=50, null=True, blank=True)
     control_resolver_answers = JSONField()
