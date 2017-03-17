@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-
+from django.core.paginator import Paginator
 
 from measurement.models import Metric, Flag, Probe, Measurement
 from event.models import Url, Event
@@ -34,8 +34,12 @@ def copy_from_measurements_to_metrics():
             'measurement_start_time').measurement_start_time
 
     print "Start Creating/updating"
-    for measurement in measurements:
-        update_or_create(measurement)
+    metric_paginator = Paginator(measurements, 1000)
+
+    for p in metric_paginator.page_range:
+        page = metric_paginator.page(p)
+        for measurement in page.object_list:
+            update_or_create(measurement)
 
     settings.SYNCRONIZE_DATE = str(measurements_date)
     syncronize_logger.info("[%s]Last syncronize date: '%s'" % (
