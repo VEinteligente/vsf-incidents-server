@@ -7,13 +7,19 @@ from measurement.models import Flag, Metric
 
 class DNS(models.Model):
 
-    flag = models.OneToOneField(Flag, null=True)
-    metric = models.ForeignKey(Metric, null=True)
+    flag = models.OneToOneField(Flag, null=True, related_name="dnss")
+    metric = models.ForeignKey(Metric, null=True, related_name="dnss")
 
-    control_resolver_failure = models.CharField(max_length=50, null=True, blank=True)
-    control_resolver_answers = JSONField()
-    control_resolver_resolver_hostname = models.GenericIPAddressField(null=True, blank=True)  # servidor DNS de control
+    control_resolver_failure = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
+    control_resolver_answers = JSONField(null=True)
+    control_resolver_resolver_hostname = models.GenericIPAddressField(
+        null=True, blank=True)  # servidor DNS de control
 
     failure = models.CharField(max_length=50, null=True, blank=True)
-    answers = JSONField()
-    resolver_hostname = models.GenericIPAddressField(null=True, blank=True)  # servidor DNS que se esta evaluando
+    answers = JSONField(null=True)
+    resolver_hostname = models.GenericIPAddressField(
+        null=True, blank=True)  # servidor DNS que se esta evaluando

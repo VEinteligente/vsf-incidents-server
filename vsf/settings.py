@@ -121,3 +121,6 @@ LOGGING = local_settings.LOGGING
 
 # Date since last SYNCRONIZE between measurements and metrics (None means all)
 SYNCRONIZE_DATE = local_settings.SYNCRONIZE_DATE
+
+# Limit of HTTP test to determinate body_proportion flags
+BODY_PROPORTION_LIMIT = local_settings.BODY_PROPORTION_LIMIT
