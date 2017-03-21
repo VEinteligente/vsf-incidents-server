@@ -39,16 +39,21 @@ def web_connectivity_to_tcp():
         'tcps'
     )
 
-    for tcp_metric in web_connectivity_metrics:
-        for tcp_connect in tcp_metric['tcp_connect']:
-            if tcp_metric['tcps'] is None and (
-                tcp_connect['status']['blocked'] is not None) and (
-                tcp_connect['status']['success'] is not None
-            ):
-                tcp = TCP(
-                    metric_id=tcp_metric['id'],
-                    status_blocked=tcp_connect['status']['blocked'],
-                    status_failure=tcp_connect['status']['failure'],
-                    status_success=tcp_connect['status']['success']
-                )
-                tcp.save()
+    web_connectivity_paginator = Paginator(web_connectivity_metrics, 1000)
+
+    for p in web_connectivity_paginator.page_range:
+        page = web_connectivity_paginator.page(p)
+
+        for tcp_metric in page.object_list:
+            for tcp_connect in tcp_metric['tcp_connect']:
+                if tcp_metric['tcps'] is None and (
+                    tcp_connect['status']['blocked'] is not None) and (
+                    tcp_connect['status']['success'] is not None
+                ):
+                    tcp = TCP(
+                        metric_id=tcp_metric['id'],
+                        status_blocked=tcp_connect['status']['blocked'],
+                        status_failure=tcp_connect['status']['failure'],
+                        status_success=tcp_connect['status']['success']
+                    )
+                    tcp.save()
