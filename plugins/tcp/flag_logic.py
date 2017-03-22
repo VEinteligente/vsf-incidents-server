@@ -57,3 +57,36 @@ def web_connectivity_to_tcp():
                         status_success=tcp_connect['status']['success']
                     )
                     tcp.save()
+
+
+def tcp_to_flag():
+
+    tcp = TCP.objects.filter(flag=None)
+
+    tcp_paginator = Paginator(tcp, 1000)
+    for p in tcp_paginator.page_range:
+        page = tcp_paginator.page(p)
+        for tcp_obj in page.object_list:
+            flag = Flag(
+                metric_date=tcp_obj.metric.measurement_start_time,
+                flag=False
+            )
+            if tcp_obj.status_blocked:
+                flag.is_flag = True
+            else:
+                flag.is_flag = False
+            flag.save()
+            tcp_obj.flag = flag
+            tcp_obj.save()
+
+
+def both():
+    web_connectivity_to_tcp()
+    tcp_to_flag()
+
+
+def test():
+    t = TCP.objects.all()
+
+    for i in t:
+        print i.flag.is_flag
