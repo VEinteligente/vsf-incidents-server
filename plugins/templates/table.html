@@ -10,7 +10,7 @@
         <table id="my-table">
             <thead>
                 {% for table_title in titles %}
-                    <th> {{ table_title }} </th>
+                    <th> {{ table_title|title }} </th>
                 {% endfor %}
             </thead>
         </table>

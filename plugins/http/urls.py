@@ -1,15 +1,15 @@
-from django.conf.urls import include, url
+from django.conf.urls import url
 import views
 
 urlpatterns = [
-    # url(
-    #     r'^table/$',
-    #     views.NdtTableView.as_view(),
-    #     name='ndt-table'
-    # ),
-    # url(
-    #     r'^ndt-ajax/$',
-    #     views.NdtAjaxView.as_view(),
-    #     name='ndt-ajax'
-    # ),
+    url(
+        r'^table/$',
+        views.HTTPTableView.as_view(),
+        name='http-table'
+    ),
+    url(
+        r'^http-ajax/$',
+        views.HTTPAjaxView.as_view(),
+        name='http-ajax'
+    ),
 ]
