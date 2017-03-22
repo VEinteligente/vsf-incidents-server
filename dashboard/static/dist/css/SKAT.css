@@ -1,0 +1,54 @@
+/*Rezise of form elements*/
+.help-block {
+	font-size: 12px;
+}
+
+.control-label{
+	font-size: 13px;
+}
+
+.form-group{
+	margin-bottom: 10px;
+}
+.input-sm, select.input-sm{
+	font-size: 13px;
+	height: 26px;
+}
+textarea.input-sm{
+
+}
+/**
+ * Select2 adjustments
+ */
+.input-sm + span.select2 .select2-selection--single {
+    font-size: 13px;
+    height: 26px;
+    padding-top: 0px;
+    padding-bottom: 0px
+}
+.input-sm + span.select2 .select2-selection--single .select2-selection__rendered {margin-top: 4px}
+/**
+ * End Select2 adjustments
+ */
+.btn-top{
+	float: right;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding: 7px 5px;
+	position: absolute;
+	top: 15px;
+	right: 15px;
+}
+.btn-top .fa{
+	padding-right: 7px;
+	padding-left: 5px;
+}
+
+.select2-selection {
+	border-radius: 0px !important;
+	border-color: #d2d6d !important;
+}
+
+.select2-container{
+    width: 100% !important;
+}
