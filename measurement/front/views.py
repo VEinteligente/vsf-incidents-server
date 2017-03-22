@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.core.mail import EmailMessage
 from django.views import generic
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.db.models.expressions import RawSQL
 from eztables.views import DatatablesView
 from django.utils.six import text_type
@@ -27,6 +27,10 @@ from measurement.front.forms import (
 )
 from event.models import Url
 from measurement.utils import *
+from plugins.views import PluginTableView
+from plugins.dns.models import DNS as DNS_METRIC
+from plugins.tcp.models import TCP
+from plugins.http.models import HTTP
 import re
 import json
 from django.db.models.expressions import RawSQL
@@ -260,6 +264,70 @@ class DNSTestKey(object):
                     q.pop('answers', None)
 
             self.queries = filter(None, self.queries)
+
+
+class MetricTableView(PluginTableView):
+    page_header = "Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurement", "All"]
+    titles = [
+        'checkbox',
+        'flag',
+        'manual_flag',
+        'status blocked',
+        'status failure',
+        'status success',
+        'test keys',
+        'measurement',
+        'input',
+        'measurement_start_time',
+        'report_id',
+        'probe id',
+        'probe ISP'
+    ]
+    url_ajax = '/measurement/metric-ajax/'
+
+
+class MetricAjaxView(DatatablesView):
+    fields = {
+        'checkbox': 'metric__input',
+        'flag': 'flag__is_flag',
+        'manual flag': 'flag__manual_flag',
+        'status blocked': 'status_blocked',
+        'status failure': 'status_failure',
+        'status success': 'status_success',
+        'test keys': 'metric__test_keys',
+        'measurement': 'metric__measurement',
+        'input': 'metric__input',
+        'measurement_start_time': 'metric__measurement_start_time',
+        'report_id': 'metric__report_id',
+        'probe id': 'metric__probe__identification',
+        'probe ISP': 'metric__probe__isp'
+
+    }
+
+    queryset = Flag.objects.all().prefetch_related(
+        Prefetch(
+            'dnss',
+            queryset=DNS_METRIC.objects.select_related('metric'),
+            to_attr='dns_metrics'
+        ),
+        Prefetch(
+            'https',
+            queryset=HTTP.objects.select_related('metric'),
+            to_attr='http_metrics'
+        ),
+        Prefetch(
+            'tcps',
+            queryset=TCP.objects.select_related('metric'),
+            to_attr='tcp_metrics'
+        ),
+    )
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder)
+        )
 
 
 class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
