@@ -221,5 +221,3 @@ def metric_to_dns():
     print "Start Evaluate DNS Flags"
     dns_to_flag()
     print "End Evaluate DNS Flags"
-
-
