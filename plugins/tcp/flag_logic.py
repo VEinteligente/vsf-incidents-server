@@ -64,17 +64,17 @@ def tcp_to_flag():
     tcp = TCP.objects.filter(flag=None)
 
     tcp_paginator = Paginator(tcp, 1000)
+
     for p in tcp_paginator.page_range:
-        page = tcp_paginator.page(p)
+        print tcp_paginator.count
+        page = tcp_paginator.page(1)
+
         for tcp_obj in page.object_list:
             flag = Flag(
                 metric_date=tcp_obj.metric.measurement_start_time,
-                flag=False
+                flag=False,
+                is_flag=tcp_obj.status_blocked
             )
-            if tcp_obj.status_blocked:
-                flag.is_flag = True
-            else:
-                flag.is_flag = False
             flag.save()
             tcp_obj.flag = flag
             tcp_obj.save()
