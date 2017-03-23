@@ -14,7 +14,8 @@ class HTTPTableView(PluginTableView):
     titles = [
         'checkbox',
         'flag',
-        'manual_flag',
+        'manual flag',
+        'test name',
         'status code match',
         'headers match',
         'body lenght match',
@@ -32,8 +33,10 @@ class HTTPTableView(PluginTableView):
 
 class HTTPAjaxView(DatatablesView):
     fields = {
-        'checkbox': 'metric__input',
-        'flag': 'flag__is_flag',
+        'checkbox': 'metric__id',
+        'flag': 'flag__flag',
+        'is_flag': 'flag__is_flag',
+        'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
         'status code match': 'status_code_match',
         'headers match': 'headers_match',

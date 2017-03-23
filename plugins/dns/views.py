@@ -14,7 +14,8 @@ class DNSTableView(PluginTableView):
     titles = [
         'checkbox',
         'flag',
-        'manual_flag',
+        'manual flag',
+        'test name',
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
@@ -34,14 +35,16 @@ class DNSTableView(PluginTableView):
 
 class DNSAjaxView(DatatablesView):
     fields = {
-        'checkbox': 'metric__input',
-        'flag': 'flag__is_flag',
+        'checkbox': 'metric__id',
+        'flag': 'flag__flag',
+        'is_flag': 'flag__is_flag',
         'manual flag': 'flag__manual_flag',
+        'test name': 'metric__test_name',
         'control resolver failure': 'control_resolver_failure',
-        'control resolver answers': 'control_resolver_answer',
+        'control resolver answers': 'control_resolver_answers',
         'control resolver hostname': 'control_resolver_resolver_hostname',
         'failure': 'failure',
-        'answers': 'answer',
+        'answers': 'answers',
         'resolver hostname': 'resolver_hostname',
         'test keys': 'metric__test_keys',
         'measurement': 'metric__measurement',

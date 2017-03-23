@@ -14,7 +14,8 @@ class TCPTableView(PluginTableView):
     titles = [
         'checkbox',
         'flag',
-        'manual_flag',
+        'manual flag',
+        'test name',
         'status blocked',
         'status failure',
         'status success',
@@ -31,8 +32,10 @@ class TCPTableView(PluginTableView):
 
 class TCPAjaxView(DatatablesView):
     fields = {
-        'checkbox': 'metric__input',
-        'flag': 'flag__is_flag',
+        'checkbox': 'metric__id',
+        'flag': 'flag__flag',
+        'is_flag': 'flag__is_flag',
+        'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
         'status blocked': 'status_blocked',
         'status failure': 'status_failure',
