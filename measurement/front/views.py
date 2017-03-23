@@ -421,7 +421,6 @@ class MeasurementAjaxView(DatatablesView):
 
 class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     model = Metric
-    queryset = Metric.objects.all()
     slug_url_kwarg = 'id'
     slug_field = 'id__contains'
     template_name = 'detail_measurement.html'
@@ -433,13 +432,6 @@ class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
         Insert the single object into the context dict.
         """
         context = {}
-        if self.object:
-            try:
-                probe = Probe.objects.get(
-                    identification=self.object.annotations['probe'])
-            except Exception:
-                probe = ""
-            context['probe'] = probe
         context.update(kwargs)
         return super(MeasurementDetail, self).get_context_data(**context)
 
