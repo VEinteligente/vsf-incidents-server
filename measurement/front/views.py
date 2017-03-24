@@ -1317,15 +1317,10 @@ class DetailReportView(PageTitleMixin, generic.DetailView):
         context = super(DetailReportView, self).get_context_data(**kwargs)
         metrics = Metric.objects.filter(
             report_id=self.kwargs['report_id'])
-        context['metrics'] = metrics.values('id', 'input', 'annotations')
+        context['metrics'] = metrics.values(
+            'id', 'measurement', 'input', 'annotations')
         report = metrics.first()
         context['report'] = report
-        try:
-            if metrics.first().annotations['probe']:
-                context['probe'] = Probe.objects.get(
-                    identification=metrics.first().annotations['probe'])
-        except Exception:
-            pass
         return context
 
 
