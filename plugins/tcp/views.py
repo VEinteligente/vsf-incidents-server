@@ -8,6 +8,10 @@ import json
 
 
 class TCPTableView(PluginTableView):
+    """
+    TCPTableView: PluginTableView for display tcp metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
     page_header = "TCP Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurement", "TCP"]
@@ -31,20 +35,29 @@ class TCPTableView(PluginTableView):
 
 
 class TCPAjaxView(DatatablesView):
+    """
+    TCPAjaxView: DatatablesView for fill tcp metrics table.
+    Field checkbox is required to do functions over the table and must be
+    the id to identify which metric is selected.
+    Fields flag and is_flag are required to display Flag header defined in
+    TCPTableView.
+    Field checkbox, flag, test_keys, measurement, report_id are customized by
+    table.html
+    """
     fields = {
-        'checkbox': 'metric__id',
-        'flag': 'flag__flag',
+        'checkbox': 'id',  # Required
+        'flag': 'flag__flag',  # Customized
         'is_flag': 'flag__is_flag',
         'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
         'status blocked': 'status_blocked',
         'status failure': 'status_failure',
         'status success': 'status_success',
-        'test keys': 'metric__test_keys',
-        'measurement': 'metric__measurement',
+        'test keys': 'metric__test_keys',  # Customized
+        'measurement': 'metric__measurement',  # Customized
         'input': 'metric__input',
         'measurement_start_time': 'metric__measurement_start_time',
-        'report_id': 'metric__report_id',
+        'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification',
         'probe ISP': 'metric__probe__isp'
 

@@ -8,6 +8,10 @@ import json
 
 
 class HTTPTableView(PluginTableView):
+    """
+    HTTPTableView: PluginTableView for display http metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
     page_header = "HTTP Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurement", "HTTP"]
@@ -32,9 +36,18 @@ class HTTPTableView(PluginTableView):
 
 
 class HTTPAjaxView(DatatablesView):
+    """
+    HTTPAjaxView: DatatablesView for fill http metrics table.
+    Field checkbox is required to do functions over the table and must be
+    the id to identify which metric is selected.
+    Fields flag and is_flag are required to display Flag header defined in
+    TCPTableView.
+    Field checkbox, flag, test_keys, measurement, report_id are customized by
+    table.html
+    """
     fields = {
-        'checkbox': 'metric__id',
-        'flag': 'flag__flag',
+        'checkbox': 'id',  # Required
+        'flag': 'flag__flag',  # Customized
         'is_flag': 'flag__is_flag',
         'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
@@ -42,11 +55,11 @@ class HTTPAjaxView(DatatablesView):
         'headers match': 'headers_match',
         'body lenght match': 'body_length_match',
         'body proportion': 'body_proportion',
-        'test keys': 'metric__test_keys',
-        'measurement': 'metric__measurement',
+        'test keys': 'metric__test_keys',  # Customized
+        'measurement': 'metric__measurement',  # Customized
         'input': 'metric__input',
         'measurement_start_time': 'metric__measurement_start_time',
-        'report_id': 'metric__report_id',
+        'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification',
         'probe ISP': 'metric__probe__isp'
 

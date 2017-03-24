@@ -8,6 +8,10 @@ import json
 
 
 class DNSTableView(PluginTableView):
+    """
+    DNSTableView: PluginTableView for display dns metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
     page_header = "DNS Measurement List"
     page_header_description = ""
     breadcrumb = ["Measurement", "DNS"]
@@ -34,23 +38,33 @@ class DNSTableView(PluginTableView):
 
 
 class DNSAjaxView(DatatablesView):
+    """
+    DNSAjaxView: DatatablesView for fill dns metrics table.
+    Field checkbox is required to do functions over the table and must be
+    the id to identify which metric is selected.
+    Fields flag and is_flag are required to display Flag header defined in
+    TCPTableView.
+    Field checkbox, flag, test_keys, measurement, report_id,
+    control_resolver_answers and answers are customized by
+    table.html
+    """
     fields = {
-        'checkbox': 'metric__id',
-        'flag': 'flag__flag',
+        'checkbox': 'id',  # Required
+        'flag': 'flag__flag',  # Customized
         'is_flag': 'flag__is_flag',
         'manual flag': 'flag__manual_flag',
         'test name': 'metric__test_name',
         'control resolver failure': 'control_resolver_failure',
-        'control resolver answers': 'control_resolver_answers',
+        'control resolver answers': 'control_resolver_answers',  # Customized
         'control resolver hostname': 'control_resolver_resolver_hostname',
         'failure': 'failure',
-        'answers': 'answers',
+        'answers': 'answers',  # Customized
         'resolver hostname': 'resolver_hostname',
-        'test keys': 'metric__test_keys',
-        'measurement': 'metric__measurement',
+        'test keys': 'metric__test_keys',  # Customized
+        'measurement': 'metric__measurement',  # Customized
         'input': 'metric__input',
         'measurement_start_time': 'metric__measurement_start_time',
-        'report_id': 'metric__report_id',
+        'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification',
         'probe ISP': 'metric__probe__isp'
 
