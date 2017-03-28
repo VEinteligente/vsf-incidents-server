@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 
-from measurement.models import Metric
+from measurement.models import Metric, Flag
 from models import NDTMeasurement, DailyTest
 
 
@@ -94,6 +94,7 @@ def metric_to_ndt():
                 ndt = NDTMeasurement(
                     metric=ndt_metric,
                     isp=isp,
+                    date=ndt_metric.measurement_start_time,
                     upload_speed=ndt_metric.download,
                     download_speed=ndt_metric.upload,
                     ping=ndt_metric.ping,
@@ -109,8 +110,51 @@ def ndt_to_daily_test():
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
-        dnss = NDTMeasurement.objects.filter(
-            metric__measurement_start_time__gte=SYNCHRONIZE_DATE
-        )
+        ndts = NDTMeasurement.objects.filter(
+            date__gte=SYNCHRONIZE_DATE
+        ).order_by('date')
     else:
-        dnss = NDTMeasurement.objects.all()
+        ndts = NDTMeasurement.objects.all().order_by('date')
+
+    for ndt in ndts:
+        try:
+            daily_test = DailyTest.objects.get(date=ndt.date, isp=ndt.isp)
+            m_count = daily_test.ndt_measurement_count + 1
+
+            daily_test.av_upload_speed += ndt.upload_speed / m_count
+            daily_test.av_download_speed += ndt.download_speed / m_count
+            daily_test.av_ping += ndt.ping / m_count
+            daily_test.av_max_ping += ndt.max_ping / m_count
+            daily_test.av_min_ping += ndt.min_ping / m_count
+            daily_test.av_timeout += ndt.timeout / m_count
+            daily_test.av_package_loss += ndt.package_loss / m_count
+
+            daily_test.ndt_measurement_count = m_count
+
+            daily_test.save()
+
+        except DailyTest.DoesNotExist:
+            Flag(
+                metric_date=ndt.date,
+
+                # ---------------------------------------------------
+                is_flag=models.BooleanField(default=False, db_index=True),
+                # True -> hard, False -> soft, None -> muted
+                flag = models.NullBooleanField(default=False, db_index=True),
+                manual_flag = models.BooleanField(default=False, db_index=True),
+                # ---------------------------------------------------
+            )
+
+            DailyTest(
+                flag=models.ForeignKey(Flag),
+                isp=ndt.isp,
+                date=ndt.date,
+                ndt_measurement_count=1,
+                av_upload_speed=ndt.upload_speed,
+                av_download_speed=ndt.download_speed,
+                av_ping=ndt.ping,
+                av_max_ping=ndt.max_ping,
+                av_min_ping=ndt.min_ping,
+                av_timeout=ndt.timeout,
+                av_package_loss=ndt.package_loss,
+            )

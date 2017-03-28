@@ -11,7 +11,7 @@ class DailyTest(models.Model):
     isp = models.ForeignKey(ISP)
     date = models.DateField()
 
-    ndt_measurement_count = models.PositiveIntegerField()
+    ndt_measurement_count = models.PositiveIntegerField(default=0)
 
     av_upload_speed = models.FloatField()
     av_download_speed = models.FloatField()
@@ -27,6 +27,7 @@ class NDTMeasurement(models.Model):
     metric = models.ForeignKey(Metric, related_name='ndt')
     daily_test = models.ForeignKey(DailyTest, null=True, blank=True, related_name='ndt')
     isp = models.ForeignKey(ISP, null=True, blank=True)
+    date = models.DateField()
 
     upload_speed = models.FloatField()
     download_speed = models.FloatField()
