@@ -291,7 +291,7 @@ class MetricTableView(PluginTableView):
 class MetricAjaxView(DatatablesView):
     fields = {
         'checkbox': 'metric__input',
-        'flag': 'flag__is_flag',
+        'flag': 'flag__flag',
         'manual flag': 'flag__manual_flag',
         'status blocked': 'status_blocked',
         'status failure': 'status_failure',

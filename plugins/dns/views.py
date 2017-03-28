@@ -19,20 +19,19 @@ class DNSTableView(PluginTableView):
         'checkbox',
         'flag',
         'manual flag',
+        'measurement',
+        'input',
         'test name',
+        'measurement_start_time',
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
         'failure',
         'answers',
         'resolver hostname',
-        'test keys',
-        'measurement',
-        'input',
-        'measurement_start_time',
         'report_id',
         'probe id',
-        'probe ISP'
+        'test keys'
     ]
     url_ajax = '/plugins/dns/dns-ajax/'
 
@@ -43,8 +42,6 @@ class DNSAjaxView(DatatablesView):
     Field checkbox is required to do functions over the table and must be
     the id to identify which metric is selected.
     Field measurement_id is required if measurement field is present
-    Fields flag and is_flag are required to display Flag header defined in
-    TCPTableView.
     Field checkbox, flag, test_keys, measurement, report_id,
     control_resolver_answers and answers are customized by
     table.html
@@ -52,7 +49,6 @@ class DNSAjaxView(DatatablesView):
     fields = {
         'checkbox': 'id',  # Required
         'flag': 'flag__flag',  # Customized
-        'is_flag': 'flag__is_flag',
         'manual flag': 'flag__manual_flag',
         'test name': 'metric__test_name',
         'control resolver failure': 'control_resolver_failure',
@@ -67,8 +63,7 @@ class DNSAjaxView(DatatablesView):
         'input': 'metric__input',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
-        'probe id': 'metric__probe__identification',
-        'probe ISP': 'metric__probe__isp'
+        'probe id': 'metric__probe__identification'
 
     }
 

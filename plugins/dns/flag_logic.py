@@ -151,10 +151,11 @@ def dns_to_flag():
     if SYNCRONIZE_DATE is not None:
         SYNCRONIZE_DATE = make_aware(parse_datetime(settings.SYNCRONIZE_DATE))
         dnss = DNS.objects.filter(
-            metric__measurement_start_time__gte=SYNCRONIZE_DATE
+            metric__measurement_start_time__gte=SYNCRONIZE_DATE,
+            flag=None
         )
     else:
-        dnss = DNS.objects.all()
+        dnss = DNS.objects.filter(flag=None)
 
     dnss = dnss.select_related('metric', 'flag')
 
@@ -194,19 +195,18 @@ def dns_to_flag():
                             if addr not in dns.control_resolver_answers['addrs']:
                                 is_flag = True
 
-            if dns.flag is not None:
-                if dns.flag.is_flag != is_flag:
-                    dns.flag.is_flag = is_flag
-                    dns.flag.save()
-            else:
-                print "Debi entrar aqui"
-                flag = Flag(
-                    is_flag=is_flag,
-                    metric_date=dns.metric.measurement_start_time
-                )
-                flag.save()
-                dns.flag = flag
-                dns.save()
+            print "Debi entrar aqui"
+            flag = Flag(
+                metric_date=dns.metric.measurement_start_time
+            )
+
+            # If there is a true flag give 'soft' type
+            if is_flag is True:
+                flag.flag = 'soft'
+
+            flag.save()
+            dns.flag = flag
+            dns.save()
 
         print page
 

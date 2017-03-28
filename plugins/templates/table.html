@@ -83,21 +83,21 @@
                  list[i]['mRender'] = function ( data, type, full ) {
 
                         var flag_icon = "";
-                        if(full.is_flag == true){
-
-                            if (data == true){
-                            flag_icon = 'Hard <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
-                            }
-                            if (data == false){
-                                flag_icon = 'Soft <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
-                            }
-                            if (data == null){
-                                flag_icon = 'Muted <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
-                            }
-                        }else{
-                            flag_icon = "No Flag";
+                       
+                        
+                        if (data == 'hard'){
+                        flag_icon = 'Hard <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
                         }
-
+                        if (data == 'soft'){
+                            flag_icon = 'Soft <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                        }
+                        if (data == 'muted'){
+                            flag_icon = 'Muted <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                        }
+                        
+                        if (data == 'none'){
+                            flag_icon = "No Flag"
+                        }
 
                         return flag_icon;
                     }
@@ -122,21 +122,13 @@
                  list[i]['mRender'] = function ( data, type, full ) {
 
                         var flag_icon = "";
-                        if(full.is_flag != null){
-
-                            if (data == true){
-                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
-                            }
-                            if (data == false){
-                                flag_icon = 'Automatic';
-                            }
-                            if (data == null){
-                                flag_icon = '';
-                            }
-                        }else{
-                            flag_icon = "";
+                        
+                        if (data == true){
+                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
                         }
-
+                        if (data == false){
+                            flag_icon = 'Automatic';
+                        }
 
                         return flag_icon;
                     }
