@@ -15,20 +15,20 @@ from random import randint
 
 
 def copy_from_measurements_to_metrics():
-    syncronize_logger = logging.getLogger('syncronize_logger')
-    SYNCRONIZE_DATE = settings.SYNCRONIZE_DATE
-    print SYNCRONIZE_DATE
-    if SYNCRONIZE_DATE is not None:
-        SYNCRONIZE_DATE = make_aware(parse_datetime(settings.SYNCRONIZE_DATE))
+    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
+    print SYNCHRONIZE_DATE
+    if SYNCHRONIZE_DATE is not None:
+        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
 
         measurements = Measurement.objects.filter(
-            measurement_start_time__gte=SYNCRONIZE_DATE
+            measurement_start_time__gte=SYNCHRONIZE_DATE
         )
         measurements_date = Measurement.objects.filter(
-            measurement_start_time__gte=SYNCRONIZE_DATE
+            measurement_start_time__gte=SYNCHRONIZE_DATE
         ).latest('measurement_start_time').measurement_start_time
     else:
-        print "SYNCRONIZE_DATE is None"
+        print "SYNCHRONIZE_DATE is None"
         measurements = Measurement.objects.all()
         measurements_date = Measurement.objects.all().latest(
             'measurement_start_time').measurement_start_time
@@ -41,10 +41,10 @@ def copy_from_measurements_to_metrics():
         for measurement in page.object_list:
             update_or_create(measurement)
 
-    settings.SYNCRONIZE_DATE = str(measurements_date)
-    syncronize_logger.info("[%s]Last syncronize date: '%s'" % (
-        datetime.datetime.now(), settings.SYNCRONIZE_DATE))
-    print settings.SYNCRONIZE_DATE
+    settings.SYNCHRONIZE_DATE = str(measurements_date)
+    SYNCHRONIZE_logger.info("[%s]Last SYNCHRONIZE date: '%s'" % (
+        datetime.datetime.now(), settings.SYNCHRONIZE_DATE))
+    print settings.SYNCHRONIZE_DATE
 
 
 def update_or_create(measurement):

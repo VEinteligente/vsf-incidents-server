@@ -119,8 +119,8 @@ FLAG_TESTS = local_settings.FLAG_TESTS
 # Logs
 LOGGING = local_settings.LOGGING
 
-# Date since last SYNCRONIZE between measurements and metrics (None means all)
-SYNCRONIZE_DATE = local_settings.SYNCRONIZE_DATE
+# Date since last SYNCHRONIZE between measurements and metrics (None means all)
+SYNCHRONIZE_DATE = local_settings.SYNCHRONIZE_DATE
 
 # Limit of HTTP test to determinate body_proportion flags
 BODY_PROPORTION_LIMIT = local_settings.BODY_PROPORTION_LIMIT

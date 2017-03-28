@@ -11,12 +11,12 @@ def web_connectivity_to_tcp():
     # Get all metrics with test_name web_connectivity
     # but only values id, measurement, test_keys->'status_code_match',
     # test_keys->'headers_match' and test_keys->'body_length_match'
-    SYNCRONIZE_DATE = settings.SYNCRONIZE_DATE
-    if SYNCRONIZE_DATE is not None:
-        SYNCRONIZE_DATE = make_aware(parse_datetime(settings.SYNCRONIZE_DATE))
+    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
+    if SYNCHRONIZE_DATE is not None:
+        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         web_connectivity_metrics = Metric.objects.filter(
             test_name='web_connectivity',
-            measurement_start_time__gte=SYNCRONIZE_DATE
+            measurement_start_time__gte=SYNCHRONIZE_DATE
         ).annotate(
             tcp_connect=RawSQL(
                 "test_keys->'tcp_connect'", ()
