@@ -4,7 +4,7 @@ from django.db.models.expressions import RawSQL
 from django.views import generic
 from datetime import datetime
 from measurement.models import Metric, Probe
-from models import DayTest
+from models import NDTMeasurement
 # from measurement.models import Country, State, Probe
 # import random
 
@@ -132,7 +132,7 @@ class PuraPrueba(generic.TemplateView):
         print(metric.annotations['probe'])
         print(datetime(year=2017, month=2, day=10))
         probe = Probe.objects.get(identification='1002')
-        dt = DayTest(
+        dt = NDTMeasurement(
             probe=probe,
             date=datetime(year=2017, month=2, day=10)
         )
