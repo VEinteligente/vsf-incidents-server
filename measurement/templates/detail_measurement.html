@@ -214,33 +214,22 @@
                         <p><b>Flag Evaluation:</b></p>
                         <table class="table table-bordered table-hover">
                             <thead>
-                                <th>Flag</th>
                                 <th>Type</th>
                             </thead>
                             <tbody>
                                 
                                 <tr>
                                     <td>
-                                        {% if dns.flag.is_flag %}
-                                            Flag Detected
+                                    
+                                        {% if dns.flag.flag == True %}
+                                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
+                                        {% elif dns.flag.flag == False %}
+                                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
                                         {% else %}
-                                            No Flag
+                                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if dns.flag.is_flag %}
-                                            {% if dns.flag.flag == False %}
-                                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
-                                            {% elif dns.flag.flag == True %}
-                                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
-                                            {% else %}
-                                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
-                                            {% endif %}
-                                            {% if dns.flag.manual_flag %}
-                                                <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
-                                            {% endif %}
-                                        {% else %}
-                                            No Flag
+                                        {% if dns.flag.manual_flag %}
+                                            <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -298,24 +287,16 @@
                         <p><b>Flag Evaluation:</b></p>
                         <table class="table table-bordered table-hover">
                             <thead>
-                                <th>Flag</th>
                                 <th>Type</th>
                             </thead>
                             <tbody>
                                 
                                 <tr>
                                     <td>
-                                        {% if http.flag.is_flag %}
-                                            Flag Detected
-                                        {% else %}
-                                            No Flag
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if http.flag.is_flag %}
-                                            {% if http.flag.flag == False %}
+                                  
+                                            {% if http.flag.flag == True %}
                                                 <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
-                                            {% elif http.flag.flag == True %}
+                                            {% elif http.flag.flag == False %}
                                                 <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
                                             {% else %}
                                                 <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
@@ -323,9 +304,7 @@
                                             {% if http.flag.manual_flag %}
                                                 <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
                                             {% endif %}
-                                        {% else %}
-                                            No Flag
-                                        {% endif %}
+
                                     </td>
                                 </tr>
                             </tbody>
@@ -368,34 +347,24 @@
                         <p><b>Flag Evaluation:</b></p>
                         <table class="table table-bordered table-hover">
                             <thead>
-                                <th>Flag</th>
                                 <th>Type</th>
                             </thead>
                             <tbody>
                                 
                                 <tr>
                                     <td>
-                                        {% if tcp.flag.is_flag %}
-                                            Flag Detected
+                                  
+                                        {% if tcp.flag.flag == True %}
+                                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
+                                        {% elif tcp.flag.flag == False %}
+                                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
                                         {% else %}
-                                            No Flag
+                                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if tcp.flag.is_flag %}
-                                            {% if tcp.flag.flag == False %}
-                                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
-                                            {% elif tcp.flag.flag == True %}
-                                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
-                                            {% else %}
-                                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
-                                            {% endif %}
-                                            {% if tcp.flag.manual_flag %}
-                                                <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
-                                            {% endif %}
-                                        {% else %}
-                                            No Flag
+                                        {% if tcp.flag.manual_flag %}
+                                            <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
                                         {% endif %}
+                                        
                                     </td>
                                 </tr>
                             </tbody>

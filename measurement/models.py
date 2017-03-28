@@ -189,12 +189,26 @@ class Metric(models.Model):
 
 class Flag(models.Model):
 
+    NONE = 'none'
+    SOFT = 'soft'
+    HARD = 'hard'
+    MUTED = 'muted'
+
+    TYPE = {
+        NONE: 'None',
+        SOFT: 'Soft',
+        HARD: 'Hard',
+        MUTED: 'Muted',
+    }
+
+    TYPE_CHOICES = [    # Items are sorted alphabetically
+        (k, v) for k, v in sorted(TYPE.items(), key=lambda t: t[1])]
+
     metric_date = models.DateTimeField()
 
     # ---------------------------------------------------
-    is_flag = models.BooleanField(default=False, db_index=True)
-    # True -> hard, False -> soft, None -> muted
-    flag = models.NullBooleanField(default=False, db_index=True)
+    flag = models.CharField(
+        max_length=10, choices=TYPE_CHOICES, default=NONE, db_index=True)
     manual_flag = models.BooleanField(default=False, db_index=True)
     # ---------------------------------------------------
 
@@ -210,4 +224,4 @@ class Flag(models.Model):
         ]
 
     def __unicode__(self):
-        return u"%s - %s - %s" % (self.metric_date, self.is_flag, self.flag)
+        return u"%s - %s - %s" % (self.metric_date, self.flag)

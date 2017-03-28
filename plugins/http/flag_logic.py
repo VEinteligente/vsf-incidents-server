@@ -86,10 +86,11 @@ def http_to_flag():
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         https = HTTP.objects.filter(
-            metric__measurement_start_time__gte=SYNCHRONIZE_DATE
-        ).select_related('metric')
+            metric__measurement_start_time__gte=SYNCHRONIZE_DATE,
+            flag=None
+        )
     else:
-        https = HTTP.objects.all().select_related('metric')
+        https = HTTP.objects.filter(flag=None)
 
     https = https.select_related('metric', 'flag')
 
@@ -109,18 +110,17 @@ def http_to_flag():
             if http.body_proportion <= settings.BODY_PROPORTION_LIMIT:
                 is_flag = True
 
-            if http.flag is not None:
-                if http.flag.is_flag != is_flag:
-                    http.flag.is_flag = is_flag
-                    http.flag.save()
-            else:
-                flag = Flag(
-                    is_flag=is_flag,
-                    metric_date=http.metric.measurement_start_time
-                )
-                flag.save()
-                http.flag = flag
-                http.save()
+            flag = Flag(
+                metric_date=http.metric.measurement_start_time
+            )
+
+            # If there is a true flag give 'soft' type
+            if is_flag is True:
+                flag.flag = 'soft'
+
+            flag.save()
+            http.flag = flag
+            http.save()
 
 
 def metric_to_http():

@@ -19,18 +19,17 @@ class HTTPTableView(PluginTableView):
         'checkbox',
         'flag',
         'manual flag',
+        'measurement',
+        'input',
         'test name',
+        'measurement_start_time',
         'status code match',
         'headers match',
         'body lenght match',
         'body proportion',
-        'test keys',
-        'measurement',
-        'input',
-        'measurement_start_time',
         'report_id',
         'probe id',
-        'probe ISP'
+        'test keys'
     ]
     url_ajax = '/plugins/http/http-ajax/'
 
@@ -41,15 +40,12 @@ class HTTPAjaxView(DatatablesView):
     Field checkbox is required to do functions over the table and must be
     the id to identify which metric is selected.
     Field measurement_id is required if measurement field is present
-    Fields flag and is_flag are required to display Flag header defined in
-    TCPTableView.
     Field checkbox, flag, test_keys, measurement, report_id are customized by
     table.html
     """
     fields = {
         'checkbox': 'id',  # Required
         'flag': 'flag__flag',  # Customized
-        'is_flag': 'flag__is_flag',
         'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
         'status code match': 'status_code_match',
@@ -62,9 +58,7 @@ class HTTPAjaxView(DatatablesView):
         'input': 'metric__input',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
-        'probe id': 'metric__probe__identification',
-        'probe ISP': 'metric__probe__isp'
-
+        'probe id': 'metric__probe__identification'
     }
 
     queryset = HTTP.objects.all().select_related('metric__probe', 'flag')
