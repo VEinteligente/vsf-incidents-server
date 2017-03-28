@@ -60,9 +60,13 @@ class MutedInput(models.Model):
         return u"%s - %s" % (self.url, self.type_med)
 
 
+class ISP(models.Model):
+    name = models.CharField(max_length=100)
+
+
 class Plan(models.Model):
     name = models.CharField(max_length=100)
-    isp = models.CharField(max_length=100)
+    isp = models.ForeignKey(ISP)
     upload = models.CharField(
         verbose_name='Velocidad de Carga publicitado',
         max_length=30)
@@ -72,7 +76,7 @@ class Plan(models.Model):
     comment = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return u"%s" % (self.name)
+        return u"%s" % self.name
 
 
 class Probe(models.Model):
@@ -85,7 +89,7 @@ class Probe(models.Model):
         Country, related_name='probes', default=231
     )
     city = models.CharField(max_length=100)
-    isp = models.CharField(max_length=100)
+    isp = models.ForeignKey(ISP)
     plan = models.ForeignKey(
         Plan, null=True, blank=True, related_name='probes')
 
@@ -95,7 +99,7 @@ class Probe(models.Model):
 
 class DNS(models.Model):
 
-    isp = models.CharField(verbose_name='Operadora', max_length=50)
+    isp = models.ForeignKey(ISP, verbose_name='Operadora')
     verbose = models.CharField(max_length=50)
     ip = models.GenericIPAddressField()
     public = models.BooleanField(default=True)
