@@ -10,7 +10,7 @@
             <div class="box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
-                            Metric: <b>{{metric.id}}</b>
+                            Metric: <b>{{metric.measurement}}</b>
                             <button type="button" id="btn" class="btn btn-flat btn-primary" data-clipboard-text={{metric.id}}>
                             <span class="glyphicon glyphicon-copy"></span>
                             </button>
@@ -24,13 +24,15 @@
                     <table class="table table-bordered table-hover" style="margin-bottom: 20px">
                         <thead>
                             <th>Input</th>
-                            <th>Measurement Start Time</th>   
+                            <th>Measurement Start Time</th>
+                            <th>Test Name</th>   
                             <th>Test Runtime</th>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>{{ metric.input }}</td>
                                 <td>{{ metric.measurement_start_time }}</td>
+                                <td>{{ metric.test_name}}</td>
                                 <td>{{ metric.test_runtime }}</td>
                             </tr>
                         </tbody>
@@ -130,13 +132,13 @@
                     </table>
                 </div>
             </div>
-            {% if probe %}
+            {% if metric.probe %}
                     
                     
             <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
-                            Metric Probe: <b>ID-{{probe.identification}}</b>
+                            Metric Probe: <b>ID-{{metric.probe.identification}}</b>
                     </h3>
                     <div class="box-tools pull-right">
                             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
@@ -155,10 +157,10 @@
                         <tbody>
                             
                             <tr>
-                                <td>{{probe.isp}}</td>
-                                <td>{{probe.region}}</td>
-                                <td>{{probe.country}}</td>
-                                <td>{{probe.city}}</td>
+                                <td>{{metric.probe.isp}}</td>
+                                <td>{{metric.probe.region}}</td>
+                                <td>{{metric.probe.country}}</td>
+                                <td>{{metric.probe.city}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -173,28 +175,250 @@
                         <tbody>
                             
                             <tr>
-                                <td>{{probe.plan.name}}</td>
-                                <td>{{probe.plan.isp}}</td>
-                                <td>{{probe.plan.upload}}</td>
-                                <td>{{probe.plan.download}}</td>
+                                <td>{{metric.probe.plan.name}}</td>
+                                <td>{{metric.probe.plan.isp}}</td>
+                                <td>{{metric.probe.plan.upload}}</td>
+                                <td>{{metric.probe.plan.download}}</td>
                             </tr>
                         </tbody>
                     </table>
-                    {% if  probe.plan.comment %}
+                    {% if  metric.probe.plan.comment %}
                         <table class="table table-bordered table-hover">
                             <thead>
                                 <th>Comment</th>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>{{probe.plan.comment}}</td>
+                                    <td>{{metric.probe.plan.comment}}</td>
                                 </tr>
                             </tbody>
                         </table>
                     {% endif %}
                 </div>
             </div>  
-            {% endif %}     
+            {% endif %} 
+            {% if metric.dnss.all %}
+                {% for dns in metric.dnss.all %}
+                    
+                <div class="box box-default collapsed-box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                                DNS Test: {{dns.id}}
+                        </h3>
+                        <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <p><b>Flag Evaluation:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Flag</th>
+                                <th>Type</th>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>
+                                        {% if dns.flag.is_flag %}
+                                            Flag Detected
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if dns.flag.is_flag %}
+                                            {% if dns.flag.flag == False %}
+                                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
+                                            {% elif dns.flag.flag == True %}
+                                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                                            {% else %}
+                                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                                            {% endif %}
+                                            {% if dns.flag.manual_flag %}
+                                                <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
+                                            {% endif %}
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p><b>Control Resolver:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Answers</th>
+                                <th>Failure</th>
+                                <th>Resolver Hostname</th>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>{{dns.control_resolver_answers}}</td>
+                                    <td>{{dns.control_resolver_failure}}</td>
+                                    <td>{{dns.control_resolver_resolver_hostname}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;"><b>Metric Logic:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Answers</th>
+                                <th>Failure</th>
+                                <th>Resolver Hostname</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{dns.answers}}</td>
+                                    <td>{{dns.failure}}</td>
+                                    <td>{{dns.resolver_hostname}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  
+                {% endfor %}
+            {% endif %}
+            {% if metric.https.all %}
+                {% for http in metric.https.all %}
+                    
+                <div class="box box-default collapsed-box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                                HTTP Test: {{http.id}}
+                        </h3>
+                        <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <p><b>Flag Evaluation:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Flag</th>
+                                <th>Type</th>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>
+                                        {% if http.flag.is_flag %}
+                                            Flag Detected
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if http.flag.is_flag %}
+                                            {% if http.flag.flag == False %}
+                                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
+                                            {% elif http.flag.flag == True %}
+                                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                                            {% else %}
+                                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                                            {% endif %}
+                                            {% if http.flag.manual_flag %}
+                                                <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
+                                            {% endif %}
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;"><b>Metric Logic:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Status Code Match</th>
+                                <th>Headers Match</th>
+                                <th>Body Length Match</th>
+                                <th>Body Proportion</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{http.status_code_match}}</td>
+                                    <td>{{http.headers_match}}</td>
+                                    <td>{{http.body_length_match}}</td>
+                                    <td>{{http.body_proportion}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  
+                {% endfor %}
+            {% endif %} 
+            {% if metric.tcps.all %}
+                {% for tcp in metric.tcps.all %}
+                    
+                <div class="box box-default collapsed-box">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                                TCP Test: {{tcp.id}}
+                        </h3>
+                        <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                                </button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        <p><b>Flag Evaluation:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Flag</th>
+                                <th>Type</th>
+                            </thead>
+                            <tbody>
+                                
+                                <tr>
+                                    <td>
+                                        {% if tcp.flag.is_flag %}
+                                            Flag Detected
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if tcp.flag.is_flag %}
+                                            {% if tcp.flag.flag == False %}
+                                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>    
+                                            {% elif tcp.flag.flag == True %}
+                                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                                            {% else %}
+                                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                                            {% endif %}
+                                            {% if tcp.flag.manual_flag %}
+                                                <i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i>
+                                            {% endif %}
+                                        {% else %}
+                                            No Flag
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;"><b>Metric Logic:</b></p>
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <th>Status Blocked</th>
+                                <th>Status Failure</th>
+                                <th>Status Success</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{http.status_blocked}}</td>
+                                    <td>{{http.status_failure}}</td>
+                                    <td>{{http.status_success}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>  
+                {% endfor %}
+            {% endif %}    
         </div>
         <div class="col-xs-2">
             <div class="box box-solid">

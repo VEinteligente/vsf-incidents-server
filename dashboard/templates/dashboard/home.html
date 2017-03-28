@@ -215,18 +215,38 @@
             {% for flag in flags %}
                 <tr>
                     <td>
-						{% if flag.flag is True %}
-                            <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>
-                        {% elif flag.flag is False %}
-                            <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
-                        {% else %}
-                            <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                        {% if  flag.is_flag %}
+                            {% if flag.flag is True %}
+                                <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i>
+                            {% elif flag.flag is False %}
+                                <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i>
+                            {% else %}
+                                <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>
+                            {% endif %}
                         {% endif %}
                     </td>
-                    <td><a href="{% url 'measurements:measurement_front:detail-measurement' flag.medicion %}">{{flag.medicion}}</a></td>
-                    <td>{{flag.target}}</td>
-                    <td>{{flag.isp}}</td>
-                    <td>{{flag.type_med}}</td>
+                    {% if flag.dnss %}
+                    <td>
+                        <a href="{% url 'measurements:measurement_front:detail-measurement' flag.dnss.metric.id %}">{{flag.dnss.metric.measurement}}</a>
+                    </td>
+                    <td>{{flag.dnss.metric.input}}</td>
+                    <td>{{flag.dnss.resolver_hostname}}</td>
+                    <td>TCP</td>
+                    {% elif flag.tcps %}
+                    <td>
+                        <a href="{% url 'measurements:measurement_front:detail-measurement' flag.tcps.metric.id %}">{{flag.tcps.metric.measurement}}</a>
+                    </td>
+                    <td>{{flag.tcps.metric.input}}</td>
+                    <td>{{flag.tcps.metric.probe.isp}}</td>
+                    <td>TCP</td>
+                    {% elif flag.https %}  
+                    <td>  
+                        <a href="{% url 'measurements:measurement_front:detail-measurement' flag.https.metric.id %}">{{flag.https.metric.measurement}}</a>
+                    </td>
+                    <td>{{flag.https.metric.input}}</td>
+                    <td>{{flag.https.metric.probe.isp}}</td>
+                    <td>HTTP</td>
+                    {% endif %}
                 </tr>
 
             {% endfor %}

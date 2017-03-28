@@ -6,9 +6,12 @@
     </a>
     <ul class="treeview-menu">
         <li><a href="{% url 'measurements:measurement_front:measurement-table' %}"><span class="opt-name">All</span></a></li>
-        <li><a href="{% url 'measurements:measurement_front:dns-table' %}"><span class="opt-name">DNS</span></a></li>
+        <!--<li><a href="{% url 'measurements:measurement_front:dns-table' %}"><span class="opt-name">DNS</span></a></li>
         <li><a href="{% url 'measurements:measurement_front:tcp-table' %}"><span class="opt-name">TCP</span></a></li>
-        <li><a href="{% url 'measurements:measurement_front:http-table' %}"><span class="opt-name">HTTP</span></a></li>
+        <li><a href="{% url 'measurements:measurement_front:http-table' %}"><span class="opt-name">HTTP</span></a></li>-->
+        <li><a href="{% url 'plugins:dns:dns-table' %}"><span class="opt-name">DNS</span></a></li>
+        <li><a href="{% url 'plugins:tcp:tcp-table' %}"><span class="opt-name">TCP</span></a></li>
+        <li><a href="{% url 'plugins:http:http-table' %}"><span class="opt-name">HTTP</span></a></li>
         <li><a href="{% url 'measurements:measurement_front:list-report' %}"><span class="opt-name">Reports</span></a></li>
     </ul>
 </li>

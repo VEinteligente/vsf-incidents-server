@@ -23,11 +23,6 @@ def web_connectivity_to_dns():
             control_resolver=RawSQL(
                 "test_keys->'control'->'dns'", ()
             )
-        ).values(
-            'id',
-            'measurement',
-            'queries',
-            'control_resolver'
         )
     else:
         web_connectivity_metrics = Metric.objects.filter(
@@ -39,12 +34,17 @@ def web_connectivity_to_dns():
             control_resolver=RawSQL(
                 "test_keys->'control'", ()
             )
-        ).values(
-            'id',
-            'measurement',
-            'queries',
-            'control_resolver'
         )
+
+    web_connectivity_metrics = web_connectivity_metrics.prefetch_related(
+        'dnss'
+    ).values(
+        'id',
+        'measurement',
+        'queries',
+        'control_resolver',
+        'dnss'
+    )
 
     dns_paginator = Paginator(web_connectivity_metrics, 1000)
 
@@ -64,11 +64,7 @@ def web_connectivity_to_dns():
 
             for query in dns_metric['queries']:
                 for answer in query['answers']:
-                    dns_exist = DNS.objects.filter(
-                        metric_id=dns_metric['id'],
-                        answers=answer,
-                    ).exists()
-                    if not dns_exist:
+                    if dns_metric['dnss'] is None:
                         dns = DNS(
                             metric_id=dns_metric['id'],
                             control_resolver_failure=cr['failure'],
@@ -97,11 +93,6 @@ def dns_consistency_to_dns():
             control_resolver=RawSQL(
                 "test_keys->'control_resolver'", ()
             )
-        ).values(
-            'id',
-            'measurement',
-            'queries',
-            'control_resolver'
         )
     else:
         dns_consistency_metrics = Metric.objects.filter(
@@ -113,12 +104,17 @@ def dns_consistency_to_dns():
             control_resolver=RawSQL(
                 "test_keys->'control_resolver'", ()
             )
-        ).values(
-            'id',
-            'measurement',
-            'queries',
-            'control_resolver'
         )
+
+    dns_consistency_metrics = dns_consistency_metrics.prefetch_related(
+        'dnss'
+    ).values(
+        'id',
+        'measurement',
+        'queries',
+        'control_resolver',
+        'dnss'
+    )
 
     # for each dns metric get control resolver and other fields
 
@@ -137,12 +133,7 @@ def dns_consistency_to_dns():
 
         for query in dns_metric['queries']:
             if query['resolver_hostname'] != cr_ip:
-                dns_exist = DNS.objects.filter(
-                    metric_id=dns_metric['id'],
-                    control_resolver_resolver_hostname=cr['resolver_hostname'],
-                    resolver_hostname=query['resolver_hostname']
-                ).exists()
-                if not dns_exist:
+                if dns_metric['dnss'] is None:
                     dns = DNS(
                         metric_id=dns_metric['id'],
                         control_resolver_failure=cr['failure'],
@@ -167,6 +158,7 @@ def dns_to_flag():
 
     dnss = dnss.select_related('metric', 'flag')
 
+    print dnss.count()
     dns_paginator = Paginator(dnss, 1000)
     print dns_paginator.page_range
 
