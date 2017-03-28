@@ -24,8 +24,9 @@ class DailyTest(models.Model):
 
 class NDTMeasurement(models.Model):
 
-    metric = models.ForeignKey(Metric)
-    daily_test = models.ForeignKey(DailyTest)
+    metric = models.ForeignKey(Metric, related_name='ndt')
+    daily_test = models.ForeignKey(DailyTest, null=True, blank=True, related_name='ndt')
+    isp = models.ForeignKey(ISP, null=True, blank=True)
 
     upload_speed = models.FloatField()
     download_speed = models.FloatField()
