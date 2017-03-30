@@ -224,4 +224,4 @@ class Flag(models.Model):
         ]
 
     def __unicode__(self):
-        return u"%s - %s - %s" % (self.metric_date, self.flag)
+        return u"%s - %s" % (self.metric_date, self.flag)

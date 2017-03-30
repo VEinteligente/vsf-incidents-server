@@ -4,8 +4,12 @@ from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 
+from vsf import conf
+from django.db.models import F, Count, Case, When, CharField
 from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
+from measurement.models import DNS as MDNS
+from measurement.views import send_email_users
 
 
 def web_connectivity_to_dns():
@@ -202,13 +206,275 @@ def dns_to_flag():
 
             # If there is a true flag give 'soft' type
             if is_flag is True:
-                flag.flag = 'soft'
+                flag.flag = Flag.SOFT
 
             flag.save()
             dns.flag = flag
             dns.save()
 
         print page
+
+
+def soft_to_hard_flags():
+    ids = Metric.objects.values_list('id', flat=True)
+    second_cond = True
+    send_email = False
+
+##########################################################
+# Evaluating first condition for hard flags
+##########################################################
+
+    ids_cond_1 = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
+
+    ##########################################################
+    # Get first all dns soft flags with isp resolver hostname
+    ##########################################################
+    flags = Flag.objects.filter(
+        dnss__metric__in=ids_cond_1,
+        flag=Flag.SOFT
+    ).exclude(
+        dnss__resolver_hostname=None
+    ).prefetch_related(
+        'dnss__metric'
+    ).annotate(
+        target=Case(
+            default=F('dnss__metric__input'),
+            output_field=CharField()
+        ),
+        isp=Case(
+            default=F('dnss__resolver_hostname'),
+            output_field=CharField()
+        )
+
+    )
+
+    # Dict than determinate which target/isp has
+    # SOFT_FLAG_REPEATED_X1 number of soft flags
+    result = flags.values(
+        'target',
+        'isp'
+    ).annotate(
+        total_soft=Count(
+            Case(
+                When(flag=Flag.SOFT, then=1),
+                output_field=CharField()
+            )
+        )
+    ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X1)
+
+    if result:
+        second_cond = False
+        for r in result:
+            # Get flags to update to hard flags
+            flags_to_update = flags.filter(
+                isp=r['isp'],
+                target=r['target']
+            )
+
+            flags_to_update.update(flag=Flag.HARD)
+
+            for flag in flags_to_update:
+                pass
+                # Here comes the code to suggest events to each hard flag
+                # Here comes the code to suggest hard to another
+                # hard flags to create a new event
+
+        send_email = True
+
+    ##########################################################
+    # Now all dns soft flags with isp resolver hostname none
+    ##########################################################
+
+    flags = Flag.objects.filter(
+        dnss__metric__in=ids_cond_1,
+        flag=Flag.SOFT,
+        dnss__resolver_hostname=None
+    ).prefetch_related(
+        'dnss__metric__probe__isp'
+    ).annotate(
+        target=Case(
+            default=F('dnss__metric__input'),
+            output_field=CharField()
+        ),
+        isp=Case(
+            default=F('dnss__metric__probe__isp__name'),
+            output_field=CharField()
+        )
+    )
+
+    # Dict than determinate which target/isp has
+    # SOFT_FLAG_REPEATED_X1 number of soft flags
+    result = flags.values(
+        'target',
+        'isp'
+    ).annotate(
+        total_soft=Count(
+            Case(
+                When(flag=Flag.SOFT, then=1),
+                output_field=CharField()
+            )
+        )
+    ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X1)
+
+    if result:
+        second_cond = False
+        for r in result:
+            # Get flags to update to hard flags
+            flags_to_update = flags.filter(
+                isp=r['isp'],
+                target=r['target']
+            )
+
+            flags_to_update.update(flag=Flag.HARD)
+
+            for flag in flags_to_update:
+                pass
+                # Here comes the code to suggest events to each hard flag
+                # Here comes the code to suggest hard to another
+                # hard flags to create a new event
+
+        send_email = True
+
+
+##########################################################
+# Evaluating Second condition for hard flags
+# Only if First condition doesnt generate any results
+##########################################################
+    if second_cond:
+        ids_cond_2 = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
+
+    ##########################################################
+    # Get first all dns soft flags with isp resolver hostname
+    ##########################################################
+        flags = Flag.objects.filter(
+            dnss__metric__in=ids_cond_2,
+            flag=Flag.SOFT
+        ).exclude(
+            dnss__resolver_hostname=None
+        ).prefetch_related(
+            'dnss__metric__probe__region'
+        ).annotate(
+            target=Case(
+                default=F('dnss__metric__input'),
+                output_field=CharField()
+            ),
+            isp=Case(
+                default=F('dnss__resolver_hostname'),
+                output_field=CharField()
+            ),
+            region=Case(
+                When(
+                    dnss__metric__probe__region__name=str(F(
+                        'dnss__resolver_hostname')
+                    ),
+                    then=F('dnss__metric__probe__region__name')
+                ),
+                default=None,
+                output_field=CharField()
+            )
+
+        )
+
+        # Dict than determinate which target/isp has
+        # SOFT_FLAG_REPEATED_X1 number of soft flags
+        result = flags.values(
+            'target',
+            'isp',
+            'region'
+        ).annotate(
+            total_soft=Count(
+                Case(
+                    When(flag=Flag.SOFT, then=1),
+                    output_field=CharField()
+                )
+            )
+        ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+
+        if result:
+            for r in result:
+                # Get flags to update to hard flags
+                flags_to_update = flags.filter(
+                    isp=r['isp'],
+                    target=r['target'],
+                    region=r['region']
+                )
+
+                flags_to_update.update(flag=Flag.HARD)
+
+                for flag in flags_to_update:
+                    pass
+                    # Here comes the code to suggest events to each hard flag
+                    # Here comes the code to suggest hard to another
+                    # hard flags to create a new event
+
+            send_email = True
+
+    ##########################################################
+    # Now all dns soft flags with isp resolver hostname none
+    ##########################################################
+
+        flags = Flag.objects.filter(
+            dnss__metric__in=ids_cond_2,
+            flag=Flag.SOFT,
+            dnss__resolver_hostname=None
+        ).prefetch_related(
+            'dnss__metric__probe__isp'
+        ).annotate(
+            target=Case(
+                default=F('dnss__metric__input'),
+                output_field=CharField()
+            ),
+            isp=Case(
+                default=F('dnss__metric__probe__isp__name'),
+                output_field=CharField()
+            ),
+            region=Case(
+                default=F('dnss__metric__probe__region__name'),
+                output_field=CharField()
+            )
+        )
+
+        # Dict than determinate which target/isp has
+        # SOFT_FLAG_REPEATED_X1 number of soft flags
+        result = flags.values(
+            'target',
+            'isp',
+            'region'
+        ).annotate(
+            total_soft=Count(
+                Case(
+                    When(flag=Flag.SOFT, then=1),
+                    output_field=CharField()
+                )
+            )
+        ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+
+        if result:
+            for r in result:
+                # Get flags to update to hard flags
+                flags_to_update = flags.filter(
+                    isp=r['isp'],
+                    target=r['target'],
+                    region=r['region']
+                )
+
+                flags_to_update.update(flag=Flag.HARD)
+
+                for flag in flags_to_update:
+                    pass
+                    # Here comes the code to suggest events to each hard flag
+                    # Here comes the code to suggest hard to another
+                    # hard flags to create a new event
+
+            send_email = True
+
+##########################################################
+# Send email to users only if a hard flag was detected
+# Only if First condition doesnt generate any results
+##########################################################
+    if send_email:
+        print "Sending email"
+        # send_email_users()
 
 
 def metric_to_dns():
