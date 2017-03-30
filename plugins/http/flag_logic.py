@@ -174,10 +174,13 @@ def soft_to_hard_flags():
         second_cond = False
         for r in result:
             # Get flags to update to hard flags
-            flags_to_update = flags.filter(
+            flags_to_update_id = flags.filter(
                 isp=r['isp'],
                 target=r['target']
-            )
+            ).values_list('id', flat=True)
+
+            flags_to_update = Flag.objects.filter(
+                id__in=flags_to_update_id)
 
             flags_to_update.update(flag=Flag.HARD)
 
@@ -238,11 +241,14 @@ def soft_to_hard_flags():
         if result:
             for r in result:
                 # Get flags to update to hard flags
-                flags_to_update = flags.filter(
+                flags_to_update_id = flags.filter(
                     isp=r['isp'],
                     target=r['target'],
                     region=r['region']
-                )
+                ).values_list('id', flat=True)
+
+                flags_to_update = Flag.objects.filter(
+                    id__in=flags_to_update_id)
 
                 flags_to_update.update(flag=Flag.HARD)
 
