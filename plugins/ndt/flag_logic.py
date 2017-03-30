@@ -1,11 +1,19 @@
+from datetime import datetime, timedelta
+
 from django.db.models.expressions import RawSQL
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
+from django.db.models import Avg
 
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, ISP
 from models import NDTMeasurement, DailyTest
+
+
+def date_range(start_date, end_date):
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + timedelta(n)
 
 
 def metric_to_ndt():
@@ -15,6 +23,7 @@ def metric_to_ndt():
 
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
+            ndt=None,
             measurement_start_time__gte=SYNCHRONIZE_DATE
         ).annotate(
             download=RawSQL(
@@ -32,7 +41,7 @@ def metric_to_ndt():
             max_ping=RawSQL(
                 "test_keys->'advanced'->'max_rtt'", ()
             ),
-            time_out=RawSQL(
+            timeout=RawSQL(
                 "test_keys->'advanced'->'timeouts'", ()
             ),
             package_loss=RawSQL(
@@ -41,7 +50,8 @@ def metric_to_ndt():
         )
     else:
         ndt_metrics = Metric.objects.filter(
-            test_name='ndt'
+            test_name='ndt',
+            ndt=None,
         ).annotate(
             download=RawSQL(
                 "test_keys->'simple'->'download'", ()
@@ -58,7 +68,7 @@ def metric_to_ndt():
             max_ping=RawSQL(
                 "test_keys->'advanced'->'max_rtt'", ()
             ),
-            time_out=RawSQL(
+            timeout=RawSQL(
                 "test_keys->'advanced'->'timeouts'", ()
             ),
             package_loss=RawSQL(
@@ -67,17 +77,6 @@ def metric_to_ndt():
         )
 
     ndt_metrics = ndt_metrics.prefetch_related(
-        'dnt'
-    ).values(
-        'metric',
-        'probe',
-        'download',
-        'upload',
-        'ping',
-        'max_ping',
-        'min_ping',
-        'timeout',
-        'package_loss',
         'ndt'
     )
 
@@ -86,75 +85,73 @@ def metric_to_ndt():
     for p in ndt_paginator.page_range:
         page = ndt_paginator.page(p)
         for ndt_metric in page.object_list:
-            if ndt_metric['ndt'] is None:
-                if ndt_metric.probe is None:
-                    isp = None
-                else:
-                    isp = ndt_metric.probe.isp
-                ndt = NDTMeasurement(
-                    metric=ndt_metric,
-                    isp=isp,
-                    date=ndt_metric.measurement_start_time,
-                    upload_speed=ndt_metric.download,
-                    download_speed=ndt_metric.upload,
-                    ping=ndt_metric.ping,
-                    max_ping=ndt_metric.max_ping,
-                    min_ping=ndt_metric.min_ping,
-                    timeout=ndt_metric.timeout,
-                    package_loss=ndt_metric.package_loss
-                )
-                ndt.save()
+            if ndt_metric.probe is None:
+                isp = None
+            else:
+                isp = ndt_metric.probe.isp
+            ndt = NDTMeasurement(
+                metric=ndt_metric,
+                isp=isp,
+                date=ndt_metric.measurement_start_time,
+                upload_speed=ndt_metric.download,
+                download_speed=ndt_metric.upload,
+                ping=ndt_metric.ping,
+                max_ping=ndt_metric.max_ping,
+                min_ping=ndt_metric.min_ping,
+                timeout=ndt_metric.timeout,
+                package_loss=ndt_metric.package_loss
+            )
+            ndt.save()
 
 
 def ndt_to_daily_test():
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
-        ndts = NDTMeasurement.objects.filter(
-            date__gte=SYNCHRONIZE_DATE
-        ).order_by('date')
+        start_date = make_aware(parse_datetime(SYNCHRONIZE_DATE).date())
     else:
-        ndts = NDTMeasurement.objects.all().order_by('date')
+        start_date = NDTMeasurement.objects.all().order_by('date').first().date
 
-    for ndt in ndts:
-        try:
-            daily_test = DailyTest.objects.get(date=ndt.date, isp=ndt.isp)
-            m_count = daily_test.ndt_measurement_count + 1
+    for date in date_range(start_date, datetime.today().date()):
 
-            daily_test.av_upload_speed += ndt.upload_speed / m_count
-            daily_test.av_download_speed += ndt.download_speed / m_count
-            daily_test.av_ping += ndt.ping / m_count
-            daily_test.av_max_ping += ndt.max_ping / m_count
-            daily_test.av_min_ping += ndt.min_ping / m_count
-            daily_test.av_timeout += ndt.timeout / m_count
-            daily_test.av_package_loss += ndt.package_loss / m_count
+        isps = NDTMeasurement.objects.filter(date=date).distinct('isp').values('isp')
 
-            daily_test.ndt_measurement_count = m_count
+        for isp in isps:
+            ndt_m = NDTMeasurement.objects.filter(date=date, isp=isp['isp'])
+            averages = ndt_m.aggregate(
+                av_upload_speed=Avg('upload_speed'),
+                av_download_speed=Avg('download_speed'),
+                av_ping=Avg('ping'),
+                av_max_ping=Avg('max_ping'),
+                av_min_ping=Avg('min_ping'),
+                av_timeout=Avg('timeout'),
+                av_package_loss=Avg('package_loss'),
+            )
+
+            try:
+                daily_test = DailyTest.objects.get(date=date, isp=isp['isp'])
+            except DailyTest.DoesNotExist:
+                flag = Flag(
+                    metric_date=date,
+                    flag=Flag.NONE,
+                    manual_flag=False
+                )
+                flag.save()
+                isp_obj = ISP.objects.get(id=isp['isp'])
+                daily_test = DailyTest(
+                    flag=flag,
+                    isp=isp_obj,
+                    date=date
+                )
+                daily_test.save()
+
+            daily_test.av_upload_speed = averages['av_upload_speed']
+            daily_test.av_download_speed = averages['av_download_speed']
+            daily_test.av_ping = averages['av_ping']
+            daily_test.av_max_ping = averages['av_max_ping']
+            daily_test.av_min_ping = averages['av_min_ping']
+            daily_test.av_timeout = averages['av_timeout']
+            daily_test.av_package_loss = averages['av_package_loss']
+
+            daily_test.ndt_measurement_count = ndt_m.count()
 
             daily_test.save()
-
-        except DailyTest.DoesNotExist:
-            Flag(
-                metric_date=ndt.date,
-
-                # ---------------------------------------------------
-                is_flag=models.BooleanField(default=False, db_index=True),
-                # True -> hard, False -> soft, None -> muted
-                flag = models.NullBooleanField(default=False, db_index=True),
-                manual_flag = models.BooleanField(default=False, db_index=True),
-                # ---------------------------------------------------
-            )
-
-            DailyTest(
-                flag=models.ForeignKey(Flag),
-                isp=ndt.isp,
-                date=ndt.date,
-                ndt_measurement_count=1,
-                av_upload_speed=ndt.upload_speed,
-                av_download_speed=ndt.download_speed,
-                av_ping=ndt.ping,
-                av_max_ping=ndt.max_ping,
-                av_min_ping=ndt.min_ping,
-                av_timeout=ndt.timeout,
-                av_package_loss=ndt.package_loss,
-            )

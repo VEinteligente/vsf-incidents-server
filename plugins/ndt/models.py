@@ -13,13 +13,16 @@ class DailyTest(models.Model):
 
     ndt_measurement_count = models.PositiveIntegerField(default=0)
 
-    av_upload_speed = models.FloatField()
-    av_download_speed = models.FloatField()
-    av_ping = models.FloatField()
-    av_max_ping = models.FloatField()
-    av_min_ping = models.FloatField()
-    av_timeout = models.FloatField()
-    av_package_loss = models.FloatField()
+    av_upload_speed = models.FloatField(default=0)
+    av_download_speed = models.FloatField(default=0)
+    av_ping = models.FloatField(default=0)
+    av_max_ping = models.FloatField(default=0)
+    av_min_ping = models.FloatField(default=0)
+    av_timeout = models.FloatField(default=0)
+    av_package_loss = models.FloatField(default=0)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.date, self.isp)
 
 
 class NDTMeasurement(models.Model):

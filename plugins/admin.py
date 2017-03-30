@@ -1,3 +1,5 @@
 from django.contrib import admin
+from ndt.models import NDTMeasurement, DailyTest
 
-# Register your models here.
+admin.site.register(NDTMeasurement)
+admin.site.register(DailyTest)
