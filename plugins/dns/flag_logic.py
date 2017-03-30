@@ -8,7 +8,6 @@ from vsf import conf
 from django.db.models import F, Count, Case, When, CharField
 from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
-from measurement.models import DNS as MDNS
 from measurement.views import send_email_users
 
 
@@ -487,3 +486,6 @@ def metric_to_dns():
     print "Start Evaluate DNS Flags"
     dns_to_flag()
     print "End Evaluate DNS Flags"
+    print "Start HARD DNS Flags"
+    soft_to_hard_flags()
+    print "End HARD DNS Flags"
