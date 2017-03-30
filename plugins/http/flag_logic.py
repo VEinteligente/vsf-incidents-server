@@ -3,6 +3,8 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
+from django.db.models import F, Count, Case, When, CharField
+from vsf import conf
 from measurement.models import Metric, Flag
 from plugins.http.models import HTTP
 
@@ -123,6 +125,144 @@ def http_to_flag():
             http.save()
 
 
+def soft_to_hard_flags():
+    ids = Metric.objects.values_list('id', flat=True)
+    second_cond = True
+    send_email = False
+
+##########################################################
+# Evaluating first condition for hard flags
+##########################################################
+
+    ids_cond_1 = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
+
+    ##########################################################
+    # Get first all http soft flags
+    ##########################################################
+    flags = Flag.objects.filter(
+        https__metric__in=ids_cond_1,
+        flag=Flag.SOFT
+    ).prefetch_related(
+        'https__metric_probe_isp'
+    ).annotate(
+        target=Case(
+            default=F('https__metric__input'),
+            output_field=CharField()
+        ),
+        isp=Case(
+            default=F('https__metric__probe__isp__name'),
+            output_field=CharField()
+        )
+
+    )
+
+    # Dict than determinate which target/isp has
+    # SOFT_FLAG_REPEATED_X1 number of soft flags
+    result = flags.values(
+        'target',
+        'isp'
+    ).annotate(
+        total_soft=Count(
+            Case(
+                When(flag=Flag.SOFT, then=1),
+                output_field=CharField()
+            )
+        )
+    ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X1)
+
+    if result:
+        second_cond = False
+        for r in result:
+            # Get flags to update to hard flags
+            flags_to_update = flags.filter(
+                isp=r['isp'],
+                target=r['target']
+            )
+
+            flags_to_update.update(flag=Flag.HARD)
+
+            for flag in flags_to_update:
+                pass
+                # Here comes the code to suggest events to each hard flag
+                # Here comes the code to suggest hard to another
+                # hard flags to create a new event
+
+        send_email = True
+
+##########################################################
+# Evaluating Second condition for hard flags
+# Only if First condition doesnt generate any results
+##########################################################
+    if second_cond:
+        ids_cond_2 = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
+
+    ##########################################################
+    # Get first all http soft flags
+    ##########################################################
+        flags = Flag.objects.filter(
+            https__metric__in=ids_cond_2,
+            flag=Flag.SOFT
+        ).prefetch_related(
+            'https__metric__probe__region'
+        ).annotate(
+            target=Case(
+                default=F('https__metric__input'),
+                output_field=CharField()
+            ),
+            isp=Case(
+                default=F('https__metric__probe__isp__name'),
+                output_field=CharField()
+            ),
+            region=Case(
+                default=F('https__metric__probe__region__name'),
+                output_field=CharField()
+            )
+
+        )
+
+        # Dict than determinate which target/isp has
+        # SOFT_FLAG_REPEATED_X1 number of soft flags
+        result = flags.values(
+            'target',
+            'isp',
+            'region'
+        ).annotate(
+            total_soft=Count(
+                Case(
+                    When(flag=Flag.SOFT, then=1),
+                    output_field=CharField()
+                )
+            )
+        ).filter(total_soft=conf.SOFT_FLAG_REPEATED_X2)
+
+        if result:
+            for r in result:
+                # Get flags to update to hard flags
+                flags_to_update = flags.filter(
+                    isp=r['isp'],
+                    target=r['target'],
+                    region=r['region']
+                )
+
+                flags_to_update.update(flag=Flag.HARD)
+
+                for flag in flags_to_update:
+                    pass
+                    # Here comes the code to suggest events to each hard flag
+                    # Here comes the code to suggest hard to another
+                    # hard flags to create a new event
+
+            send_email = True
+
+##########################################################
+# Send email to users only if a hard flag was detected
+# Only if First condition doesnt generate any results
+##########################################################
+    if send_email:
+        print "Sending email"
+        # send_email_users()
+
+
 def metric_to_http():
     print "Start Web_connectivity test"
     web_connectivity_to_http()
@@ -130,3 +270,6 @@ def metric_to_http():
     print "Start HTTP to Flag"
     http_to_flag()
     print "End HTTP to Flag"
+    print "Start HARD HTTP Flags"
+    soft_to_hard_flags()
+    print "End HARD HTTP Flags"
