@@ -1,15 +1,15 @@
 from plugins.views import PluginTableView, DatatablesView
-from django.db.models.expressions import RawSQL
 
 from django.views import generic
 from datetime import datetime
 from measurement.models import Metric, Probe, Flag
 from models import NDTMeasurement
-# from measurement.models import Country, State, Probe
-# import random
 
 
 class NdtTableView(PluginTableView):
+    """
+    Naked ndt measurement table view
+    """
     page_header = "NDT Measurement List"
     page_header_description = "All NDT measurements"
     breadcrumb = ["Measurement", "NDT"]
@@ -33,6 +33,9 @@ class NdtTableView(PluginTableView):
 
 
 class NdtAjaxView(DatatablesView):
+    """
+    Backend for NdtTableView dataTable
+    """
     fields = {
         'annotations': 'metric__annotations',
         'probe': 'metric__probe',
@@ -52,6 +55,11 @@ class NdtAjaxView(DatatablesView):
     queryset = NDTMeasurement.objects.all()
 
     def get_rows(self, rows):
+        """
+        Format all rows, and format % of package loss
+        :param rows: All rows
+        :return: dataTable page formatted
+        """
         page_rows = super(NdtAjaxView, self).get_rows(rows)
         for row in page_rows:
             try:
@@ -63,6 +71,9 @@ class NdtAjaxView(DatatablesView):
 
 
 class DailyTestTable(PluginTableView):
+    """
+    Daily tests averages table view
+    """
     page_header = "Daily Speed Test List"
     page_header_description = "Average of all speed test, group by day."
     breadcrumb = ["Measurement", "Speed Test"]
@@ -83,6 +94,9 @@ class DailyTestTable(PluginTableView):
 
 
 class SpeedTestAjax(DatatablesView):
+    """
+    Backend for DailyTestTable dataTable
+    """
     fields = {
         'Flag': 'flag',
         'isp': 'ndt__isp',
@@ -99,6 +113,11 @@ class SpeedTestAjax(DatatablesView):
     queryset = Flag.objects.exclude(ndt=None)
 
     def get_rows(self, rows):
+        """
+        Format all rows, and format % of package loss
+        :param rows: All rows
+        :return: dataTable page formatted
+        """
         page_rows = super(SpeedTestAjax, self).get_rows(rows)
         for row in page_rows:
             try:
