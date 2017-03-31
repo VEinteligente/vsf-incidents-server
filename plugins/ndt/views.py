@@ -3,7 +3,7 @@ from django.db.models.expressions import RawSQL
 
 from django.views import generic
 from datetime import datetime
-from measurement.models import Metric, Probe
+from measurement.models import Metric, Probe, Flag
 from models import NDTMeasurement
 # from measurement.models import Country, State, Probe
 # import random
@@ -19,13 +19,14 @@ class NdtTableView(PluginTableView):
         'probe isp',
         'probe plan',
         'date',
+        'id',
         'report',
         'download',
         'upload',
         'ping',
         'max ping',
         'min ping',
-        'time out',
+        'timeout',
         '% package loss',
     ]
     url_ajax = '/plugins/ndt/ndt-ajax/'
@@ -33,64 +34,73 @@ class NdtTableView(PluginTableView):
 
 class NdtAjaxView(DatatablesView):
     fields = {
-        'annotations': 'annotations',
-        'probe': 'probe_uu',
-        'probe_isp': 'id',
-        'probe_plan': 'id',
-        'date': 'test_start_time',
+        'annotations': 'metric__annotations',
+        'probe': 'metric__probe',
+        'probe isp': 'metric__probe__isp',
+        'probe plan': 'metric__probe__isp',
+        'date': 'date',
         'id': 'id',
-        'report': 'report_id',
-        'upload': 'upload',
-        'download': 'download',
+        'report': 'metric__report_id',
+        'upload': 'upload_speed',
+        'download': 'download_speed',
         'ping': 'ping',
         'min ping': 'min_ping',
         'max ping': 'max_ping',
-        'time out': 'time_out',
+        'timeout': 'timeout',
         '% package loss': 'package_loss',
     }
-    queryset = Metric.objects.filter(test_name='ndt').annotate(
-        probe_uu=RawSQL(
-            "annotations->>'probe'", ()
-        ),
-        download=RawSQL(
-            "test_keys->'simple'->'download'", ()
-        ),
-        upload=RawSQL(
-            "test_keys->'simple'->'upload'", ()
-        ),
-        ping=RawSQL(
-            "test_keys->'simple'->'ping'", ()
-        ),
-        min_ping=RawSQL(
-            "test_keys->'advanced'->'min_rtt'", ()
-        ),
-        max_ping=RawSQL(
-            "test_keys->'advanced'->'max_rtt'", ()
-        ),
-        time_out=RawSQL(
-            "test_keys->'advanced'->'timeouts'", ()
-        ),
-        package_loss=RawSQL(
-            "test_keys->'advanced'->'packet_loss'", ()
-        ),
-    )
+    queryset = NDTMeasurement.objects.all()
 
     def get_rows(self, rows):
         page_rows = super(NdtAjaxView, self).get_rows(rows)
         for row in page_rows:
             try:
-                probe = Probe.objects.get(
-                    identification=row['annotations']['probe'])
-                probe_isp = probe.isp
-                probe_plan = probe.plan
-            except Probe.DoesNotExist:
-                probe_isp = 'Unknown'
-                probe_plan = 'Unknown'
+                row['% package loss'] = float(row['% package loss']) * 100
+            except TypeError:
+                row['% package loss'] = 'Unknown'
 
-            row['probe isp'] = probe_isp
-            row['probe plan'] = probe_plan
-            row['annotations'] = str(row['annotations'])
+        return page_rows
 
+
+class DailyTestTable(PluginTableView):
+    page_header = "Daily Speed Test List"
+    page_header_description = "Average of all speed test, group by day."
+    breadcrumb = ["Measurement", "Speed Test"]
+    titles = [
+        'Flag',
+        'isp',
+        'Date',
+        'Measurements amount',
+        'Download',
+        'Upload',
+        'Ping',
+        'Min ping',
+        'Max ping',
+        'Time out',
+        '% package loss',
+    ]
+    url_ajax = '/plugins/ndt/speed-test-ajax/'
+
+
+class SpeedTestAjax(DatatablesView):
+    fields = {
+        'Flag': 'flag',
+        'isp': 'ndt__isp',
+        'Date': 'ndt__date',
+        'Measurements amount': 'ndt__ndt_measurement_count',
+        'Download': 'ndt__av_download_speed',
+        'Upload': 'ndt__av_upload_speed',
+        'Ping': 'ndt__av_ping',
+        'Min ping': 'ndt__av_min_ping',
+        'Max ping': 'ndt__av_max_ping',
+        'Time out': 'ndt__av_timeout',
+        '% package loss': 'ndt__av_package_loss',
+    }
+    queryset = Flag.objects.exclude(ndt=None)
+
+    def get_rows(self, rows):
+        page_rows = super(SpeedTestAjax, self).get_rows(rows)
+        for row in page_rows:
             try:
                 row['% package loss'] = float(row['% package loss']) * 100
             except TypeError:

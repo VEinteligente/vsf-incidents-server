@@ -12,11 +12,23 @@ from models import NDTMeasurement, DailyTest
 
 
 def date_range(start_date, end_date):
-    for n in range(int ((end_date - start_date).days)):
+    """
+    Auxiliary function that helps to take the rank
+    between two dates.
+    :param start_date: Date range start.
+    :param end_date: Date range end.
+    :return: date type
+    """
+    for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
 
 def metric_to_ndt():
+    """
+    Translate Metrics with 'ndt' test_name to
+    NDTMeasurement table.
+    :return: None
+    """
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -105,6 +117,11 @@ def metric_to_ndt():
 
 
 def ndt_to_daily_test():
+    """
+    It takes average of all types of measurements in
+    NDTMeasurement and writes them in a DailyTest.
+    :return: None
+    """
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         start_date = make_aware(parse_datetime(SYNCHRONIZE_DATE).date())
