@@ -67,7 +67,7 @@
                     return '<input type="checkbox" name="' + data + '" value="1">'
                     };
 
-            };
+            }
             if (list[i]['mData'] == "report_id"){
                  list[i]['mRender'] = function ( data ) {
                         if (data != null){
@@ -78,7 +78,7 @@
                             return '';
                         }
                    };
-            };
+            }
             if (list[i]['mData'] == "flag"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
@@ -101,13 +101,13 @@
 
                         return flag_icon;
                     }
-            };
-            if (list[i]['mData'] == "test keys"){
+            }
+            if (list[i]['mData'] == "test keys" || list[i]['mData'] == "annotations"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
                         var test_key_content = JSON.stringify(data, null, 2);
 
-                        return '<textarea rows="6" class="test-key-area" metric-id="'
+                        return '<textarea rows="2" class="form-control test-key-area" metric-id="'
                             +
                             full.checkbox
                             +
@@ -117,7 +117,7 @@
                             +
                             '"> Open </button>';
                     }
-            };
+            }
             if (list[i]['mData'] == "manual flag"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
@@ -132,7 +132,7 @@
 
                         return flag_icon;
                     }
-            };
+            }
             if (list[i]['mData'] == "measurement"){
                  list[i]['mRender'] = function ( data, type, full ) {
                         if (data != null){
@@ -143,7 +143,7 @@
                             return '';
                         }
                    }
-            };
+            }
             if (list[i]['mData'] == "control resolver answers"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
@@ -151,7 +151,7 @@
 
                         return '<textarea rows="6" class="cr-answers-area">' + cr_answers_content + '</textarea>';
                     }
-            };
+            }
             if (list[i]['mData'] == "answers"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
@@ -159,9 +159,9 @@
 
                         return '<textarea rows="6" class="answers-area">' + answers_content + '</textarea>';
                     }
-            };
+            }
 
-        };
+        }
 
         $('#my-table').dataTable({
             "bProcessing": true,
@@ -215,8 +215,6 @@
                 }
 
             });
-
-
 
         });
 

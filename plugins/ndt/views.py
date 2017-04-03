@@ -67,6 +67,11 @@ class NdtAjaxView(DatatablesView):
             except TypeError:
                 row['% package loss'] = 'Unknown'
 
+            try:
+                row['annotations'] = str(row['annotations'])
+            except TypeError:
+                row['annotations'] = 'Unknown'
+
         return page_rows
 
 
