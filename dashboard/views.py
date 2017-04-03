@@ -35,9 +35,9 @@ class HomeView(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
         """ Flags variables to insert in context"""
         flags = Flag.objects.all().order_by('-id')[:10]
         flags_num = Flag.objects.count()
-        flags_hard_num = Flag.objects.filter(flag=True).count()
-        flags_muted_num = Flag.objects.filter(flag=None).count()
-        flags_soft_num = flags_num - flags_muted_num - flags_hard_num
+        flags_hard_num = Flag.objects.filter(flag=Flag.HARD).count()
+        flags_muted_num = Flag.objects.filter(flag=Flag.MUTED).count()
+        flags_soft_num = Flag.objects.filter(flag=Flag.SOFT).count()
 
         """ Measurements variables to insert in context,
         including number of probes ans reports"""
