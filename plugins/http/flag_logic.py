@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-from django.db.models import F, Count, Case, When, CharField
+from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
 from measurement.models import Metric, Flag
 from plugins.http.models import HTTP
@@ -140,10 +140,10 @@ def soft_to_hard_flags():
     # Get first all http soft flags
     ##########################################################
     flags = Flag.objects.filter(
-        https__metric__in=ids_cond_1,
-        flag=Flag.SOFT
+        Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+        https__metric__in=ids_cond_1
     ).prefetch_related(
-        'https__metric_probe_isp'
+        'https__metric__probe__isp'
     ).annotate(
         target=Case(
             default=F('https__metric__input'),
@@ -164,7 +164,10 @@ def soft_to_hard_flags():
     ).annotate(
         total_soft=Count(
             Case(
-                When(flag=Flag.SOFT, then=1),
+                When(
+                    Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+                    then=1
+                ),
                 output_field=CharField()
             )
         )
@@ -203,8 +206,8 @@ def soft_to_hard_flags():
     # Get first all http soft flags
     ##########################################################
         flags = Flag.objects.filter(
-            https__metric__in=ids_cond_2,
-            flag=Flag.SOFT
+            Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+            https__metric__in=ids_cond_2
         ).prefetch_related(
             'https__metric__probe__region'
         ).annotate(
@@ -232,7 +235,10 @@ def soft_to_hard_flags():
         ).annotate(
             total_soft=Count(
                 Case(
-                    When(flag=Flag.SOFT, then=1),
+                    When(
+                        Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+                        then=1
+                    ),
                     output_field=CharField()
                 )
             )

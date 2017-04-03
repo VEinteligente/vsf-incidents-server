@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-from django.db.models import F, Count, Case, When, CharField
+from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
 from measurement.models import Metric, Flag
 from plugins.tcp.models import TCP
@@ -99,10 +99,10 @@ def soft_to_hard_flags():
     # Get first all tcp soft flags
     ##########################################################
     flags = Flag.objects.filter(
-        tcps__metric__in=ids_cond_1,
-        flag=Flag.SOFT
+        Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+        tcps__metric__in=ids_cond_1
     ).prefetch_related(
-        'tcps__metric_probe_isp'
+        'tcps__metric__probe__isp'
     ).annotate(
         target=Case(
             default=F('tcps__metric__input'),
@@ -123,7 +123,10 @@ def soft_to_hard_flags():
     ).annotate(
         total_soft=Count(
             Case(
-                When(flag=Flag.SOFT, then=1),
+                When(
+                    Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+                    then=1
+                ),
                 output_field=CharField()
             )
         )
@@ -162,8 +165,8 @@ def soft_to_hard_flags():
     # Get first all tcp soft flags
     ##########################################################
         flags = Flag.objects.filter(
-            tcps__metric__in=ids_cond_2,
-            flag=Flag.SOFT
+            Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+            tcps__metric__in=ids_cond_2
         ).prefetch_related(
             'tcps__metric__probe__region'
         ).annotate(
@@ -191,7 +194,10 @@ def soft_to_hard_flags():
         ).annotate(
             total_soft=Count(
                 Case(
-                    When(flag=Flag.SOFT, then=1),
+                    When(
+                        Q(flag=Flag.SOFT) | Q(flag=Flag.HARD),
+                        then=1
+                    ),
                     output_field=CharField()
                 )
             )
