@@ -14,6 +14,7 @@ class NdtTableView(PluginTableView):
     page_header_description = "All NDT measurements"
     breadcrumb = ["Measurement", "NDT"]
     titles = [
+        'checkbox',
         'annotations',
         'probe',
         'probe isp',
@@ -37,6 +38,7 @@ class NdtAjaxView(DatatablesView):
     Backend for NdtTableView dataTable
     """
     fields = {
+        'checkbox': 'id',  # Required
         'annotations': 'metric__annotations',
         'probe': 'metric__probe',
         'probe isp': 'metric__probe__isp',
@@ -115,7 +117,7 @@ class SpeedTestAjax(DatatablesView):
         'Time out': 'ndt__av_timeout',
         '% package loss': 'ndt__av_package_loss',
     }
-    queryset = Flag.objects.exclude(ndt=None)
+    queryset = Flag.objects.exclude(ndts=None)
 
     def get_rows(self, rows):
         """

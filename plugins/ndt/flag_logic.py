@@ -37,59 +37,37 @@ def metric_to_ndt():
             test_name='ndt',
             ndt=None,
             measurement_start_time__gte=SYNCHRONIZE_DATE
-        ).annotate(
-            download=RawSQL(
-                "test_keys->'simple'->'download'", ()
-            ),
-            upload=RawSQL(
-                "test_keys->'simple'->'upload'", ()
-            ),
-            ping=RawSQL(
-                "test_keys->'simple'->'ping'", ()
-            ),
-            min_ping=RawSQL(
-                "test_keys->'advanced'->'min_rtt'", ()
-            ),
-            max_ping=RawSQL(
-                "test_keys->'advanced'->'max_rtt'", ()
-            ),
-            timeout=RawSQL(
-                "test_keys->'advanced'->'timeouts'", ()
-            ),
-            package_loss=RawSQL(
-                "test_keys->'advanced'->'packet_loss'", ()
-            ),
         )
     else:
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
             ndt=None,
-        ).annotate(
-            download=RawSQL(
-                "test_keys->'simple'->'download'", ()
-            ),
-            upload=RawSQL(
-                "test_keys->'simple'->'upload'", ()
-            ),
-            ping=RawSQL(
-                "test_keys->'simple'->'ping'", ()
-            ),
-            min_ping=RawSQL(
-                "test_keys->'advanced'->'min_rtt'", ()
-            ),
-            max_ping=RawSQL(
-                "test_keys->'advanced'->'max_rtt'", ()
-            ),
-            timeout=RawSQL(
-                "test_keys->'advanced'->'timeouts'", ()
-            ),
-            package_loss=RawSQL(
-                "test_keys->'advanced'->'packet_loss'", ()
-            ),
         )
 
-    ndt_metrics = ndt_metrics.prefetch_related(
-        'ndt'
+    ndt_metrics = ndt_metrics.annotate(
+        download=RawSQL(
+            "test_keys->'simple'->'download'", ()
+        ),
+        upload=RawSQL(
+            "test_keys->'simple'->'upload'", ()
+        ),
+        ping=RawSQL(
+            "test_keys->'simple'->'ping'", ()
+        ),
+        min_ping=RawSQL(
+            "test_keys->'advanced'->'min_rtt'", ()
+        ),
+        max_ping=RawSQL(
+            "test_keys->'advanced'->'max_rtt'", ()
+        ),
+        timeout=RawSQL(
+            "test_keys->'advanced'->'timeouts'", ()
+        ),
+        package_loss=RawSQL(
+            "test_keys->'advanced'->'packet_loss'", ()
+        ),
+    ).prefetch_related(
+        'ndts'
     )
 
     ndt_paginator = Paginator(ndt_metrics, 1000)
@@ -101,7 +79,14 @@ def metric_to_ndt():
                 isp = None
             else:
                 isp = ndt_metric.probe.isp
+            flag = Flag(
+                metric_date=ndt_metric.measurement_start_time,
+                flag=Flag.NONE,
+                manual_flag=False
+            )
+            flag.save()
             ndt = NDTMeasurement(
+                flag=flag,
                 metric=ndt_metric,
                 isp=isp,
                 date=ndt_metric.measurement_start_time,
@@ -147,15 +132,8 @@ def ndt_to_daily_test():
             try:
                 daily_test = DailyTest.objects.get(date=date, isp=isp['isp'])
             except DailyTest.DoesNotExist:
-                flag = Flag(
-                    metric_date=date,
-                    flag=Flag.NONE,
-                    manual_flag=False
-                )
-                flag.save()
                 isp_obj = ISP.objects.get(id=isp['isp'])
                 daily_test = DailyTest(
-                    flag=flag,
                     isp=isp_obj,
                     date=date
                 )

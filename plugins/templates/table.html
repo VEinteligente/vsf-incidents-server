@@ -87,32 +87,27 @@
 
     <div class="modal fade" id="test_key-modal" role="dialog">
     <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4 class="modal-title">Test Keys</h4>
-        </div>
-        <div class="modal-body">
-            <div class="col-md-12 form-group">
-                
-                    <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Test Keys</h4>
             </div>
-                
-                
-            
+            <div class="modal-body">
+                <div class="col-md-12 form-group">
+                    <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        </div>
-      </div>
     </div>
-  </div>
+</div>
 
 {% endblock %}
 
 
 {% block extrajs %}
-
 <script>
 
     $(function () {
@@ -214,19 +209,19 @@
                     }
             }
             if (list[i]['mData'] == "manual flag"){
-                 list[i]['mRender'] = function ( data, type, full ) {
+                list[i]['mRender'] = function ( data, type, full ) {
 
-                        var flag_icon = "";
-                        
-                        if (data == true){
-                            flag_icon = '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
-                        }
-                        if (data == false){
-                            flag_icon = 'Automatic';
-                        }
+                    var flag_icon = "";
 
-                        return flag_icon;
+                    if (data == true){
+                        flag_icon = '<i class="glyphicon glyphicon-flag" style="color: black;" aria-hidden="true"></i><span class="hide">manual</span>';
                     }
+                    if (data == false){
+                        flag_icon = 'Automatic';
+                    }
+
+                    return flag_icon;
+                }
             }
             if (list[i]['mData'] == "measurement"){
                  list[i]['mRender'] = function ( data, type, full ) {
@@ -248,12 +243,12 @@
                     }
             }
             if (list[i]['mData'] == "answers"){
-                 list[i]['mRender'] = function ( data, type, full ) {
+                list[i]['mRender'] = function ( data, type, full ) {
 
-                        var answers_content = JSON.stringify(data, null, 2);
+                    var answers_content = JSON.stringify(data, null, 2);
 
-                        return '<textarea rows="6" class="answers-area">' + answers_content + '</textarea>';
-                    }
+                    return '<textarea rows="6" class="answers-area">' + answers_content + '</textarea>';
+                }
             }
 
         }
@@ -403,6 +398,27 @@
             });
 
             checkDisableEventField();
+        });
+
+        $(".add-row").on('click', function(){
+            var table = $('#my-table').DataTable();
+            table.row.add( [
+                '.1',
+                '.2',
+                '.3',
+                '.4',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5',
+                '.5'
+            ] ).draw( false );
         });
 
     })
