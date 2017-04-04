@@ -31,6 +31,7 @@ class TCPTableView(PluginTableView):
         'test keys',
     ]
     url_ajax = '/plugins/tcp/tcp-ajax/'
+    enable_event = True
 
 
 class TCPAjaxView(DatatablesView):

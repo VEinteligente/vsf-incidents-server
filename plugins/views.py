@@ -8,6 +8,10 @@ from dashboard.mixins import PageTitleMixin
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+import time
+
+from event.front.forms import EventEvidenceForm
+from event.models import Event
 
 # from django.utils.module_loading import import_string
 # app_label = "demo"
@@ -17,7 +21,7 @@ import json
 class PluginTableView(
     LoginRequiredMixin,
     PageTitleMixin,
-    generic.TemplateView
+    generic.FormView
 ):
     template_name = 'table.html'
     page_header = "Measurement List"
@@ -25,6 +29,8 @@ class PluginTableView(
     breadcrumb = [""]
     titles = ["", ]
     url_ajax = None
+    form_class = EventEvidenceForm
+    enable_event = False
 
     def get_render_json(self):
         renders = []
@@ -35,6 +41,16 @@ class PluginTableView(
 
     def get_context_data(self, **kwargs):
         context = super(PluginTableView, self).get_context_data(**kwargs)
+        if self.enable_event is False:
+            context['form'] = None
+        else:
+            form = context['form']
+            # create identification for the event (must be unique)
+            num_events = Event.objects.count()
+            identification = "event_" + str(num_events)
+            identification += "_" + time.strftime("%x") + "_" + time.strftime("%X")
+            form.fields['identification'].initial = identification
+            context['form'] = form
         context['titles'] = self.titles
         json = self.get_render_json()
         context['aoColumns_json'] = json
