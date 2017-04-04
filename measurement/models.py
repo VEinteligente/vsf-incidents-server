@@ -207,6 +207,7 @@ class Flag(models.Model):
     TYPE_CHOICES = [    # Items are sorted alphabetically
         (k, v) for k, v in sorted(TYPE.items(), key=lambda t: t[1])]
 
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     metric_date = models.DateTimeField()
 
     # ---------------------------------------------------
@@ -228,3 +229,26 @@ class Flag(models.Model):
 
     def __unicode__(self):
         return u"%s - %s" % (self.metric_date, self.flag)
+
+    def default_metric(self):
+
+        try:
+            return self.dnss
+        except :
+            print 'no dns'
+
+        try:
+            return self.https
+        except :
+            print 'no http'
+
+        try:
+            return self.tcps
+        except :
+            print 'no tcp'
+
+
+        return self.ndts.get()
+
+
+        return False
