@@ -20,7 +20,6 @@ class NdtTableView(PluginTableView):
         'probe isp',
         'probe plan',
         'date',
-        'id',
         'report',
         'download',
         'upload',
@@ -40,11 +39,10 @@ class NdtAjaxView(DatatablesView):
     fields = {
         'checkbox': 'id',  # Required
         'annotations': 'metric__annotations',
-        'probe': 'metric__probe',
-        'probe isp': 'metric__probe__isp',
-        'probe plan': 'metric__probe__isp',
+        'probe': 'metric__probe__identification',
+        'probe isp': 'metric__probe__isp__name',
+        'probe plan': 'metric__probe__isp__plan__name',
         'date': 'date',
-        'id': 'id',
         'report': 'metric__report_id',
         'upload': 'upload_speed',
         'download': 'download_speed',

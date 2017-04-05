@@ -7,7 +7,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import Avg
 
-from measurement.models import Metric, Flag, ISP
+from measurement.models import Metric, Flag, ISP, Probe
 from models import NDTMeasurement, DailyTest
 
 
@@ -35,13 +35,13 @@ def metric_to_ndt():
 
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
-            ndt=None,
+            ndts=None,
             measurement_start_time__gte=SYNCHRONIZE_DATE
         )
     else:
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
-            ndt=None,
+            ndts=None,
         )
 
     ndt_metrics = ndt_metrics.annotate(
@@ -66,8 +66,6 @@ def metric_to_ndt():
         package_loss=RawSQL(
             "test_keys->'advanced'->'packet_loss'", ()
         ),
-    ).prefetch_related(
-        'ndts'
     )
 
     ndt_paginator = Paginator(ndt_metrics, 1000)
