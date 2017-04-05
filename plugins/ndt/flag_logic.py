@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 from django.db.models import Avg
 
 from measurement.models import Metric, Flag, ISP, Probe
-from models import NDTMeasurement, DailyTest
+from models import NDT, DailyTest
 
 
 def date_range(start_date, end_date):
@@ -83,7 +83,7 @@ def metric_to_ndt():
                 manual_flag=False
             )
             flag.save()
-            ndt = NDTMeasurement(
+            ndt = NDT(
                 flag=flag,
                 metric=ndt_metric,
                 isp=isp,
@@ -109,14 +109,14 @@ def ndt_to_daily_test():
     if SYNCHRONIZE_DATE is not None:
         start_date = make_aware(parse_datetime(SYNCHRONIZE_DATE).date())
     else:
-        start_date = NDTMeasurement.objects.all().order_by('date').first().date
+        start_date = NDT.objects.all().order_by('date').first().date
 
     for date in date_range(start_date, datetime.today().date()):
 
-        isps = NDTMeasurement.objects.filter(date=date).distinct('isp').values('isp')
+        isps = NDT.objects.filter(date=date).distinct('isp').values('isp')
 
         for isp in isps:
-            ndt_m = NDTMeasurement.objects.filter(date=date, isp=isp['isp'])
+            ndt_m = NDT.objects.filter(date=date, isp=isp['isp'])
             averages = ndt_m.aggregate(
                 av_upload_speed=Avg('upload_speed'),
                 av_download_speed=Avg('download_speed'),

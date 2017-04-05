@@ -3,7 +3,7 @@ from plugins.views import PluginTableView, DatatablesView
 from django.views import generic
 from datetime import datetime
 from measurement.models import Metric, Probe, Flag
-from models import NDTMeasurement
+from models import NDT
 
 
 class NdtTableView(PluginTableView):
@@ -52,7 +52,7 @@ class NdtAjaxView(DatatablesView):
         'timeout': 'timeout',
         '% package loss': 'package_loss',
     }
-    queryset = NDTMeasurement.objects.all()
+    queryset = NDT.objects.all()
 
     def get_rows(self, rows):
         """
@@ -166,7 +166,7 @@ class PuraPrueba(generic.TemplateView):
         print(metric.annotations['probe'])
         print(datetime(year=2017, month=2, day=10))
         probe = Probe.objects.get(identification='1002')
-        dt = NDTMeasurement(
+        dt = NDT(
             probe=probe,
             date=datetime(year=2017, month=2, day=10)
         )

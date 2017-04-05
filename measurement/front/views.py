@@ -31,6 +31,7 @@ from plugins.views import PluginTableView
 from plugins.dns.models import DNS as DNS_METRIC
 from plugins.tcp.models import TCP
 from plugins.http.models import HTTP
+from plugins.ndt.models import NDT as NDT
 import re
 import json
 from django.db.models.expressions import RawSQL
@@ -322,6 +323,11 @@ class MetricAjaxView(DatatablesView):
             queryset=TCP.objects.select_related('metric'),
             to_attr='tcp_metrics'
         ),
+        Prefetch(
+            'ndts',
+            queryset=NDT.objects.select_related('metric'),
+            to_attr='ndt_metrics'
+        ),
     )
 
     def json_response(self, data):
@@ -341,50 +347,41 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
     form_class = ManualFlagForm
     template_name = 'display_table.html'
 
-    # def get_context_data(self, **kwargs):
-    #
-    #     context = super(MeasurementTableView, self).get_context_data(**kwargs)
-    #
-    #     Create database object #
-    #     database = DBconnection('titan_db')
-    #     query = "select identifier, test_keys from metrics LIMIT 5"
-    #
-    #     result = database.db_execute(query)
-    #     context['rows'] = {}
-    #     context['columns'] = {}
-    #
-    #     if result:
-    #         # Search every metric with flag in DB
-    #         flags = Flag.objects.all().values('medicion', 'flag')
-    #         # Add Column Flag and his value in every row in Rows dictionary
-    #         result['columns'].insert(0, "flag")
-    #         for row in result['rows']:
-    #             flag_value = "not"
-    #             for flag in flags:
-    #                 if (str(flag['medicion']) == str(row['id'])):
-    #                     flag_value = flag['flag']
-    #             row.update({'flag': flag_value})
-    #         context['rows'] = result['rows']
-    #         context['columns'] = result['columns']
-    #     context['columns'] = ['flag', 'id', 'test_keys']
-    #
-    #     return context
-
 
 class MeasurementAjaxView(DatatablesView):
     fields = {
         'checkbox': 'input',
-        'Flag': 'flags__flag',
-        'manual_flag': 'flags__manual_flag',
-        'flag_id': 'flags__id',
-        'id': 'id',
-        'input': 'input',
-        'report_id': 'report_id',
-        'test_name': 'test_name',
-        'test_start_time': 'test_start_time',
-        'measurement_start_time': 'measurement_start_time'
+        'Flag': 'flag',
+        'manual_flag': 'manual_flag',
+        'flag_id': 'uuid',
+        'input': 'metric__input',
+        'report_id': 'metric__report_id',
+        'test_name': 'metric__test_name',
+        'test_start_time': 'metric__test_start_time',
+        'measurement_start_time': 'metric__measurement_start_time'
     }
-    queryset = Metric.objects.all()
+    queryset = Flag.objects.all().prefetch_related(
+        Prefetch(
+            'dnss',
+            queryset=DNS_METRIC.objects.select_related('metric'),
+            to_attr='dns_metrics'
+        ),
+        Prefetch(
+            'https',
+            queryset=HTTP.objects.select_related('metric'),
+            to_attr='http_metrics'
+        ),
+        Prefetch(
+            'tcps',
+            queryset=TCP.objects.select_related('metric'),
+            to_attr='tcp_metrics'
+        ),
+        Prefetch(
+            'ndts',
+            queryset=NDT.objects.select_related('metric'),
+            to_attr='ndt_metrics'
+        ),
+    )
 
     def json_response(self, data):
         return HttpResponse(
