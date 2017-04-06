@@ -350,7 +350,7 @@ class MeasurementTableView(LoginRequiredMixin, PageTitleMixin,
 
 class MeasurementAjaxView(DatatablesView):
     fields = {
-        'checkbox': 'input',
+        'checkbox': 'uuid',
         'Flag': 'flag',
         'manual_flag': 'manual_flag',
         'flag_id': 'uuid',
@@ -1319,8 +1319,10 @@ class ListReportProbeView(ListReportView):
 
 
 class ManualFlagsView(generic.FormView):
-    """ManualFlagsView: CreateView for create manual flags
-    in DB"""
+    """
+    ManualFlagsView: CreateView for create manual flags
+    in DB
+    """
     form_class = ManualFlagForm
     success_url = reverse_lazy('measurements:measurement_front:measurement-table')
     template_name = 'display_table.html'

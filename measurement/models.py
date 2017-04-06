@@ -228,24 +228,5 @@ class Flag(models.Model):
             ["flag", "manual_flag"],
         ]
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-
-        try:
-            self.metric = self.dnss.metric
-        except self.dnss.RelatedObjectDoesNotExist:
-            try:
-                self.metric = self.https.metric
-            except self.https.RelatedObjectDoesNotExist:
-                try:
-                    self.metric = self.tcps.metric
-                except self.tcps.RelatedObjectDoesNotExist:
-                    try:
-                        self.metric = self.ndts.metric
-                    except self.ndts.RelatedObjectDoesNotExist:
-                        self.metric = None
-
-        return super(Flag, self).save(force_insert=force_insert, force_update=force_update,
-                                      using=using, update_fields=update_fields)
-
     def __unicode__(self):
         return u"%s - %s" % (self.metric_date, self.flag)

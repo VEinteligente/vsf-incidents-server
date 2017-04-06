@@ -1,4 +1,4 @@
-from measurement.models import Metric, MetricFlag
+from measurement.models import Metric, Flag
 
 # Create your flag tests here.
 
@@ -9,5 +9,5 @@ def first_test():
 
 
 def second_test():
-    flags_in_measurements_data_base = MetricFlag.objects.all()
+    flags_in_measurements_data_base = Flag.objects.all()
     # do some other stuff with this flags

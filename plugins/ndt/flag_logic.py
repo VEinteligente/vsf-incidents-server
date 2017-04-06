@@ -78,9 +78,10 @@ def metric_to_ndt():
             else:
                 isp = ndt_metric.probe.isp
             flag = Flag(
+                metric=ndt_metric,
                 metric_date=ndt_metric.measurement_start_time,
                 flag=Flag.NONE,
-                manual_flag=False
+                manual_flag=False,
             )
             flag.save()
             ndt = NDT(

@@ -74,6 +74,7 @@ def tcp_to_flag():
         for tcp_obj in page.object_list:
             flag = Flag(
                 metric_date=tcp_obj.metric.measurement_start_time,
+                metric=tcp_obj.metric
             )
             # If there is a true flag give 'soft' type
             if tcp_obj.status_blocked is True:
