@@ -113,12 +113,13 @@ def http_to_flag():
                 is_flag = True
 
             flag = Flag(
-                metric_date=http.metric.measurement_start_time
+                metric_date=http.metric.measurement_start_time,
+                metric=http.metric
             )
 
             # If there is a true flag give 'soft' type
             if is_flag is True:
-                flag.flag = 'soft'
+                flag.flag = Flag.SOFT
 
             flag.save()
             http.flag = flag

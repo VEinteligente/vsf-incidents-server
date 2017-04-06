@@ -24,7 +24,7 @@ class DailyTest(models.Model):
         return u"%s - %s" % (self.date, self.isp)
 
 
-class NDTMeasurement(models.Model):
+class NDT(models.Model):
 
     flag = models.OneToOneField(Flag, related_name='ndts')
     metric = models.ForeignKey(Metric, related_name='ndts')

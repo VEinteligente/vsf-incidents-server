@@ -26,4 +26,4 @@ class ManualFlagForm(forms.Form):
 class MeasurementToEventForm(ManualFlagForm):
 
     metric_ip = forms.CharField(widget=forms.TextInput(attrs={'class': 'hidden', 'required': False}),
-                              label="")
+                                label="")

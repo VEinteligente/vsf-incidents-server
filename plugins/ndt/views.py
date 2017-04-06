@@ -3,7 +3,7 @@ from plugins.views import PluginTableView, DatatablesView
 from django.views import generic
 from datetime import datetime
 from measurement.models import Metric, Probe, Flag
-from models import NDTMeasurement
+from models import NDT
 
 
 class NdtTableView(PluginTableView):
@@ -20,7 +20,6 @@ class NdtTableView(PluginTableView):
         'probe isp',
         'probe plan',
         'date',
-        'id',
         'report',
         'download',
         'upload',
@@ -40,11 +39,10 @@ class NdtAjaxView(DatatablesView):
     fields = {
         'checkbox': 'id',  # Required
         'annotations': 'metric__annotations',
-        'probe': 'metric__probe',
-        'probe isp': 'metric__probe__isp',
-        'probe plan': 'metric__probe__isp',
+        'probe': 'metric__probe__identification',
+        'probe isp': 'metric__probe__isp__name',
+        'probe plan': 'metric__probe__isp__plan__name',
         'date': 'date',
-        'id': 'id',
         'report': 'metric__report_id',
         'upload': 'upload_speed',
         'download': 'download_speed',
@@ -54,7 +52,7 @@ class NdtAjaxView(DatatablesView):
         'timeout': 'timeout',
         '% package loss': 'package_loss',
     }
-    queryset = NDTMeasurement.objects.all()
+    queryset = NDT.objects.all()
 
     def get_rows(self, rows):
         """
@@ -168,7 +166,7 @@ class PuraPrueba(generic.TemplateView):
         print(metric.annotations['probe'])
         print(datetime(year=2017, month=2, day=10))
         probe = Probe.objects.get(identification='1002')
-        dt = NDTMeasurement(
+        dt = NDT(
             probe=probe,
             date=datetime(year=2017, month=2, day=10)
         )

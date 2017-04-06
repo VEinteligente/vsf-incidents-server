@@ -12,7 +12,6 @@
 
 {% if messages %}
     <div class="box">
-
         <div class="box-tools pull-right">
             <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
         </div><!-- /.box-tools -->
@@ -23,7 +22,6 @@
                     <p>{{ message }}</p>
                 </div>
             {% else %}
-
                 {% if message.level ==  25 %}
                     <div class="callout callout-success">
                       <p>{{ message }}</p>
@@ -32,15 +30,14 @@
             {% endif %}
         {% endfor %}
     </div>
-    {% endif %}
+{% endif %}
 
     <div class="table-responsive">
-
         <table id="my-table">
             <thead>
                 <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
                 <th>Flag</th>
-                <th>ID</th>
+                <th>Manual Flag</th>
                 <th>Input</th>
                 <th>Report ID</th>
                 <th>Test Name</th>
@@ -80,9 +77,9 @@
             "sAjaxSource": '/measurements/measurement-ajax/',
             "aoColumns": [
                 { "mData": "checkbox","bSortable": false, "bSearchable": false,
-                "mRender": function ( data ) {
-                return '<input type="checkbox" name="' + data + '" value="1">'
-            }
+                    "mRender": function ( data ) {
+                        return '<input type="checkbox" name="' + data + '" value="1">'
+                    }
                 },
                 { "mData": "Flag",  "mRender": function ( data, type, full ) {
 
@@ -108,12 +105,14 @@
                         return flag_icon;
                     }
                 },
-                { "mData": "id",
+                { "mData": "manual_flag",
                    "mRender": function ( data ) {
                         if (data != null){
-                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data)
-                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
-                            return url_measurement
+                            var flag_icon = "";
+                            if (data == true){
+                                flag_icon = '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+                            return flag_icon
                         }else{
                             return '';
                         }
@@ -144,48 +143,45 @@
             // Check/uncheck checkboxes for all rows in the table
             $('input[type="checkbox"]', rows).prop('checked', this.checked);
             $(rows).each(function() {
-               var checked = $('input[type="checkbox"]', rows).prop('checked');
-               if(checked){
-                $(this).addClass('selected', checked);
-               }else{
-                $(this).removeClass('selected');
-               }
+                var checked = $('input[type="checkbox"]', rows).prop('checked');
+                if(checked){
+                    $(this).addClass('selected', checked);
+                }else{
+                    $(this).removeClass('selected');
+                }
 
-               var metrics = $( '#id_metrics' );
-               var measurement = $( this ).context.childNodes[2].innerText;
-               $( '#create-manual-flag').removeClass('disabled');
+                var metrics = $( '#id_metrics' );
+                var measurement = $( this ).context.childNodes[2].innerText;
+                $( '#create-manual-flag').removeClass('disabled');
                 $( '#create-event').removeClass('disabled');
 
-
-
-               if( $( this ).hasClass( 'selected' ) ){
-                $(this).find(":checkbox").prop("checked", true);
-                metrics.val( metrics.val() + '\'' + measurement + '\', ');
-            }else{
-                $(this).find(":checkbox").prop("checked", false);
-                var metric_index = metrics.val().indexOf(measurement);
-                metrics.val(
+                if( $( this ).hasClass( 'selected' ) ){
+                    $(this).find(":checkbox").prop("checked", true);
+                    metrics.val( metrics.val() + '\'' + measurement + '\', ');
+                }else{
+                    $(this).find(":checkbox").prop("checked", false);
+                    var metric_index = metrics.val().indexOf(measurement);
+                    metrics.val(
                         metrics.val().substring(
-                                0,
-                                metric_index - 1
+                            0,
+                            metric_index - 1
                         ) +
                         metrics.val().substring(
-                                metric_index + measurement.length + 2
+                            metric_index + measurement.length + 2
                         )
-                );
+                    );
 
-                if (!metrics.val().match(/([^,\']+)\w/)){
-                    metrics.val("");
-                    $( '#create-manual-flag').toggleClass('disabled');
-                    $( '#create-event').toggleClass('disabled');
+                    if (!metrics.val().match(/([^,\']+)\w/)){
+                        metrics.val("");
+                        $( '#create-manual-flag').toggleClass('disabled');
+                        $( '#create-event').toggleClass('disabled');
+                    }
 
                 }
 
-            }
+                $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
 
-            $( '#id_metrics' ).val(metrics.val().replace(/.$/,""));
-
-            $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
+                $( '#id_metrics' ).val(metrics.val().replace(" ", ","));
 
             });
 

@@ -7,8 +7,8 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import Avg
 
-from measurement.models import Metric, Flag, ISP
-from models import NDTMeasurement, DailyTest
+from measurement.models import Metric, Flag, ISP, Probe
+from models import NDT, DailyTest
 
 
 def date_range(start_date, end_date):
@@ -35,13 +35,13 @@ def metric_to_ndt():
 
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
-            ndt=None,
+            ndts=None,
             measurement_start_time__gte=SYNCHRONIZE_DATE
         )
     else:
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
-            ndt=None,
+            ndts=None,
         )
 
     ndt_metrics = ndt_metrics.annotate(
@@ -66,8 +66,6 @@ def metric_to_ndt():
         package_loss=RawSQL(
             "test_keys->'advanced'->'packet_loss'", ()
         ),
-    ).prefetch_related(
-        'ndts'
     )
 
     ndt_paginator = Paginator(ndt_metrics, 1000)
@@ -80,12 +78,13 @@ def metric_to_ndt():
             else:
                 isp = ndt_metric.probe.isp
             flag = Flag(
+                metric=ndt_metric,
                 metric_date=ndt_metric.measurement_start_time,
                 flag=Flag.NONE,
-                manual_flag=False
+                manual_flag=False,
             )
             flag.save()
-            ndt = NDTMeasurement(
+            ndt = NDT(
                 flag=flag,
                 metric=ndt_metric,
                 isp=isp,
@@ -111,14 +110,14 @@ def ndt_to_daily_test():
     if SYNCHRONIZE_DATE is not None:
         start_date = make_aware(parse_datetime(SYNCHRONIZE_DATE).date())
     else:
-        start_date = NDTMeasurement.objects.all().order_by('date').first().date
+        start_date = NDT.objects.all().order_by('date').first().date
 
     for date in date_range(start_date, datetime.today().date()):
 
-        isps = NDTMeasurement.objects.filter(date=date).distinct('isp').values('isp')
+        isps = NDT.objects.filter(date=date).distinct('isp').values('isp')
 
         for isp in isps:
-            ndt_m = NDTMeasurement.objects.filter(date=date, isp=isp['isp'])
+            ndt_m = NDT.objects.filter(date=date, isp=isp['isp'])
             averages = ndt_m.aggregate(
                 av_upload_speed=Avg('upload_speed'),
                 av_download_speed=Avg('download_speed'),
