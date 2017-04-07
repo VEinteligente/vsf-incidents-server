@@ -8,6 +8,11 @@ urlpatterns = [
         name='tcp-table'
     ),
     url(
+        r'^(?P<pk>[0-9]+)/update/$',
+        views.TCPUpdateEventView.as_view(),
+        name='tcp-update-event'
+    ),
+    url(
         r'^tcp-ajax/$',
         views.TCPAjaxView.as_view(),
         name='tcp-ajax'

@@ -1,4 +1,4 @@
-from plugins.views import PluginCreateEventView
+from plugins.views import PluginUpdateEventView, PluginCreateEventView
 from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
@@ -8,6 +8,33 @@ import json
 
 
 class TCPTableView(PluginCreateEventView):
+    """
+    TCPTableView: PluginTableView for display tcp metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
+    page_header = "TCP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurement", "TCP"]
+    titles = [
+        'checkbox',
+        'flag',
+        'manual flag',
+        'measurement',
+        'input',
+        'test name',
+        'measurement_start_time',
+        'status blocked',
+        'status failure',
+        'status success',
+        'report_id',
+        'probe id',
+        'test keys',
+    ]
+    url_ajax = '/plugins/tcp/tcp-ajax/'
+    enable_event = True
+
+
+class TCPUpdateEventView(PluginUpdateEventView):
     """
     TCPTableView: PluginTableView for display tcp metrics table.
     Field checkbox is obligatory to do functions over the table

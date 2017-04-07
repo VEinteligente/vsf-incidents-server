@@ -181,6 +181,69 @@ class PluginCreateEventView(
         return HttpResponseRedirect(self.get_success_url())
 
 
+class PluginUpdateEventView(
+    PluginCreateEventView,
+    generic.UpdateView
+):
+    model = Event
+    success_url = reverse_lazy('events:event_front:list-event')
+
+    def get_context_data(self, **kwargs):
+        '''Initial data for Event form'''
+
+        context = super(PluginUpdateEventView, self).get_context_data(**kwargs)
+
+        form = self.get_form_class()
+
+        event = self.object
+
+        ########################################################
+        # Get all FLAG's UUID associated to this event
+        # and create and string with format 'uuid&uuid&...'
+        # to be initialized in flags field
+        ########################################################
+
+        flags = event.flags.values_list('id', flat=True)
+        flags = Flag.objects.filter(id__in=flags).values_list('uuid')
+
+        flags_str = ''
+
+        for uuid in flags:
+            flags_str += str(uuid[0]) + '&'
+
+        ########################################################
+        # Determinate if event is open-ended
+        ########################################################
+
+        open_ended = False
+
+        if not event.end_date:
+            open_ended = True
+
+        ########################################################
+        # Get target fields
+        ########################################################
+
+        target_ip = event.target.ip
+        target_url = event.target.url
+        target_site = event.target.site
+
+        ########################################################
+        # Initial data for the form
+        ########################################################
+        context['form'] = form(
+            instance=event,
+            initial={
+                'flags': flags_str,
+                'open_ended': open_ended,
+                'target_site': target_site,
+                'target_url': target_url,
+                'target_ip': target_ip
+            }
+        )
+        return context
+
+
 class DatatablesView(EditableDatatablesView):
 
     def json_response(self, data):
