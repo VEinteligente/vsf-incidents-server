@@ -1,4 +1,6 @@
 from django import forms
+from django.db.models.expressions import RawSQL
+from django.db.models import F, Count, Case, When, CharField, Q
 from event.models import Event, Site
 from measurement.models import Flag
 
@@ -86,6 +88,14 @@ class EventEvidenceForm(forms.ModelForm):
     open_ended = forms.BooleanField(widget=forms.CheckboxInput(),
                                     required=False)
 
+    flags = forms.CharField(widget=forms.TextInput(attrs={}),
+                            required=False, label="")
+
+    isp = forms.CharField(widget=forms.TextInput(attrs={}),
+                        required=False)
+
+    start_date = forms.DateTimeField(required=False)
+
     target_url = forms.URLField(
         label="Target URL",
         required=False)
@@ -104,4 +114,83 @@ class EventEvidenceForm(forms.ModelForm):
             'draft',
             'target'
         ]
+
+    def clean(self):
+        '''Data from EventForm'''
+
+        form_data = self.cleaned_data
+        print form_data
+
+        if (form_data['flags'] == ""):
+            # Required fields when an event only with external evidence
+            if (form_data['start_date'] is None):
+                self.add_error('start_date', 'Field Required')
+            if (form_data['isp'] == ""):
+                self.add_error('isp', 'Field Required')
+            if (form_data['public_evidence'] == ""):
+                self.add_error('isp', 'Field Required')
+
+            # Check end date or open ended event
+            if form_data['open_ended'] is False and form_data['end_date'] is None:
+                self.add_error(
+                    None, 'An event must have an end date or be open_ended'
+                )
+                self.add_error('open_ended', '')
+                self.add_error('end_date', '')
+
+        else:
+
+            flags = form_data['flags'].split('&')
+
+            # Get flags from database with same target, isp
+            # and type
+            bd_flags = []
+
+            for f in filter(None, flags):
+                bd_flags += Flag.objects.filter(
+                    uuid=f
+                ).select_related(
+                    'metric__probe__isp'
+                ).annotate(
+                    target=Case(
+                        default=F('metric__input'),
+                        output_field=CharField()
+                    ),
+                    isp=Case(
+                        default=F('metric__probe__isp__name'),
+                        output_field=CharField()
+                    )
+
+                )
+
+            print 'flags'
+            print bd_flags
+
+            if bd_flags:
+
+                # If not all flags are the same target, isp and type then
+                # show an error.
+
+                if not all(
+                    map(
+                        lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp,
+                        bd_flags[1:]
+                    )
+                ):
+                    self.add_error(
+                        None,
+                        'Selected flags must have the same inputs and ISP'
+                    )
+
+                if not all(
+                    map(
+                        lambda f: f.event is None,
+                        bd_flags[1:]
+                    )
+                ):
+                    self.add_error(
+                        None,
+                        'One flag is already asociated to an event'
+                    )
+
 

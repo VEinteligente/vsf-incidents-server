@@ -1,4 +1,4 @@
-from plugins.views import PluginTableView
+from plugins.views import PluginCreateEventView
 from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
@@ -7,7 +7,7 @@ from plugins.tcp.models import TCP
 import json
 
 
-class TCPTableView(PluginTableView):
+class TCPTableView(PluginCreateEventView):
     """
     TCPTableView: PluginTableView for display tcp metrics table.
     Field checkbox is obligatory to do functions over the table
@@ -31,6 +31,7 @@ class TCPTableView(PluginTableView):
         'test keys',
     ]
     url_ajax = '/plugins/tcp/tcp-ajax/'
+    enable_event = True
 
 
 class TCPAjaxView(DatatablesView):
@@ -43,7 +44,7 @@ class TCPAjaxView(DatatablesView):
     table.html
     """
     fields = {
-        'checkbox': 'id',  # Required
+        'checkbox': 'flag__uuid',  # Required
         'flag': 'flag__flag',  # Customized
         'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
