@@ -83,29 +83,27 @@
                         
                     <table id="flag-list" class="table table-bordered table-hover">
                         <thead>
-                            <th>Medition ID</th>
+                            <th>Measurement</th>
                             <th>Flag</th>
                             <th>Date</th>
                             <th>ISP</th>
                             <th>Probe</th>
-                            <th>IP</th>
-                            <th>Type</th>
                         </thead>
                         <tbody>
                             {% for flag in event.flags.all %}
                             <tr>
-                                <td>{{flag.medicion}}</td>
+                                <td>
+                                    <a href="{% url 'measurements:measurement_front:detail-measurement' flag.metric.id %}"> {{flag.metric.measurement}}</a>
+                                </td>
                                 <td>{{flag.flag}}</td>
-                                <td>{{flag.date}}</td>
+                                <td>{{flag.metric_date}}</td>
                                 <td>
                                 {% if flag.isp %}
                                     {{flag.isp}}
                                 {% else %}
                                     Unknown
                                 {% endif %}</td>
-                                <td>{{flag.probe}}</td>
-                                <td>{{flag.ip}}</td>
-                                <td>{{flag.type_med}}</td>
+                                <td>Probe-{{flag.metric.probe.id}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
