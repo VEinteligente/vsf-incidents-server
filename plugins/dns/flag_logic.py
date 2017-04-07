@@ -1,5 +1,4 @@
 from django.db.models.expressions import RawSQL
-from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
@@ -12,34 +11,25 @@ from measurement.views import send_email_users
 
 
 def web_connectivity_to_dns():
+    web_connectivity_metrics = Metric.objects.filter(
+        test_name='web_connectivity'
+    )
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
 
-        web_connectivity_metrics = Metric.objects.filter(
-            test_name='web_connectivity',
+        web_connectivity_metrics = web_connectivity_metrics.filter(
             measurement_start_time__gte=SYNCHRONIZE_DATE
-        ).annotate(
-            queries=RawSQL(
-                "test_keys->'queries'", ()
-            ),
-            control_resolver=RawSQL(
-                "test_keys->'control'->'dns'", ()
-            )
-        )
-    else:
-        web_connectivity_metrics = Metric.objects.filter(
-            test_name='web_connectivity'
-        ).annotate(
-            queries=RawSQL(
-                "test_keys->'queries'", ()
-            ),
-            control_resolver=RawSQL(
-                "test_keys->'control'", ()
-            )
         )
 
-    web_connectivity_metrics = web_connectivity_metrics.prefetch_related(
+    web_connectivity_metrics = web_connectivity_metrics.annotate(
+        queries=RawSQL(
+            "test_keys->'queries'", ()
+        ),
+        control_resolver=RawSQL(
+            "test_keys->'control'", ()
+        )
+    ).prefetch_related(
         'dnss'
     ).values(
         'id',
@@ -49,33 +39,29 @@ def web_connectivity_to_dns():
         'dnss'
     )
 
-    dns_paginator = Paginator(web_connectivity_metrics, 1000)
+    for dns_metric in web_connectivity_metrics:
+        cr = {}
+        try:
+            cr['failure'] = dns_metric['control_resolver']['dns']['failure']
+        except Exception:
+            cr['failure'] = None
 
-    for p in dns_paginator.page_range:
-        page = dns_paginator.page(p)
-        for dns_metric in page.object_list:
-            cr = {}
-            try:
-                cr['failure'] = dns_metric['control_resolver']['dns']['failure']
-            except Exception:
-                cr['failure'] = None
+        try:
+            cr['answers'] = {'addrs': dns_metric['control_resolver']['dns']['addrs']}
+        except Exception:
+            cr['answers'] = None
 
-            try: 
-                cr['answers'] = {'addrs': dns_metric['control_resolver']['dns']['addrs']}
-            except Exception:
-                cr['answers'] = None
-
-            for query in dns_metric['queries']:
-                for answer in query['answers']:
-                    if dns_metric['dnss'] is None:
-                        dns = DNS(
-                            metric_id=dns_metric['id'],
-                            control_resolver_failure=cr['failure'],
-                            control_resolver_answers=cr['answers'],
-                            failure=query['failure'],
-                            answers=answer
-                        )
-                        dns.save()
+        for query in dns_metric['queries']:
+            for answer in query['answers']:
+                if dns_metric['dnss'] is None:
+                    dns = DNS(
+                        metric_id=dns_metric['id'],
+                        control_resolver_failure=cr['failure'],
+                        control_resolver_answers=cr['answers'],
+                        failure=query['failure'],
+                        answers=answer
+                    )
+                    dns.save()
 
 
 def dns_consistency_to_dns():
@@ -154,22 +140,15 @@ def dns_to_flag():
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         dnss = DNS.objects.filter(
-            metric__measurement_start_time__gte=SYNCHRONIZE_DATE,
-            flag=None
+            metric__measurement_start_time__gte=SYNCHRONIZE_DATE
         )
     else:
-        dnss = DNS.objects.filter(flag=None)
+        dnss = DNS.objects.all()
 
     dnss = dnss.select_related('metric', 'flag')
 
-    print dnss.count()
-    dns_paginator = Paginator(dnss, 1000)
-    print dns_paginator.page_range
-
-    for p in dns_paginator.page_range:
-        page = dns_paginator.page(p)
-
-        for dns in page.object_list:
+    for dns in dnss:
+        if dns.flag is None:
             is_flag = False
             if dns.metric.test_name == 'dns_consistency':
                 if dns.control_resolver_failure is None:
@@ -212,17 +191,15 @@ def dns_to_flag():
             dns.flag = flag
             dns.save()
 
-        print page
-
 
 def soft_to_hard_flags():
     ids = Metric.objects.values_list('id', flat=True)
     second_cond = True
     send_email = False
 
-##########################################################
-# Evaluating first condition for hard flags
-##########################################################
+    ##########################################################
+    # Evaluating first condition for hard flags
+    ##########################################################
 
     ids_cond_1 = list(reversed(ids))[:conf.LAST_REPORTS_Y1]
 
@@ -339,11 +316,10 @@ def soft_to_hard_flags():
 
         send_email = True
 
-
-##########################################################
-# Evaluating Second condition for hard flags
-# Only if First condition doesnt generate any results
-##########################################################
+    ##########################################################
+    # Evaluating Second condition for hard flags
+    # Only if First condition doesnt generate any results
+    ##########################################################
     if second_cond:
         ids_cond_2 = list(reversed(ids))[:conf.LAST_REPORTS_Y2]
 
@@ -477,10 +453,10 @@ def soft_to_hard_flags():
 
             send_email = True
 
-##########################################################
-# Send email to users only if a hard flag was detected
-# Only if First condition doesnt generate any results
-##########################################################
+    ##########################################################
+    # Send email to users only if a hard flag was detected
+    # Only if First condition doesnt generate any results
+    ##########################################################
     if send_email:
         print "Sending email"
         # send_email_users()
