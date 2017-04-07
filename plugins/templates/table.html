@@ -9,7 +9,7 @@
 
 {% block content %}
     <div class="table-responsive">
-        <table id="my-table">
+        <table id="principal-table">
             <thead>
                 {% for table_title in titles %}
                     {% if  table_title == "checkbox" %}
@@ -29,42 +29,49 @@
         <div class="box-header with-border">
             <h3 class="box-title"> Create Event</h3>
         </div>
-        <div class="box-body">
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger alert-dismissible">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                        &times;
-                    </button>
-                    {% for non_field_error in form.non_field_errors %}
-                        {{ non_field_error }}
-                    {% endfor %}
+        <form id="event-form" action="" method="post">
+            {% csrf_token %}
+            <div class="box-body">
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                            &times;
+                        </button>
+                        {% for non_field_error in form.non_field_errors %}
+                            {{ non_field_error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% bootstrap_field form.identification %}
+                {% bootstrap_field form.type %}
+                {% bootstrap_field form.isp %}
+                <div class="row">
+                    
+                    <div class="col-xs-5">
+                        {% bootstrap_field form.start_date %}
+                    </div>
+                    <div class="col-xs-5">
+                        {% bootstrap_field form.end_date %}
+                    </div>
+                    <div class="col-xs-2">
+                        {% bootstrap_field form.open_ended %}
+                    </div>
                 </div>
-            {% endif %}
-            {% bootstrap_field form.identification %}
-            {% bootstrap_field form.type %}
-            {% bootstrap_field form.isp %}
-            <div class="row">
+                {% bootstrap_field form.target_url %}
+                {% bootstrap_field form.target_ip %}
+                {% bootstrap_field form.target_site %}
+
+                {% bootstrap_field form.public_evidence %}
+                {% bootstrap_field form.private_evidence %}
+
+                {% bootstrap_field form.flags %}
                 
-                <div class="col-xs-6">
-                    {% bootstrap_field form.start_date %}
-                </div>
-                <div class="col-xs-6">
-                    {% bootstrap_field form.end_date %}
-                </div>
             </div>
-            {% bootstrap_field form.target_url %}
-            {% bootstrap_field form.target_ip %}
-            {% bootstrap_field form.target_site %}
-
-            {% bootstrap_field form.public_evidence %}
-            {% bootstrap_field form.private_evidence %}
-
-            {% bootstrap_field form.flags %}
-            
-        </div>
-        <div class="box-footer text-right">
-            <input class="btn btn-flat btn-primary" type="submit" value="Save">
-        </div> 
+            <div class="box-footer text-right">
+                <input id="create-event-button" class="btn btn-flat btn-primary" type="submit" value="Save">
+            </div> 
+        </form>
     </div>
 
     <div class="box box-primary" style="margin-top:30px;">
@@ -77,6 +84,7 @@
                     <th>Flag ID</th>
                     <th>Flag</th>
                     <th>Measurement</th>
+                    <th>Input</th>
                     <th>Action</th>
                 </thead>
             </table>
@@ -112,27 +120,21 @@
 
     $(function () {
 
+        // disableEventField: params bool Boolean.
+        // Enable or Disable event form fields isp, target url, target site,
+        // target ip, start_date and end date
         function disableEventField(bool){
             $("#id_isp").prop('disabled', bool);
             $("#id_target_url").prop('disabled', bool);
             $("#id_target_site").prop('disabled', bool);
             $("#id_target_ip").prop('disabled', bool);
-            $("#id_start_date").prop('disabled', bool);
-            $("#id_end_date").prop('disabled', bool);
-
         }
 
+        // checkDisableEventField
+        // Enable or not event fields. This is when if an event has flags,
+        // this fields are automatic fulled by flags data. Otherwise, this
+        // fields must be fulled by user.
         function checkDisableEventField(){
-            // var principal_rows = $('#my-table').find('tbody').find('tr');
-            // var disable_bool = false;
-            // $(principal_rows).each(function(index) {             
-            //     if( $( this ).hasClass( 'selected' ) ){
-            //         disable_bool = disable_bool || true;
-            //     }else{
-            //         disable_bool = disable_bool || false;
-
-            //     }
-            // });
             var flags = $( '#id_flags' );
             var disable_bool = false;
             if (flags.val() != ""){
@@ -144,30 +146,33 @@
             
         }
 
+        // Ajax URL who fulled principal datatable
         var url_datatable = '{{url_ajax}}';
 
+        // Columns to be render for principal datatable
         var list = {{ aoColumns_json|safe }};
 
+        // Render special columns according header title of each column
         var arrayLength = list.length;
         for (var i = 0; i < arrayLength; i++) {
             if (list[i]['mData'] == "checkbox"){
                 list[i]['bSortable'] = false;
                 list[i]['bSearchable'] = false;
                 list[i]['mRender'] = function ( data ) {
-                    return '<input type="checkbox" name="' + data + '" value="1">'
+                    return '<input type="checkbox" name="flag_checkbox" value="' + data + '">'
                     };
 
             }
             if (list[i]['mData'] == "report_id"){
-                 list[i]['mRender'] = function ( data ) {
-                        if (data != null){
-                            var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
-                            url_report = "<a href='" + url_report + "'>" + data + "</a>";
-                            return url_report;
-                        }else{
-                            return '';
-                        }
-                   };
+                list[i]['mRender'] = function ( data ) {
+                    if (data != null){
+                        var url_report = "{% url 'measurements:measurement_front:detail-report' 'data' %}".replace('data', data)
+                        url_report = "<a href='" + url_report + "'>" + data + "</a>";
+                        return url_report;
+                    }else{
+                        return '';
+                    }
+                };
             }
             if (list[i]['mData'] == "flag"){
                  list[i]['mRender'] = function ( data, type, full ) {
@@ -255,11 +260,14 @@
 
         //Principal Datatable
 
-        var principal_table = $('#my-table').dataTable({
+        var principal_table = $('#principal-table').dataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": url_datatable,
             "aoColumns": list,
+            "fnDrawCallback": function( oSettings ) {
+                fill_rows_tables();
+            }
         });
 
         // Selected flags table
@@ -267,11 +275,14 @@
 
         var remove_button = '<input class="btn btn-flat btn-primary remove-btn" type="submit" value="Remove">'
 
+
+        // Start date and end date datepicker widget
         $('#id_start_date').datepicker({
         });
         $('#id_end_date').datepicker({
         });
 
+        // Test key button click action
         $(document).on("click", ".test_key-button", function () {
              var metric_id = $(this).attr('metric-id');
              var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').val();
@@ -283,7 +294,7 @@
              // alert('hola mundo');
         });
 
-
+        // Selected Table's remove button click action
         $(document).on( 'click', '.remove-btn', function () {
              var flags = $( '#id_flags' );
             var row = selected_table.row( $(this).parents('tr') );
@@ -303,10 +314,10 @@
                     )
             );
            
-            var principal_rows = $('#my-table').find('tbody').find('tr');
+            var principal_rows = $('#principal-table').find('tbody').find('tr');
             $(principal_rows).each(function(index) {
                 row = principal_rows[index];
-                row_id = row.childNodes[0].getElementsByTagName('input')[0].name;
+                row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
                 if (row_id == id_flag){
                     $(this).removeClass('selected');
                 }
@@ -320,27 +331,42 @@
 
             checkDisableEventField();
             
-        } );
+        });
 
-        // Handle click on a row of table
-        $('#my-table tbody').on('click', 'tr', function () {
+        // Handle click on a row of principal datatable
+        $('#principal-table tbody').on('click', 'tr', function () {
 
             var flags = $( '#id_flags' );
-            var id_flag = $( this ).context.childNodes[0].getElementsByTagName('input')[0].name;
+            var id_flag = $( this ).context.childNodes[0].getElementsByTagName('input')[0].value;
 
             var flag = $( this ).context.childNodes[1].innerText;
             var measurement = $( this ).context.childNodes[3].innerText;
-
+            var input = $( this ).context.childNodes[4].innerText;
 
             $( this ).toggleClass('selected');
             if( $( this ).hasClass( 'selected' ) ){
                 $(this).find(":checkbox").prop("checked", true);
-                // Add id in hidden input
-                flags.val( flags.val() + id_flag + '&');
-                // Add row to selected table
-                selected_table.row.add([
-                        id_flag, flag, measurement, remove_button
+                var selected_rows = $('#selected-table').find('tbody').find('tr');
+                var check_existed = false;
+                $(selected_rows).each(function(index) {
+                    row = selected_rows[index];
+                    row_id = row.childNodes[0].innerText;
+                    if (row_id == id_flag){
+                        check_existed = true;
+                    }
+                });
+                if (check_existed == false){
+                    // Add id in hidden input
+                    flags.val( flags.val() + id_flag + '&');
+                    // Add row to selected table
+                    selected_table.row.add([
+                        id_flag, 
+                        flag,
+                        measurement,
+                        input,
+                        remove_button
                     ]).draw();
+                }
             }else{
                 $(this).find(":checkbox").prop("checked", false);
                 // Remove id from hidden input
@@ -356,13 +382,14 @@
                         )
                 ); 
 
+                $('#example-select-all').prop("checked", false);
+
                 var selected_rows = $('#selected-table').find('tbody').find('tr');
                 $(selected_rows).each(function(index) {
                     row = selected_rows[index];
                     row_id = row.childNodes[0].innerText;
                     if (row_id == id_flag){
                         var removed = selected_table.row(index);
-                        console.log(removed);
                         removed.remove().draw();
                     }
                 });              
@@ -372,14 +399,21 @@
 
         });
 
-        // Handle click on "Select all" control
+        // Handle click on "Select all" control Principal datatable
         $('#example-select-all').on('click', function(){
+            var flags = $( '#id_flags' );
             // Get all rows with search applied
-            var rows = $('#my-table').find('tbody').find('tr');
+            var rows = $('#principal-table').find('tbody').find('tr');
             // Check/uncheck checkboxes for all rows in the table
             $('input[type="checkbox"]', rows).prop('checked', this.checked);
             $(rows).each(function() {
                var checked = $('input[type="checkbox"]', rows).prop('checked');
+                var id_flag = $( this ).context.childNodes[0].getElementsByTagName('input')[0].value;
+
+                var flag = $( this ).context.childNodes[1].innerText;
+                var measurement = $( this ).context.childNodes[3].innerText;
+                var input = $( this ).context.childNodes[4].innerText;
+
                 if(checked){
                     $(this).addClass('selected', checked);
                     disableEventField(true);
@@ -390,8 +424,48 @@
 
                 if( $( this ).hasClass( 'selected' ) ){
                     $(this).find(":checkbox").prop("checked", true);
+                    
+                    var selected_rows = $('#selected-table').find('tbody').find('tr');
+                    var check_existed = false;
+                    $(selected_rows).each(function(index) {
+                        row = selected_rows[index];
+                        row_id = row.childNodes[0].innerText;
+                        if (row_id == id_flag){
+                            check_existed = true;
+                        }
+                    });
+                    if (check_existed == false){
+                        // Add id in hidden input
+                        flags.val( flags.val() + id_flag + '&');
+                        // Add row to selected table
+                        selected_table.row.add([
+                                id_flag, flag, measurement, input,remove_button
+                            ]).draw();
+                    }
                 }else{
                     $(this).find(":checkbox").prop("checked", false);
+                    // Remove id from hidden input
+                    var flag_index = flags.val().indexOf(id_flag);
+                    flags.val(
+                            flags.val().substring(
+                                    0,
+                                    flag_index
+                            ) +
+                            flags.val().substring(
+                                    flag_index + id_flag.length + 1 ,
+                                    flags.val().length
+                            )
+                    ); 
+
+                    var selected_rows = $('#selected-table').find('tbody').find('tr');
+                    $(selected_rows).each(function(index) {
+                        // row = selected_rows[index];
+                        // row_id = row.childNodes[0].innerText;
+                        // if (row_id == id_flag){
+                        var removed = selected_table.row(index);
+                        removed.remove().draw();
+                        // }
+                    });
 
                 }
 
@@ -400,27 +474,45 @@
             checkDisableEventField();
         });
 
-        $(".add-row").on('click', function(){
-            var table = $('#my-table').DataTable();
-            table.row.add( [
-                '.1',
-                '.2',
-                '.3',
-                '.4',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5',
-                '.5'
-            ] ).draw( false );
-        });
 
+        // This is when flag hidden input have a value when DOM recently charge
+        function fill_rows_tables() {
+            // body...
+            var flags = $( '#id_flags' ).val();
+
+            var array = flags.split("&");
+            array.pop();
+
+            for (i = 0; i < array.length; i++) { 
+                var id_flag = array[i];
+                var principal_rows = $('#principal-table').find('tbody').find('tr');
+                $(principal_rows).each(function(index) { 
+                    row = principal_rows[index];
+                    row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
+                    if (row_id == id_flag){
+                        $(this).toggleClass('selected');
+                        var flag = $( this ).context.childNodes[1].innerText;
+                        var measurement = $( this ).context.childNodes[3].innerText;
+                        var input = $( this ).context.childNodes[4].innerText;
+
+                        selected_table.row.add([
+                            id_flag, 
+                            flag,
+                            measurement,
+                            input,
+                            remove_button
+                        ]).draw();
+                    }
+                    if( $( this ).hasClass( 'selected' ) ){
+                        $(this).find(":checkbox").prop("checked", true);
+                         // Add row to selected table
+                    }else{
+                        $(this).find(":checkbox").prop("checked", false);
+
+                    }
+                });
+            }
+        }
     })
 
 </script>
