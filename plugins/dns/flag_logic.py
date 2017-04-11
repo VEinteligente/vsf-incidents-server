@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 
 from vsf import conf
 from django.db.models import F, Count, Case, When, CharField, Q
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, MutedInput
 from plugins.dns.models import DNS
 from measurement.views import send_email_users
 
@@ -162,6 +162,10 @@ def dns_to_flag():
 
     dnss = dnss.select_related('metric', 'flag')
 
+    muteds = MutedInput.objects.filter(
+        type_med=MutedInput.DNS
+    )
+
     print dnss.count()
     dns_paginator = Paginator(dnss, 1000)
     print dns_paginator.page_range
@@ -207,7 +211,12 @@ def dns_to_flag():
             # If there is a true flag give 'soft' type
             if is_flag is True:
                 flag.flag = Flag.SOFT
-
+                # Check if is a muted input
+                muted = muteds.filter(
+                    url=dns.metric.input
+                )
+                if muted:
+                    flag.flag = Flag.MUTED
             flag.save()
             dns.flag = flag
             dns.save()
