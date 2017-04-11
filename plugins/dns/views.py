@@ -1,4 +1,4 @@
-from plugins.views import PluginTableView
+from plugins.views import PluginUpdateEventView, PluginCreateEventView
 from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
@@ -7,7 +7,7 @@ from plugins.dns.models import DNS
 import json
 
 
-class DNSTableView(PluginTableView):
+class DNSTableView(PluginCreateEventView):
     """
     DNSTableView: PluginTableView for display dns metrics table.
     Field checkbox is obligatory to do functions over the table
@@ -34,6 +34,37 @@ class DNSTableView(PluginTableView):
         'test keys'
     ]
     url_ajax = '/plugins/dns/dns-ajax/'
+    enable_event = True
+
+
+class DNSUpdateEventView(PluginUpdateEventView):
+    """
+    DNSTableView: PluginTableView for display dns metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
+    page_header = "DNS Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurement", "DNS"]
+    titles = [
+        'checkbox',
+        'flag',
+        'manual flag',
+        'measurement',
+        'input',
+        'test name',
+        'measurement_start_time',
+        'control resolver failure',
+        'control resolver answers',
+        'control resolver hostname',
+        'failure',
+        'answers',
+        'resolver hostname',
+        'report_id',
+        'probe id',
+        'test keys'
+    ]
+    url_ajax = '/plugins/dns/dns-ajax/'
+    enable_event = True
 
 
 class DNSAjaxView(DatatablesView):
@@ -47,7 +78,7 @@ class DNSAjaxView(DatatablesView):
     table.html
     """
     fields = {
-        'checkbox': 'id',  # Required
+        'checkbox': 'flag__uuid',  # Required
         'flag': 'flag__flag',  # Customized
         'manual flag': 'flag__manual_flag',
         'test name': 'metric__test_name',
