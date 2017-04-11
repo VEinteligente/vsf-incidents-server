@@ -127,6 +127,28 @@ class PluginCreateEventView(
             if form.cleaned_data['start_date'] is None:
                 self.object.start_date = flags.earliest(
                     'metric_date').metric_date
+            ###################################################
+            # Get type of flags
+            ###################################################
+            flag = flags.first()
+            try:
+                if flag.dnss is not None:
+                    self.object.type_flags = Event.DNS
+            except Exception:
+                try:
+                    if flag.https is not None:
+                        self.object.type_flags = Event.HTTP
+                except Exception:
+                    try:
+                        if flag.tcps is not None:
+                            self.object.type_flags = Event.TCP
+                    except Exception:
+                        try:
+                            if flag.ndts is not None:
+                                self.object.type_flags = Event.NDT
+                        except Exception:
+                            self.object.type_flags = Event.NONE
+
 
             ###################################################
             # Save Event in database
@@ -231,17 +253,23 @@ class PluginUpdateEventView(
         ########################################################
         # Initial data for the form
         ########################################################
-        context['form'] = form(
-            instance=event,
-            initial={
-                'flags': flags_str,
-                'open_ended': open_ended,
-                'target_site': target_site,
-                'target_url': target_url,
-                'target_ip': target_ip
-            }
-        )
+        if self.request.method in ('GET'):
+            context['form'] = form(
+                instance=event,
+                initial={
+                    'flags': flags_str,
+                    'open_ended': open_ended,
+                    'target_site': target_site,
+                    'target_url': target_url,
+                    'target_ip': target_ip
+                }
+            )
         return context
+
+    def form_invalid(self, form):
+        print "SOY INVALIDO"
+        print form.errors
+        return super(PluginUpdateEventView, self).form_invalid(form)
 
 
 class DatatablesView(EditableDatatablesView):

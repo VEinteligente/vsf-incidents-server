@@ -200,11 +200,8 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         flags = event.flags.all()
 
         for f in flags:
-            if f.manual_flag is True:
-                f.delete()
-            else:
-                f.event = None
-                f.save(update_fields=['event'])
+            f.event = None
+            f.save(update_fields=['event'])
 
         event.flags.remove()
 

@@ -85,7 +85,16 @@
                                 <ul class="dropdown-menu" role="menu">
                                     <li><a href={% url 'events:event_front:detail-event' event.id %}>Detail</a></li>
                                     {% if event.flags.all %}
-                                    <li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li>
+                                        {% if event.type_flags == 'tcp' %}
+                                            <li><a href={% url 'plugins:tcp:tcp-update-event' event.id %}>Edit</a></li>
+
+                                        {% elif event.type_flags == 'dns' %}
+                                        {% elif event.type_flags == 'ndt' %}
+                                        {% elif event.type_flags == 'http' %}
+                                            <li><a href={% url 'plugins:http:http-update-event' event.id %}>Edit</a></li>
+                                        {% else  %}
+                                            <!--<li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li> -->
+                                        {% endif %}
                                     {% else %}
                                     <li><a href={% url 'events:event_front:update-event-evidence' event.id %}>Edit</a></li>
                                     {% endif %}

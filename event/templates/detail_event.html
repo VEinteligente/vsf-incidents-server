@@ -159,7 +159,22 @@
                     </h3>
                 </div>
                 <div class="box-body">
-                        <p><a href="{% url 'events:event_front:update-event' event.id %}" class="btn btn-primary btn-flat actionButton">Edit Event</a></p>
+                        <p>
+                            
+                        {% if event.flags.all %}
+                            {% if event.type_flags == 'tcp' %}
+                                <a href={% url 'plugins:tcp:tcp-update-event' event.id %} class="btn btn-primary btn-flat actionButton">Edit Event</a>
+
+                            {% elif event.type_flags == 'dns' %}
+                            {% elif event.type_flags == 'ndt' %}
+                            {% elif event.type_flags == 'http' %}
+                            {% else  %}
+                                <!--<li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li> -->
+                            {% endif %}
+                        {% else %}
+                        <a href={% url 'events:event_front:update-event-evidence' event.id %} class="btn btn-primary btn-flat actionButton">Edit Event</a>
+                        {% endif %}
+                        </p>
                         <p><a href="{% url 'events:event_front:change-event-status' event.id %}" class="btn btn-primary btn-flat actionButton">{% if event.draft %}Change to Published{% else %}Change to Draft{% endif %}</a></p>
                         <p><a href="" class="btn btn-danger btn-flat actionButton delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete Event</a></p>
                 </div>

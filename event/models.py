@@ -24,6 +24,23 @@ class Url(models.Model):
 
 class Event(models.Model):
 
+    NONE = 'none'
+    TCP = 'tcp'
+    DNS = 'dns'
+    HTTP = 'http'
+    NDT = 'ndt'
+
+    TYPE = {
+        NONE: 'none',
+        TCP: 'tcp',
+        DNS: 'dns',
+        HTTP: 'http',
+        NDT: 'ndt'
+    }
+
+    TYPE_CHOICES = [    # Items are sorted alphabetically
+        (k, v) for k, v in sorted(TYPE.items(), key=lambda t: t[1])]
+
     TYPES = (
         ('bloqueo por DPI', 'bloqueo por DPI'),
         ('bloqueo por DNS', 'bloqueo por DNS'),
@@ -43,6 +60,8 @@ class Event(models.Model):
     public_evidence = models.TextField(null=True, blank=True)
     private_evidence = models.TextField(null=True, blank=True)
     type = models.CharField(max_length=100, choices=TYPES)
+    type_flags = models.CharField(
+        max_length=10, choices=TYPE_CHOICES, default=NONE, null=True, blank=True)
 
     def __unicode__(self):
         return u"%s" % self.identification

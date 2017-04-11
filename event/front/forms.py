@@ -112,7 +112,8 @@ class EventEvidenceForm(forms.ModelForm):
         model = Event
         exclude = [
             'draft',
-            'target'
+            'target',
+            'type_flags'
         ]
 
     def clean(self):
@@ -184,7 +185,7 @@ class EventEvidenceForm(forms.ModelForm):
 
                 if not all(
                     map(
-                        lambda f: f.event is None,
+                        lambda f: f.event is None or f.event.id == self.instance.id,
                         bd_flags[1:]
                     )
                 ):

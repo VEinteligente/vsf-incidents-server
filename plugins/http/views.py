@@ -1,4 +1,4 @@
-from plugins.views import PluginTableView
+from plugins.views import PluginUpdateEventView, PluginCreateEventView
 from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
@@ -7,7 +7,7 @@ from plugins.http.models import HTTP
 import json
 
 
-class HTTPTableView(PluginTableView):
+class HTTPTableView(PluginCreateEventView):
     """
     HTTPTableView: PluginTableView for display http metrics table.
     Field checkbox is obligatory to do functions over the table
@@ -32,6 +32,36 @@ class HTTPTableView(PluginTableView):
         'test keys'
     ]
     url_ajax = '/plugins/http/http-ajax/'
+    enable_event = True
+
+
+class HTTPUpdateEventView(PluginUpdateEventView):
+    """
+    HTTPTableView: PluginTableView for display http metrics table.
+    Field checkbox is obligatory to do functions over the table
+    """
+    page_header = "HTTP Measurement List"
+    page_header_description = ""
+    breadcrumb = ["Measurement", "HTTP"]
+    titles = [
+        'checkbox',
+        'flag',
+        'manual flag',
+        'measurement',
+        'input',
+        'test name',
+        'measurement_start_time',
+        'status code match',
+        'headers match',
+        'body lenght match',
+        'body proportion',
+        'report_id',
+        'probe id',
+        'test keys'
+    ]
+    url_ajax = '/plugins/http/http-ajax/'
+    enable_event = True
+
 
 
 class HTTPAjaxView(DatatablesView):
@@ -44,7 +74,7 @@ class HTTPAjaxView(DatatablesView):
     table.html
     """
     fields = {
-        'checkbox': 'id',  # Required
+        'checkbox': 'flag__uuid',  # Required
         'flag': 'flag__flag',  # Customized
         'test name': 'metric__test_name',
         'manual flag': 'flag__manual_flag',
