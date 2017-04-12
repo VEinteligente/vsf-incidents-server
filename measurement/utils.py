@@ -29,15 +29,26 @@ def copy_from_measurements_to_metrics():
         ).latest('measurement_start_time').measurement_start_time
     else:
         print "SYNCHRONIZE_DATE is None"
-        measurements = Measurement.objects.all()
-        measurements_date = Measurement.objects.all().latest(
-            'measurement_start_time').measurement_start_time
+        # measurements = Measurement.objects.all()
+        # measurements_date = Measurement.objects.all().latest(
+        #     'measurement_start_time').measurement_start_time
+
+        # descomentar en produccion ^
+
+        dns_consistency = Measurement.objects.filter(test_name='dns_consistency')[:201000].values_list("id", flat=True)
+        measurements = Measurement.objects.exclude(pk__in=list(dns_consistency))
+        measurements_date = measurements.latest(
+            'measurement_start_time'
+        ).measurement_start_time
 
     print "Start Creating/updating"
     metric_paginator = Paginator(measurements, 1000)
 
+    print metric_paginator.page_range
+
     for p in metric_paginator.page_range:
         page = metric_paginator.page(p)
+        print p
         for measurement in page.object_list:
             update_or_create(measurement)
 
@@ -107,6 +118,8 @@ def get_type_med(test_name):
         return 'HTTP'
     elif test_name == 'web_connectivity':
         return 'TCP'
+    elif test_name == 'ndt':
+        return 'NDT'
     else:
         return 'MED'
 
@@ -381,7 +394,7 @@ def validate_metrics(metrics_sql):
     isp_set = set([x for x in metric_isp if metric_isp.count(x) >= 1])
 
     if (len(input_set) == 1) and (len(test_names_set) == 1):
-        if (len(isp_set) <= 1):
+        if len(isp_set) <= 1:
             return True
         else:
             return "no same isp"
