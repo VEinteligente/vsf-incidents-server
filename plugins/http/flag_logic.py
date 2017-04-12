@@ -5,7 +5,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, MutedInput
 from plugins.http.models import HTTP
 
 
@@ -96,6 +96,10 @@ def http_to_flag():
 
     https = https.select_related('metric', 'flag')
 
+    muteds = MutedInput.objects.filter(
+        type_med=MutedInput.DNS
+    )
+
     http_paginator = Paginator(https, 1000)
 
     for p in http_paginator.page_range:
@@ -120,6 +124,12 @@ def http_to_flag():
             # If there is a true flag give 'soft' type
             if is_flag is True:
                 flag.flag = Flag.SOFT
+                # Check if is a muted input
+                muted = muteds.filter(
+                    url=http.metric.input
+                )
+                if muted:
+                    flag.flag = Flag.MUTED
 
             flag.save()
             http.flag = flag

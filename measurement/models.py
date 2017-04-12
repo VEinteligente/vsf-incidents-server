@@ -20,7 +20,7 @@ class MutedInput(models.Model):
         (HTTP, 'Medicion HTTP')
     )
 
-    url = models.URLField()
+    url = models.CharField(max_length=50, null=True)
     type_med = models.CharField(verbose_name='Tipo de Medicion',
                                 max_length=50,
                                 choices=TYPE_CHOICES,

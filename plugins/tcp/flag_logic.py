@@ -5,7 +5,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, MutedInput
 from plugins.tcp.models import TCP
 
 
@@ -67,6 +67,10 @@ def tcp_to_flag():
 
     tcp_paginator = Paginator(tcp, 1000)
 
+    muteds = MutedInput.objects.filter(
+        type_med=MutedInput.TCP
+    )
+
     for p in tcp_paginator.page_range:
         print tcp_paginator.count
         page = tcp_paginator.page(1)
@@ -78,8 +82,13 @@ def tcp_to_flag():
             )
             # If there is a true flag give 'soft' type
             if tcp_obj.status_blocked is True:
-                flag.flag = 'soft'
-
+                flag.flag = Flag.SOFT
+                # Check if is a muted input
+                muted = muteds.filter(
+                    url=tcp_obj.metric.input
+                )
+                if muted:
+                    flag.flag = Flag.MUTED
             flag.save()
             tcp_obj.flag = flag
             tcp_obj.save()

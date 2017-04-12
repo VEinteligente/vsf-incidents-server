@@ -30,6 +30,7 @@ class ListEvent(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     breadcrumb = ["Events"]
 
 
+# Deprecated - each pluggin have his own create event
 class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
     """CreateEvent: CreateView than
     create a new Event object in DB"""
@@ -109,6 +110,7 @@ class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+# Deprecated - each pluggin have his own update event
 class UpdateEvent(CreateEvent,
                   PageTitleMixin,
                   generic.UpdateView):
@@ -198,11 +200,8 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
         flags = event.flags.all()
 
         for f in flags:
-            if f.manual_flag is True:
-                f.delete()
-            else:
-                f.event = None
-                f.save(update_fields=['event'])
+            f.event = None
+            f.save(update_fields=['event'])
 
         event.flags.remove()
 
@@ -228,8 +227,9 @@ class DetailEvent(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     page_header = "Event Details"
     page_header_description = ""
     breadcrumb = ["Events", "Event Details"]
-    
 
+
+# Deprecated - each pluggin have his own data table flag ajax
 class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
@@ -315,6 +315,7 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
         suggested_events=None).prefetch_related('suggested_events', 'flags')
 
 
+# Deprecated - each pluggin have his own create event
 class CreateEventMeasurementView(
     UpdateEvent,
     PageTitleMixin,
@@ -329,7 +330,6 @@ class CreateEventMeasurementView(
     breadcrumb = ["Events", "New Event from Measurements"]
     model = Event
     template_name = 'create_event_measurement.html'
-
 
     def get_context_data(self, **kwargs):
         '''Initial data for Event form'''
@@ -395,7 +395,8 @@ class CreateEventMeasurementView(
 
 
 # Event with external evidence views
-
+# Deprecated - each pluggin have his own create event
+# (this include events with measurement)
 class CreateEventEvidenceView(
     LoginRequiredMixin,
     PageTitleMixin,
@@ -450,6 +451,8 @@ class CreateEventEvidenceView(
         return HttpResponseRedirect(self.get_success_url())
 
 
+# Deprecated - each pluggin have his own update event
+# (this include events with measurement)
 class UpdateEventEvidenceView(
     LoginRequiredMixin,
     PageTitleMixin,

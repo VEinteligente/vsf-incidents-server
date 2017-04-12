@@ -83,29 +83,27 @@
                         
                     <table id="flag-list" class="table table-bordered table-hover">
                         <thead>
-                            <th>Medition ID</th>
+                            <th>Measurement</th>
                             <th>Flag</th>
                             <th>Date</th>
                             <th>ISP</th>
                             <th>Probe</th>
-                            <th>IP</th>
-                            <th>Type</th>
                         </thead>
                         <tbody>
                             {% for flag in event.flags.all %}
                             <tr>
-                                <td>{{flag.medicion}}</td>
+                                <td>
+                                    <a href="{% url 'measurements:measurement_front:detail-measurement' flag.metric.id %}"> {{flag.metric.measurement}}</a>
+                                </td>
                                 <td>{{flag.flag}}</td>
-                                <td>{{flag.date}}</td>
+                                <td>{{flag.metric_date}}</td>
                                 <td>
                                 {% if flag.isp %}
                                     {{flag.isp}}
                                 {% else %}
                                     Unknown
                                 {% endif %}</td>
-                                <td>{{flag.probe}}</td>
-                                <td>{{flag.ip}}</td>
-                                <td>{{flag.type_med}}</td>
+                                <td>Probe-{{flag.metric.probe.id}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -161,7 +159,22 @@
                     </h3>
                 </div>
                 <div class="box-body">
-                        <p><a href="{% url 'events:event_front:update-event' event.id %}" class="btn btn-primary btn-flat actionButton">Edit Event</a></p>
+                        <p>
+                            
+                        {% if event.flags.all %}
+                            {% if event.type_flags == 'tcp' %}
+                                <a href={% url 'plugins:tcp:tcp-update-event' event.id %} class="btn btn-primary btn-flat actionButton">Edit Event</a>
+
+                            {% elif event.type_flags == 'dns' %}
+                            {% elif event.type_flags == 'ndt' %}
+                            {% elif event.type_flags == 'http' %}
+                            {% else  %}
+                                <!--<li><a href={% url 'events:event_front:update-event' event.id %}>Edit</a></li> -->
+                            {% endif %}
+                        {% else %}
+                        <a href={% url 'events:event_front:update-event-evidence' event.id %} class="btn btn-primary btn-flat actionButton">Edit Event</a>
+                        {% endif %}
+                        </p>
                         <p><a href="{% url 'events:event_front:change-event-status' event.id %}" class="btn btn-primary btn-flat actionButton">{% if event.draft %}Change to Published{% else %}Change to Draft{% endif %}</a></p>
                         <p><a href="" class="btn btn-danger btn-flat actionButton delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{event.id}}">Delete Event</a></p>
                 </div>
