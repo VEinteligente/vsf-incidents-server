@@ -3,37 +3,7 @@ from __future__ import unicode_literals
 import uuid
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from event.models import Event, Url
-
-
-class Country(models.Model):
-    name = models.CharField(max_length=50)
-    abbreviation = models.CharField(max_length=50, null=True)
-
-    class Meta:
-        verbose_name = "Country"
-        verbose_name_plural = "Countries"
-
-    def __str__(self):
-        return u'%s' % self.name
-
-    def __unicode__(self):
-        return u'%s' % self.name
-
-
-class State(models.Model):
-    name = models.CharField(max_length=50)
-    country = models.ForeignKey(Country, related_name='states')
-
-    class Meta:
-        verbose_name = "State"
-        verbose_name_plural = "States"
-
-    def __str__(self):
-        return u'%s' % self.name
-
-    def __unicode__(self):
-        return u'%s' % self.name
+from event.models import Event, State, Country
 
 
 class MutedInput(models.Model):

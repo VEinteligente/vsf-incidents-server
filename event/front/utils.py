@@ -1,5 +1,5 @@
 from event.models import Event
-from measurement.models import Flag
+from measurement.models import Flag, DNS
 from django.db.models import Q
 
 
@@ -14,32 +14,38 @@ def suggestedEvents(flag):
     """
     try:
         # get all types of event according the hard flag
-        eventTypes = getEventTypes(flag)
+        event_types = get_event_types(flag)
         # searching for events open ended with same target, same isp,
         # and with associated flags with que same region
 
+        region = flag.metric.probe.region
+
+        try:
+            dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)
+            isp = dns_server.isp
+            if isp != flag.metric.probe.isp:
+                region = None
+        except Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist:
+            isp = flag.metric.probe.isp
+
         # this filter will return a queryset with duplicate events
-        if eventTypes:
-            events = Event.objects.filter(
-                isp=flag.isp,
-                target=flag.target,
-                end_date=None,
-                type__in=eventTypes,
-                flags__probe__region=flag.probe.region)
-        else:
-            events = Event.objects.filter(
-                isp=flag.isp,
-                target=flag.target,
-                end_date=None,
-                flags__probe__region=flag.probe.region)
+        events = Event.objects.filter(
+            isp=isp,
+            target=flag.metric.input,
+            end_date=None,
+            flags__metric__probe__region=region
+        )
+        if event_types:
+            events = events.filter(
+                type__in=event_types,
+            )
 
         # eliminate duplicate events in queryset
         # defining a set with the queryset
         events = set(events)
         # assign every event in the list as a suggested_event of
         # the hard flag
-        for event in events:
-            flag.suggested_events.add(event)
+        flag.suggested_events.add(events)
         return True
     except Exception:
         return False
@@ -57,26 +63,26 @@ def suggestedFlags(event):
     """
     try:
         # get all types of flags according the event
-        flagTypes = getFlagTypes(event)
+        flag_types = get_flag_types(event)
 
         # searching for all unassigned hard flags with same target, same isp,
         # and same region in the list of regions
 
         # this filter will return a queryset with duplicate flags
-        if flagTypes:
+        if flag_types:
             flags = Flag.objects.filter(
                 Q(
                     flag=True,
                     event=None,
                     target=event.target,
                     isp=event.isp,
-                    type_med__in=flagTypes) |
+                    type_med__in=flag_types) |
                 Q(
                     flag=True,
                     event=None,
                     target=event.target,
                     isp=event.isp,
-                    type_med__in=flagTypes))
+                    type_med__in=flag_types))
         else:
             flags = Flag.objects.filter(
                 Q(
@@ -105,43 +111,43 @@ def suggestedFlags(event):
         return False
 
 
-def getFlagTypes(event):
+def get_flag_types(event):
     """
     getFlagTypes: Function than return a list with all flag types according
     to que event (parameter). It can return a empty list[]
     Args:
         event: Event object
     """
-    flagTypes = []
-    if (event.type == 'bloqueo por DNS'):
-        flagTypes.append('DNS')
-    if (event.type == 'bloqueo por IP'):
-        flagTypes.append('TCP')
-    if (event.type == 'falla de dns'):
-        flagTypes.append('DNS')
-        flagTypes.append('TCP')
+    flag_types = []
+    if event.type == 'bloqueo por DNS':
+        flag_types.append('DNS')
+    if event.type == 'bloqueo por IP':
+        flag_types.append('TCP')
+    if event.type == 'falla de dns':
+        flag_types.append('DNS')
+        flag_types.append('TCP')
     if (event.type == 'Interceptacion de trafico') or (
         event.type == 'alteracion de trafico por intermediarios'
     ):
-        flagTypes.append('HTTP')
-    return flagTypes
+        flag_types.append('HTTP')
+    return flag_types
 
 
-def getEventTypes(flag):
+def get_event_types(flag):
     """
     getEventTypes: Function than return a list with all event types according
     to the flag (parameter). It can return a empty list[]
     Args:
         flag: Flag object
     """
-    eventTypes = []
-    if (flag.type_med == 'DNS'):
-        eventTypes.append('bloqueo por DNS')
-        eventTypes.append('falla de dns')
-    if (flag.type_med == 'TCP'):
-        eventTypes.append('bloqueo por IP')
-        eventTypes.append('falla de dns')
-    if (flag.type_med == 'HTTP'):
-        eventTypes.append('Interceptacion de trafico')
-        eventTypes.append('alteracion de trafico por intermediarios')
-    return eventTypes
+    event_types = []
+    if flag.type_med == 'DNS':
+        event_types.append('bloqueo por DNS')
+        event_types.append('falla de dns')
+    if flag.type_med == 'TCP':
+        event_types.append('bloqueo por IP')
+        event_types.append('falla de dns')
+    if flag.type_med == 'HTTP':
+        event_types.append('Interceptacion de trafico')
+        event_types.append('alteracion de trafico por intermediarios')
+    return event_types

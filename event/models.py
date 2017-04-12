@@ -4,6 +4,36 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+class Country(models.Model):
+    name = models.CharField(max_length=50)
+    abbreviation = models.CharField(max_length=50, null=True)
+
+    class Meta:
+        verbose_name = "Country"
+        verbose_name_plural = "Countries"
+
+    def __str__(self):
+        return u'%s' % self.name
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+
+class State(models.Model):
+    name = models.CharField(max_length=50)
+    country = models.ForeignKey(Country, related_name='states')
+
+    class Meta:
+        verbose_name = "State"
+        verbose_name_plural = "States"
+
+    def __str__(self):
+        return u'%s' % self.name
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+
 class Site(models.Model):
 
     name = models.CharField(max_length=100)
@@ -55,6 +85,7 @@ class Event(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
     target = models.ForeignKey(Url)  # input in metrics
+    region = models.ForeignKey(State, null=True, blank=True)
     identification = models.CharField(max_length=50, unique=True)
     draft = models.BooleanField(default=True)
     public_evidence = models.TextField(null=True, blank=True)
