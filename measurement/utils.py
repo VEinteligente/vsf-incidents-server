@@ -29,17 +29,17 @@ def copy_from_measurements_to_metrics():
         ).latest('measurement_start_time').measurement_start_time
     else:
         print "SYNCHRONIZE_DATE is None"
-        # measurements = Measurement.objects.all()
-        # measurements_date = Measurement.objects.all().latest(
-        #     'measurement_start_time').measurement_start_time
+        measurements = Measurement.objects.all()
+        measurements_date = Measurement.objects.all().latest(
+            'measurement_start_time').measurement_start_time
 
         # descomentar en produccion ^
 
-        dns_consistency = Measurement.objects.filter(test_name='dns_consistency')[:201000].values_list("id", flat=True)
-        measurements = Measurement.objects.exclude(pk__in=list(dns_consistency))
-        measurements_date = measurements.latest(
-            'measurement_start_time'
-        ).measurement_start_time
+        # dns_consistency = Measurement.objects.filter(test_name='dns_consistency')[:201000].values_list("id", flat=True)
+        # measurements = Measurement.objects.exclude(pk__in=list(dns_consistency))
+        # measurements_date = measurements.latest(
+        #     'measurement_start_time'
+        # ).measurement_start_time
 
     print "Start Creating/updating"
     metric_paginator = Paginator(measurements, 1000)
