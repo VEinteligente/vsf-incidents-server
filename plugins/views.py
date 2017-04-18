@@ -32,8 +32,6 @@ class PluginTableView(
     breadcrumb = [""]
     titles = ["", ]
     url_ajax = None
-    form_class = EventEvidenceForm
-    enable_event = False
 
     def get_render_json(self):
         renders = []
@@ -44,16 +42,6 @@ class PluginTableView(
 
     def get_context_data(self, **kwargs):
         context = super(PluginTableView, self).get_context_data(**kwargs)
-        if self.enable_event is False:
-            context['form'] = None
-        else:
-            form = context['form']
-            # create identification for the event (must be unique)
-            num_events = Event.objects.count()
-            identification = "event_" + str(num_events)
-            identification += "_" + time.strftime("%x") + "_" + time.strftime("%X")
-            form.fields['identification'].initial = identification
-            context['form'] = form
         context['titles'] = self.titles
         json = self.get_render_json()
         context['aoColumns_json'] = json
@@ -68,6 +56,22 @@ class PluginCreateEventView(
 ):
     model = Event
     success_url = reverse_lazy('events:event_front:list-event')
+    form_class = EventEvidenceForm
+    enable_event = False
+
+    def get_context_data(self, **kwargs):
+        context = super(PluginCreateEventView, self).get_context_data(**kwargs)
+        if self.enable_event is False:
+            context['form'] = None
+        else:
+            form = context['form']
+            # create identification for the event (must be unique)
+            num_events = Event.objects.count()
+            identification = "event_" + str(num_events)
+            identification += "_" + time.strftime("%x") + "_" + time.strftime("%X")
+            form.fields['identification'].initial = identification
+            context['form'] = form
+        return context
 
     def form_valid(self, form):
         """

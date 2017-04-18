@@ -63,7 +63,6 @@ class HTTPUpdateEventView(PluginUpdateEventView):
     enable_event = True
 
 
-
 class HTTPAjaxView(DatatablesView):
     """
     HTTPAjaxView: DatatablesView for fill http metrics table.
