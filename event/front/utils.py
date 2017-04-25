@@ -72,17 +72,18 @@ def suggestedFlags(event):
         if flag_types:
             flags = Flag.objects.filter(
                 Q(
-                    flag=True,
+                    flag=Flag.SOFT,
                     event=None,
-                    target=event.target,
-                    isp=event.isp,
+                    metric__input=event.target,
+                    metric__probe__isp=event.isp,
                     type_med__in=flag_types) |
                 Q(
-                    flag=True,
+                    flag=Flag.HARD,
                     event=None,
-                    target=event.target,
-                    isp=event.isp,
-                    type_med__in=flag_types))
+                    metric__input=event.target,
+                    metric__probe__isp=event.isp,
+                    type_med__in=flag_types)
+            )
         else:
             flags = Flag.objects.filter(
                 Q(

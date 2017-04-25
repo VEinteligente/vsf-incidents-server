@@ -183,7 +183,8 @@ def dns_to_flag():
             print "Debi entrar aqui"
             flag = Flag(
                 metric_date=dns.metric.measurement_start_time,
-                metric=dns.metric
+                metric=dns.metric,
+                plugin_name=dns.__class__.__name__
             )
 
             # If there is a true flag give 'soft' type

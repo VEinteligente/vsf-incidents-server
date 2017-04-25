@@ -54,16 +54,15 @@ class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
             target = Url.objects.get(url=split[1])
             flag = Flag.objects.filter(
                 Q(medicion=split[0],
-                   target=target,
-                   isp=split[2],
-                   ip=split[3],
-                   type_med=split[4]
-                ) | Q(medicion=split[0],
-                   target=target,
-                   isp=None,
-                   ip=None,
-                   type_med=split[4])
-
+                  target=target,
+                  isp=split[2],
+                  ip=split[3],
+                  type_med=split[4]) |
+                Q(medicion=split[0],
+                  target=target,
+                  isp=None,
+                  ip=None,
+                  type_med=split[4])
             )
             ids += [flag.first().id]
 
@@ -229,20 +228,53 @@ class DetailEvent(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     breadcrumb = ["Events", "Event Details"]
 
 
+class SuggestedFlagsTable(DatatablesView):
+    """FlagsTable: DatatablesView used to display
+    a list of metrics with flags. This View is summoned by AJAX"""
+    pk_url_kwarg = 'pk'
+    model = Flag
+    queryset = Flag.objects.filter(event=None)
+    fields = {
+        'Measurement': 'metric__measurement',
+        'Flag': 'flag',
+        'Date': 'metric_date',
+        'ISP': 'metric_date',
+        'Probe': 'metric__probe__identification'
+    }
+
+    def get_queryset(self):
+        """
+        Apply Datatables sort and search criterion to QuerySet
+        :return: queryset
+        """
+        event_pk = self.kwargs.get(self.pk_url_kwarg)
+        event = Event.objects.get(id=event_pk)
+        flag = event.suggested_flags.values('id')
+        print flag
+        print '-----------------------------'
+
+        return super(SuggestedFlagsTable, self).get_queryset()
+
+    def json_response(self, data):
+        """Json response"""
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
+
+
 # Deprecated - each pluggin have his own data table flag ajax
 class FlagsTable(LoginRequiredMixin, DatatablesView):
     """FlagsTable: DatatablesView used to display
     a list of metrics with flags. This View is summoned by AJAX"""
+    pk_url_kwarg = 'pk'
     model = Flag
     queryset = Flag.objects.filter(event=None)
     fields = {
+        'Measurement': 'metric',
         'Flag': 'flag',
-        'Measurement': 'medicion',
-        'Date': 'date',
-        'Target': 'target__url',
-        'ISP': 'isp',
-        'IP Address': 'ip',
-        'Measurement type': 'type_med'
+        'Date': 'metric_date',
+        'ISP': 'metric_date',
+        'Probe': 'metric__probe__identification'
     }
 
     def json_response(self, data):
@@ -295,7 +327,6 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
         # Return the ordered queryset
         return queryset.order_by(*self.get_orders())
 
-
     def json_response(self, data):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
@@ -312,7 +343,7 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
     page_header_description = "Matches between existing events and hard flags"
     breadcrumb = ["Events", "Event Suggestions"]
     queryset = Event.objects.exclude(
-        suggested_events=None).prefetch_related('suggested_events', 'flags')
+        suggested_flags=None).prefetch_related('suggested_flags', 'flags')
 
 
 # Deprecated - each pluggin have his own create event

@@ -12,3 +12,5 @@ class TCP(models.Model):
     status_blocked = models.BooleanField(default=False)
     status_failure = models.TextField(null=True)
     status_success = models.BooleanField(default=True)
+
+    target = models.GenericIPAddressField(null=True, blank=True)

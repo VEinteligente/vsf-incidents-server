@@ -177,6 +177,7 @@ class Flag(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     metric = models.ForeignKey(Metric, null=True)
     metric_date = models.DateTimeField()
+    plugin_name = models.CharField(max_length=100, null=True, blank=True)
 
     # ---------------------------------------------------
     flag = models.CharField(
@@ -187,7 +188,7 @@ class Flag(models.Model):
     event = models.ForeignKey(Event, null=True, blank=True,
                               related_name='flags')
     suggested_events = models.ManyToManyField(
-        Event, related_name="suggested_events", blank=True)
+        Event, related_name="suggested_flags", blank=True)
 
     class Meta:
         index_together = [

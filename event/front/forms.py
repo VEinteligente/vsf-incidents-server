@@ -113,7 +113,7 @@ class EventEvidenceForm(forms.ModelForm):
         exclude = [
             'draft',
             'target',
-            'type_flags'
+            'plugin_name'
         ]
 
     def clean(self):

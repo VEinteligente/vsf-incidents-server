@@ -22,4 +22,4 @@ class DNS(models.Model):
     failure = models.CharField(max_length=50, null=True, blank=True)
     answers = JSONField(null=True)
     resolver_hostname = models.GenericIPAddressField(
-        null=True, blank=True)  # servidor DNS que se esta evaluando
+        null=True, blank=True)  # servidor DNS que se esta evaluando, (target)

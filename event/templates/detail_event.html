@@ -64,9 +64,7 @@
                             </tr>
                         </tbody>
                     </table>
-
                 </div>
-
             </div>
             <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
@@ -149,6 +147,30 @@
                     {% endif %}
                 </div>
             </div>
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                            Suggested Flags
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table id="suggested-flag-list" class="table table-bordered table-hover">
+                        <thead>
+                            <th>Measurement</th>
+                            <th>Flag</th>
+                            <th>Date</th>
+                            <th>ISP</th>
+                            <th>Probe</th>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div class="col-xs-2">
@@ -160,7 +182,6 @@
                 </div>
                 <div class="box-body">
                         <p>
-                            
                         {% if event.flags.all %}
                             {% if event.type_flags == 'tcp' %}
                                 <a href={% url 'plugins:tcp:tcp-update-event' event.id %} class="btn btn-primary btn-flat actionButton">Edit Event</a>
@@ -210,15 +231,27 @@
             $(document).on('click', '.delete-btn', function(event) {
                 event.preventDefault();
                 /* Act on the event */
-                var delete_id = $(this).data('id')
-                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                var delete_id = $(this).data('id');
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id);
                 $('#event-delete-form').attr('action', url);
             });
 
             $('#flag-list').DataTable({
                 "paging": false
-            }
-            );         
+            });
+
+            $('#suggested-flag-list').dataTable({
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": "{% url 'events:event_front:suggested-flags-ajax' pk=object.pk %}",
+                "aoColumns": [
+                    { "mData": "Measurement"},
+                    { "mData": "Flag"},
+                    { "mData": "Date"},
+                    { "mData": "ISP"},
+                    { "mData": "Probe"}
+                ]
+            });
         })
     </script>
     <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>

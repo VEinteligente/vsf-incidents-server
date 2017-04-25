@@ -82,6 +82,7 @@ def metric_to_ndt():
                 metric_date=ndt_metric.measurement_start_time,
                 flag=Flag.NONE,
                 manual_flag=False,
+                plugin_name=ndt_metric.__class__.__name__
             )
             flag.save()
             ndt = NDT(

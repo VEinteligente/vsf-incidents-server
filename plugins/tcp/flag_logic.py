@@ -56,7 +56,8 @@ def web_connectivity_to_tcp():
                         metric_id=tcp_metric['id'],
                         status_blocked=tcp_connect['status']['blocked'],
                         status_failure=tcp_connect['status']['failure'],
-                        status_success=tcp_connect['status']['success']
+                        status_success=tcp_connect['status']['success'],
+                        target=tcp_connect['ip']
                     )
                     tcp.save()
 
@@ -78,7 +79,8 @@ def tcp_to_flag():
         for tcp_obj in page.object_list:
             flag = Flag(
                 metric_date=tcp_obj.metric.measurement_start_time,
-                metric=tcp_obj.metric
+                metric=tcp_obj.metric,
+                plugin_name=tcp_obj.__class__.__name__
             )
             # If there is a true flag give 'soft' type
             if tcp_obj.status_blocked is True:

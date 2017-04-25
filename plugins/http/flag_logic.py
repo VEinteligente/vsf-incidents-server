@@ -118,7 +118,8 @@ def http_to_flag():
 
             flag = Flag(
                 metric_date=http.metric.measurement_start_time,
-                metric=http.metric
+                metric=http.metric,
+                plugin_name=http.__class__.__name__
             )
 
             # If there is a true flag give 'soft' type

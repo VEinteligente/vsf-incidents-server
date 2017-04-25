@@ -134,25 +134,9 @@ class PluginCreateEventView(
             ###################################################
             # Get type of flags
             ###################################################
-            flag = flags.first()
-            try:
-                if flag.dnss is not None:
-                    self.object.type_flags = Event.DNS
-            except Exception:
-                try:
-                    if flag.https is not None:
-                        self.object.type_flags = Event.HTTP
-                except Exception:
-                    try:
-                        if flag.tcps is not None:
-                            self.object.type_flags = Event.TCP
-                    except Exception:
-                        try:
-                            if flag.ndts is not None:
-                                self.object.type_flags = Event.NDT
-                        except Exception:
-                            self.object.type_flags = Event.NONE
 
+            flag = flags.first()
+            self.object.plugin_name = flag.plugin_name
 
             ###################################################
             # Save Event in database

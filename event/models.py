@@ -91,8 +91,12 @@ class Event(models.Model):
     public_evidence = models.TextField(null=True, blank=True)
     private_evidence = models.TextField(null=True, blank=True)
     type = models.CharField(max_length=100, choices=TYPES)
-    type_flags = models.CharField(
-        max_length=10, choices=TYPE_CHOICES, default=NONE, null=True, blank=True)
+    plugin_name = models.CharField(max_length=100, null=True, blank=True)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        return super(Event, self).save(force_insert=force_insert, force_update=force_update, using=using,
+                                       update_fields=update_fields)
 
     def __unicode__(self):
         return u"%s" % self.identification

@@ -34,6 +34,11 @@ urlpatterns = [
         name='detail-event'
     ),
     url(
+        r'^suggested-flags-ajax/(?P<pk>[0-9]+)/$',
+        views.SuggestedFlagsTable.as_view(),
+        name='suggested-flags-ajax'
+    ),
+    url(
         r'^update-ajax/$',
         views.UpdateFlagsTable.as_view(),
         name='update-ajax'
