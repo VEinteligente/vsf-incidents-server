@@ -34,6 +34,49 @@ class State(models.Model):
         return u'%s' % self.name
 
 
+class MutedInput(models.Model):
+
+    MED = 'MED'
+    DNS = 'DNS'
+    TCP = 'TCP'
+    HTTP = 'HTTP'
+
+    TYPE_CHOICES = (
+        (MED, 'Medicion'),
+        (DNS, 'Medicion DNS'),
+        (TCP, 'Medicion TCP'),
+        (HTTP, 'Medicion HTTP')
+    )
+
+    url = models.CharField(max_length=50, null=True)
+    type_med = models.CharField(verbose_name='Tipo de Medicion',
+                                max_length=50,
+                                choices=TYPE_CHOICES,
+                                default=MED)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.url, self.type_med)
+
+
+class ISP(models.Model):
+    name = models.CharField(max_length=100)
+
+
+class Plan(models.Model):
+    name = models.CharField(max_length=100)
+    isp = models.ForeignKey(ISP)
+    upload = models.CharField(
+        verbose_name='Velocidad de Carga publicitado',
+        max_length=30)
+    download = models.CharField(
+        verbose_name='Velocidad de Descarga publicitado',
+        max_length=30)
+    comment = models.TextField(null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
 class Site(models.Model):
 
     name = models.CharField(max_length=100)
@@ -81,7 +124,7 @@ class Event(models.Model):
         ('alteracion de trafico por intermediarios', 'alteración de tráfico por intermediarios')
     )
 
-    isp = models.CharField(max_length=25)
+    isp = models.ForeignKey(ISP, null=True, blank=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
     target = models.ForeignKey(Url)  # input in metrics

@@ -62,50 +62,33 @@ def suggestedFlags(event):
         event: Event object
     """
     try:
-        # get all types of flags according the event
-        flag_types = get_flag_types(event)
 
         # searching for all unassigned hard flags with same target, same isp,
         # and same region in the list of regions
 
         # this filter will return a queryset with duplicate flags
-        if flag_types:
-            flags = Flag.objects.filter(
-                Q(
-                    flag=Flag.SOFT,
-                    event=None,
-                    metric__input=event.target,
-                    metric__probe__isp=event.isp,
-                    type_med__in=flag_types) |
-                Q(
-                    flag=Flag.HARD,
-                    event=None,
-                    metric__input=event.target,
-                    metric__probe__isp=event.isp,
-                    type_med__in=flag_types)
-            )
-        else:
-            flags = Flag.objects.filter(
-                Q(
-                    flag=True,
-                    event=None,
-                    target=event.target,
-                    isp=event.isp) |
-                Q(
-                    flag=True,
-                    event=None,
-                    target=event.target,
-                    isp=event.isp))
+        flags = Flag.objects.filter(
+            Q(
+                flag=Flag.SOFT,
+                event=None,
+                metric__input=event.target.url,
+                metric__probe__isp=event.isp,
+                plugin_name=event.plugin_name) |
+            Q(
+                flag=Flag.HARD,
+                event=None,
+                metric__input=event.target.url,
+                metric__probe__isp=event.isp,
+                plugin_name=event.plugin_name)
+        )
 
         # eliminate duplicate flags in queryset
         # defining a set with the queryset
         flags = set(flags)
         # assign every flag in the list as a suggested_event of
         # the event
-        print "suggestedFlags: flags"
-        print flags
         for flag in flags:
-                event.suggested_events.add(flag)
+                event.suggested_flags.add(flag)
         return True
     except Exception as e:
         print "suggestedFlags:" + str(e)

@@ -1,24 +1,26 @@
-from measurement.models import (
-    Flag,
-    DNS,
-    Metric,
-    Probe,
-    MutedInput
-)
-from event.models import (
-    Url
-)
-from event.front.utils import (
-    suggestedEvents
-)
+import json
+
 from django.db.models import (
     Count,
     Case,
     When,
     CharField
 )
+
+from event.models import (
+    Url,
+    MutedInput
+)
+from event.utils import (
+    suggestedEvents
+)
 from measurement.front.views import DBconnection, DNSTestKey
-import json
+from measurement.models import (
+    Flag,
+    DNS,
+    Metric,
+    Probe
+)
 from vsf import conf
 
 

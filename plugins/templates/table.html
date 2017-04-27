@@ -317,7 +317,7 @@
             var principal_rows = $('#principal-table').find('tbody').find('tr');
             $(principal_rows).each(function(index) {
                 row = principal_rows[index];
-                row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
+                var row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
                 if (row_id == id_flag){
                     $(this).removeClass('selected');
                 }
@@ -349,8 +349,8 @@
                 var selected_rows = $('#selected-table').find('tbody').find('tr');
                 var check_existed = false;
                 $(selected_rows).each(function(index) {
-                    row = selected_rows[index];
-                    row_id = row.childNodes[0].innerText;
+                    var row = selected_rows[index];
+                    var row_id = row.childNodes[0].innerText;
                     if (row_id == id_flag){
                         check_existed = true;
                     }

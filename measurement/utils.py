@@ -1,17 +1,15 @@
-import time
-import json
-import logging
 import datetime
-from django.db.models import Q
+import logging
+import time
+
 from django.conf import settings
+from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-from django.core.paginator import Paginator
 
-from measurement.models import Metric, Flag, Probe, Measurement
 from event.models import Url, Event
-from event.front.utils import suggestedFlags
-from random import randint
+from event.utils import suggestedFlags
+from measurement.models import Metric, Flag, Probe, Measurement
 
 
 def copy_from_measurements_to_metrics():

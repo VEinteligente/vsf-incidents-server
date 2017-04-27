@@ -1,5 +1,6 @@
 from django import forms
-from measurement.models import MutedInput, Probe
+from measurement.models import Probe
+from event.models import MutedInput
 
 
 class MutedInputForm(forms.ModelForm):

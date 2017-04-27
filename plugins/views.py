@@ -14,6 +14,7 @@ from django.http import HttpResponseRedirect
 
 from event.front.forms import EventEvidenceForm
 from event.models import Event, Url
+from event.utils import suggestedFlags
 from measurement.models import Flag
 
 # from django.utils.module_loading import import_string
@@ -73,6 +74,23 @@ class PluginCreateEventView(
             context['form'] = form
         return context
 
+    def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests, instantiating a form instance with the passed
+        POST variables and then checked for validity.
+        """
+        print "1"
+        form = self.get_form()
+        print form
+        print "2"
+
+        if form.is_valid():
+            print "3"
+            return self.form_valid(form)
+        else:
+            print "4"
+            return self.form_invalid(form)
+
     def form_valid(self, form):
         """
         If the form is valid, save the associated model.
@@ -105,11 +123,12 @@ class PluginCreateEventView(
             flags_input = flags.first().metric.input
             try:
                 flags_isp = flags.first().dnss.resolver_hostname
+                flags_isp = ISP.objects.get(name=flags_isp)
             except Exception:
                 try:
-                    flags_isp = flags.first().metric.probe.isp.name
+                    flags_isp = flags.first().metric.probe.isp
                 except Exception:
-                    flags_isp = "Unknown"
+                    flags_isp = None
 
             target, created = Url.objects.get_or_create(
                 url=flags_input
@@ -161,7 +180,7 @@ class PluginCreateEventView(
             # Associated suggested hard flags to new event
             ###################################################
 
-            # Here must call suggested flags method
+            suggestedFlags(self.object)
 
         # Case Event with no flags
         else:
@@ -187,7 +206,6 @@ class PluginCreateEventView(
 
             self.object.save()
 
-        print 'entre al view'
         return HttpResponseRedirect(self.get_success_url())
 
 

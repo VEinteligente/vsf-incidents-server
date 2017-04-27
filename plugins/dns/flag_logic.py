@@ -5,7 +5,8 @@ from django.utils.timezone import make_aware
 
 from vsf import conf
 from django.db.models import F, Count, Case, When, CharField, Q
-from measurement.models import Metric, Flag, MutedInput
+from event.models import MutedInput
+from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
 from measurement.views import send_email_users
 
@@ -180,7 +181,6 @@ def dns_to_flag():
                             if addr not in dns.control_resolver_answers['addrs']:
                                 is_flag = True
 
-            print "Debi entrar aqui"
             flag = Flag(
                 metric_date=dns.metric.measurement_start_time,
                 metric=dns.metric,

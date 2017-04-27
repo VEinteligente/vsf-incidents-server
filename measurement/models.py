@@ -3,50 +3,7 @@ from __future__ import unicode_literals
 import uuid
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from event.models import Event, State, Country
-
-
-class MutedInput(models.Model):
-
-    MED = 'MED'
-    DNS = 'DNS'
-    TCP = 'TCP'
-    HTTP = 'HTTP'
-
-    TYPE_CHOICES = (
-        (MED, 'Medicion'),
-        (DNS, 'Medicion DNS'),
-        (TCP, 'Medicion TCP'),
-        (HTTP, 'Medicion HTTP')
-    )
-
-    url = models.CharField(max_length=50, null=True)
-    type_med = models.CharField(verbose_name='Tipo de Medicion',
-                                max_length=50,
-                                choices=TYPE_CHOICES,
-                                default=MED)
-
-    def __unicode__(self):
-        return u"%s - %s" % (self.url, self.type_med)
-
-
-class ISP(models.Model):
-    name = models.CharField(max_length=100)
-
-
-class Plan(models.Model):
-    name = models.CharField(max_length=100)
-    isp = models.ForeignKey(ISP)
-    upload = models.CharField(
-        verbose_name='Velocidad de Carga publicitado',
-        max_length=30)
-    download = models.CharField(
-        verbose_name='Velocidad de Descarga publicitado',
-        max_length=30)
-    comment = models.TextField(null=True, blank=True)
-
-    def __unicode__(self):
-        return u"%s" % self.name
+from event.models import Event, State, Country, ISP, Plan
 
 
 class Probe(models.Model):

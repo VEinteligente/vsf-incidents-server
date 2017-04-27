@@ -1,20 +1,21 @@
 # -*- encoding: utf-8 -*-
-from django.views import generic
-from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, HttpResponseRedirect
-from django.core.serializers.json import DjangoJSONEncoder
-from eztables.views import DatatablesView
-from measurement.models import Flag
-from django.db.models import Q, Count, Case, When, IntegerField
-from .forms import EventForm, EventExtendForm, EventEvidenceForm
-from .utils import suggestedFlags
-from event.models import Event, Site, Url
 import json
 import re
 
-from dashboard.mixins import PageTitleMixin
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
+from django.db.models import Q, Count, Case, When, IntegerField
+from django.http import HttpResponse, HttpResponseRedirect
+from django.views import generic
+from eztables.views import DatatablesView
+
+from dashboard.mixins import PageTitleMixin
+from event.models import Event, Url
+from event.utils import suggestedFlags
+from measurement.models import Flag
+from .forms import EventForm, EventExtendForm, EventEvidenceForm
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -238,7 +239,7 @@ class SuggestedFlagsTable(DatatablesView):
         'Measurement': 'metric__measurement',
         'Flag': 'flag',
         'Date': 'metric_date',
-        'ISP': 'metric_date',
+        'ISP': 'metric__probe__isp__name',
         'Probe': 'metric__probe__identification'
     }
 
@@ -249,10 +250,8 @@ class SuggestedFlagsTable(DatatablesView):
         """
         event_pk = self.kwargs.get(self.pk_url_kwarg)
         event = Event.objects.get(id=event_pk)
-        flag = event.suggested_flags.values('id')
-        print flag
-        print '-----------------------------'
-
+        flags = event.suggested_flags.values('id')
+        self.queryset = Flag.objects.filter(id__in=flags)
         return super(SuggestedFlagsTable, self).get_queryset()
 
     def json_response(self, data):
@@ -316,9 +315,6 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
                     When(event=Event.objects.get(id=pk), then=1),
                     output_field=IntegerField()))
             ).order_by('-selected')
-
-            print queryset[0]
-            print queryset[1]
 
         # Perform global search
         queryset = self.global_search(queryset)

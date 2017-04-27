@@ -1,4 +1,13 @@
-from measurement.models import Metric, Probe, Flag, Country, State, ISP, Plan
+from event.models import State, Country, ISP, Plan
+from measurement.models import Metric, Probe
+
+
+def give_probes_to_metrics():
+    metrics = Metric.objects.all()
+    for metric in metrics:
+        probe = Probe.objects.all().order_by('?').first()
+        metric.annotations['probe'] = probe.identification
+        metric.save()
 
 
 def create_isps():

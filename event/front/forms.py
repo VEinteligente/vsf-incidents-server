@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models.expressions import RawSQL
 from django.db.models import F, Count, Case, When, CharField, Q
-from event.models import Event, Site
+from event.models import Event, Site, ISP
 from measurement.models import Flag
 
 
@@ -74,7 +74,7 @@ class EventExtendForm(forms.ModelForm):
         required=False,
         label='Chance all Measurements type to:')
 
-    class Meta():
+    class Meta:
         model = Event
         fields = ['open_ended', 'identification', 'isp', 'type']
 
@@ -91,8 +91,7 @@ class EventEvidenceForm(forms.ModelForm):
     flags = forms.CharField(widget=forms.TextInput(attrs={}),
                             required=False, label="")
 
-    isp = forms.CharField(widget=forms.TextInput(attrs={}),
-                        required=False)
+    isp = forms.ModelChoiceField(queryset=ISP.objects.all(), required=False)
 
     start_date = forms.DateTimeField(required=False)
 
@@ -108,7 +107,7 @@ class EventEvidenceForm(forms.ModelForm):
         label="Target Site",
         required=False)
 
-    class Meta():
+    class Meta:
         model = Event
         exclude = [
             'draft',
@@ -122,14 +121,14 @@ class EventEvidenceForm(forms.ModelForm):
         form_data = self.cleaned_data
         print form_data
 
-        if (form_data['flags'] == ""):
+        if form_data['flags'] == "":
             # Required fields when an event only with external evidence
-            if (form_data['start_date'] is None):
+            if form_data['start_date'] is None:
                 self.add_error('start_date', 'Field Required')
-            if (form_data['isp'] == ""):
+            if form_data['isp'] == "":
                 self.add_error('isp', 'Field Required')
-            if (form_data['public_evidence'] == ""):
-                self.add_error('isp', 'Field Required')
+            if form_data['public_evidence'] == "":
+                self.add_error('public_evidence', 'Field Required')
 
             # Check end date or open ended event
             if form_data['open_ended'] is False and form_data['end_date'] is None:
@@ -161,7 +160,6 @@ class EventEvidenceForm(forms.ModelForm):
                         default=F('metric__probe__isp__name'),
                         output_field=CharField()
                     )
-
                 )
 
             print 'flags'
@@ -178,6 +176,7 @@ class EventEvidenceForm(forms.ModelForm):
                         bd_flags[1:]
                     )
                 ):
+
                     self.add_error(
                         None,
                         'Selected flags must have the same inputs and ISP'
@@ -189,9 +188,8 @@ class EventEvidenceForm(forms.ModelForm):
                         bd_flags[1:]
                     )
                 ):
+
                     self.add_error(
                         None,
                         'One flag is already asociated to an event'
                     )
-
-

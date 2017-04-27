@@ -16,7 +16,6 @@ from measurement.models import (
     DNS,
     Flag,
     Metric,
-    MutedInput,
     Probe
 )
 from measurement.front.forms import (
@@ -25,7 +24,7 @@ from measurement.front.forms import (
     ManualFlagForm,
     MeasurementToEventForm
 )
-from event.models import Url
+from event.models import Url, MutedInput
 from measurement.utils import *
 from plugins.views import PluginTableView
 from plugins.dns.models import DNS as DNS_METRIC

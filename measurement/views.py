@@ -1,23 +1,8 @@
-from django.shortcuts import render
-from django.utils.module_loading import import_module
-from django.core.mail import EmailMessage
-from django.views import generic
-from django.http import HttpResponse
+import json
+import threading
+
 from django.contrib.auth.models import User
-from datetime import datetime
-from measurement.models import (
-    Flag,
-    DNS,
-    Metric,
-    Probe,
-    MutedInput
-)
-from event.models import (
-    Url
-)
-from event.front.utils import (
-    suggestedEvents
-)
+from django.core.mail import EmailMessage
 from django.db.models import (
     Q,
     Count,
@@ -25,13 +10,27 @@ from django.db.models import (
     When,
     CharField
 )
+from django.http import HttpResponse
+from django.utils.module_loading import import_module
+from django.views import generic
+
+from event.models import (
+    Url,
+    MutedInput
+)
+from event.utils import (
+    suggestedEvents
+)
 from measurement.front.views import DBconnection, DNSTestKey
-import json
+from measurement.models import (
+    Flag,
+    DNS,
+    Metric,
+    Probe
+)
+from update_flags_manual import update_flags_manual
 from vsf import conf
 from vsf.settings import FLAG_TESTS
-
-import threading
-from update_flags_manual import update_flags_manual
 
 
 def send_email_users():

@@ -67,15 +67,13 @@
                 {% for event in events %}
                     <tr>
                         <td><a href="{% url 'events:event_front:detail-event' event.id %}">{{event.identification}}</a></td>
-                        <td>{{event.isp}}</td>
+                        <td>{{event.isp.name}}</td>
                         <td>{{event.target}}</td>
                         <td>{{event.start_date}}</td>
                         <td>{{event.end_date}}</td>
                         <td>{% if event.draft %} Borrador {% else %}
                         Público {% endif %}</td>
                         <td>
-
-
                             <div class="btn-group ">
                                 <button type="button" class="btn btn-primary btn-flat">Actions</button>
                                 <button type="button" class="btn btn-primary btn-flat dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
