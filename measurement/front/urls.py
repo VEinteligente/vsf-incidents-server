@@ -68,6 +68,11 @@ urlpatterns = [
         name='create-probe'
     ),
     url(
+        r'^create-probe-ajax/$',
+        views.CreateProbeAjax.as_view(),
+        name='create-probe-ajax'
+    ),
+    url(
         r'^list-probe/$',
         views.ListProbe.as_view(),
         name='list-probe'

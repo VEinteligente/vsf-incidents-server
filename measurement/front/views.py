@@ -1,17 +1,14 @@
 from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse, HttpResponseRedirect
-from django.core import serializers
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.core.mail import EmailMessage
 from django.views import generic
 from django.db import connections
 from django.db.models import Q, Prefetch
-from django.db.models.expressions import RawSQL
 from eztables.views import DatatablesView
-from django.utils.six import text_type
 from measurement.models import (
     DNS,
     Flag,
@@ -24,7 +21,7 @@ from measurement.front.forms import (
     ManualFlagForm,
     MeasurementToEventForm
 )
-from event.models import Url, MutedInput
+from event.models import Url, MutedInput, Country, State, ISP, Plan
 from measurement.utils import *
 from plugins.views import PluginTableView
 from plugins.dns.models import DNS as DNS_METRIC
@@ -1190,6 +1187,40 @@ class CreateProbe(PageTitleMixin, generic.CreateView):
             messages.error(self.request, msg)
 
         return HttpResponseRedirect(self.success_url)
+
+
+class CreateProbeAjax(LoginRequiredMixin, generic.View):
+    http_method_names = [u'get', ]
+    id = None
+
+    def get(self, request, *args, **kwargs):
+
+        self.id = request.GET['id']
+
+        if request.GET['country'] == 'true':
+            data = self.country()
+        else:
+            data = self.isp()
+
+        return JsonResponse({'data': data})
+
+    def country(self):
+        country = Country.objects.get(id=self.id)
+        states = State.objects.filter(country=country)
+        full_states = []
+        for state in states:
+            node = {'id': state.id, 'text': state.name}
+            full_states.append(node)
+        return full_states
+
+    def isp(self):
+        isp = ISP.objects.get(id=self.id)
+        plans = Plan.objects.filter(isp=isp)
+        full_plans = []
+        for plan in plans:
+            node = {'id': plan.id, 'text': plan.name}
+            full_plans.append(node)
+        return full_plans
 
 
 class DetailProbe(PageTitleMixin, generic.DetailView):

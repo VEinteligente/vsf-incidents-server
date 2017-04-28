@@ -1,5 +1,10 @@
 {% extends 'dashboard/layout.html' %}
 {% load bootstrap3 %}
+{% load staticfiles %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static "plugins/select2/select2.css" %}">
+{% endblock %}
 
 {% block content %}
     <div class="row">
@@ -16,7 +21,24 @@
                     </div>
                     <div class="box-body">
                         <form id="muted-input-create-form" action="" method="post">{% csrf_token %}
-                        {% bootstrap_form form %}
+                            <div class="col-md-12">
+                                {% bootstrap_field form.identification %}
+                            </div>
+                            <div class="col-md-4">
+                                {% bootstrap_field form.country %}
+                            </div>
+                            <div class="col-md-4">
+                                {% bootstrap_field form.region %}
+                            </div>
+                            <div class="col-md-4">
+                                {% bootstrap_field form.city %}
+                            </div>
+                            <div class="col-md-6">
+                                {% bootstrap_field form.isp %}
+                            </div>
+                            <div class="col-md-6">
+                                {% bootstrap_field form.plan %}
+                            </div>
                         </form>                        
                     </div>
                     <div class="box-footer text-right">
@@ -30,8 +52,64 @@
             </form>
         </div>
     </div>
-
 {% endblock %}
 
 {% block extrajs %}
+<script src="{% static "plugins/select2/select2.full.js" %}"></script>
+<script type="application/javascript">
+
+    var country_select = $('#id_country');
+    var region_select = $('#id_region');
+    var isp_select = $('#id_isp');
+    var plan_select = $('#id_plan');
+
+    function redraw_states(){
+        var init = region_select.val();
+        $.ajax({
+            data: {
+                'country': true,
+                'id': country_select.val()
+            },
+            url: "{% url 'measurements:measurement_front:create-probe-ajax' %}",
+            method: 'get'
+        }).done(function (data) {
+            region_select.select2().empty();
+            region_select.select2({
+                data: data.data
+            });
+            region_select.val(init).trigger('change');
+        });
+    }
+
+    function redraw_plans(){
+        var init = plan_select.val();
+        $.ajax({
+            data: {
+                'country': false,
+                'id': isp_select.val()
+            },
+            url: "{% url 'measurements:measurement_front:create-probe-ajax' %}",
+            method: 'get'
+        }).done(function (data) {
+            plan_select.select2().empty();
+            plan_select.select2({
+                data: data.data
+            });
+            plan_select.val(init).trigger('change');
+        });
+    }
+
+
+    $('document').ready(function(){
+        $('select').select2();
+
+        redraw_states();
+        redraw_plans();
+
+        country_select.on('change', redraw_states);
+
+        isp_select.on('change', redraw_plans);
+    });
+
+</script>
 {% endblock %}
