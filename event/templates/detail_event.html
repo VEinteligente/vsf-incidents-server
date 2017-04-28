@@ -24,52 +24,54 @@
                     </h3>
                 </div>
                 <div class="box-body">
-                    <table class="table table-bordered table-hover" style="margin-bottom: 20px">
-                        <thead>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    {{event.start_date}}
-                                </td>
-                                <td>
-                                {% if event.end_date %}
-                                    {{event.end_date}}
-                                {% else %}
-                                    Open Case....
-                                {% endif %}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <table class="table table-bordered table-hover" style="margin-bottom: 20px">
-                        <thead>
-                            <th>Type</th>
-                            <th>ISP</th>
-                            <th>Target</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    {{event.type}}
-                                </td>
-                                <td>
-                                    {{event.isp}}
-                                </td>
-                                <td>
-                                    {{event.target}}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="col-md-12">
+                        <table class="table table-bordered table-hover" style="margin-bottom: 20px">
+                            <thead>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        {{event.start_date}}
+                                    </td>
+                                    <td>
+                                    {% if event.end_date %}
+                                        {{event.end_date}}
+                                    {% else %}
+                                        Open Case....
+                                    {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-bordered table-hover" style="margin-bottom: 20px">
+                            <thead>
+                                <th>Type</th>
+                                <th>ISP</th>
+                                <th>Target</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        {{event.type}}
+                                    </td>
+                                    <td>
+                                        {{event.isp.name}}
+                                    </td>
+                                    <td>
+                                        {{event.target}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="box box-default collapsed-box">
                 <div class="box-header with-border">
                     <h3 class="box-title">
-                            Flag(s) associated
+                            Flag(s) Associated
                     </h3>
                     <div class="box-tools pull-right">
                             <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
@@ -78,36 +80,82 @@
                 </div>
                 <div class="box-body">
                     {% if  event.flags.all %}
-                    <table id="flag-list" class="table table-bordered table-hover">
-                        <thead>
-                            <th>Measurement</th>
-                            <th>Flag</th>
-                            <th>Date</th>
-                            <th>ISP</th>
-                            <th>Probe</th>
-                        </thead>
-                        <tbody>
-                            {% for flag in event.flags.all %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'measurements:measurement_front:detail-measurement' flag.metric.id %}"> {{flag.metric.measurement}}</a>
-                                </td>
-                                <td>{{flag.flag}}</td>
-                                <td>{{flag.metric_date}}</td>
-                                <td>
-                                {% if flag.isp %}
-                                    {{flag.isp}}
-                                {% else %}
-                                    Unknown
-                                {% endif %}</td>
-                                <td>Probe-{{flag.metric.probe.id}}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                        No flags available
-                    {% endif %}
+                    <div class="col-md-12">
+                        <table id="flag-list" class="table table-bordered table-hover">
+                            <thead>
+                                <th>Flag</th>
+                                <th>Measurement</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>ISP</th>
+                                <th>Probe</th>
+                            </thead>
+                            <tbody>
+                                {% for flag in event.flags.all %}
+                                <tr>
+                                    <td>
+                                        {{flag.uuid}}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'measurements:measurement_front:detail-measurement' flag.metric.id %}"> {{flag.metric.measurement}}</a>
+                                    </td>
+                                    <td>{{flag.flag}}</td>
+                                    <td>{{flag.metric_date}}</td>
+                                    <td>
+                                    {% if flag.metric.probe.isp.name %}
+                                        {{flag.metric.probe.isp.name}}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}</td>
+                                    <td>{{flag.metric.probe.identification}}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                            No flags available
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="box box-default collapsed-box">
+                <div class="box-header with-border">
+                    <h3 class="box-title">
+                        Flag(s) Suggested
+                    </h3>
+                    <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                            </button>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <form method="post" action="." id="suggested-flags-form">{% csrf_token %}
+                        <div class="col-md-12">
+                            <input type="submit" name="clear-suggested-flags" value="Clear suggested flags" class="btn btn-default">
+                            <input type="submit" name="search-suggested-flag" value="Search suggested flags" class="btn btn-default">
+                        </div>
+                        <div class="col-md-12" style="padding-top: 10px;">
+                            <table id="suggested-flag-list" class="table table-bordered table-hover" style="width: 100%;">
+                                <thead>
+                                    <th>Flag</th>
+                                    <th>Measurement</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>ISP</th>
+                                    <th>Probe</th>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-12">
+                            <div class=" pull-right">
+                                <input type="submit" name="add-selected-flags" value="Add selected flags" class="btn btn-default">
+                                <input type="submit" name="add-all-flags" value="Add all flags" class="btn btn-default">
+                                <input type="hidden" class="hidden" name="flags" id="id_flags">
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
             <div class="box box-default collapsed-box">
@@ -116,8 +164,8 @@
                             Public Evidence
                     </h3>
                     <div class="box-tools pull-right">
-                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
-                            </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="box-body">
@@ -134,8 +182,8 @@
                             Private Evidence
                     </h3>
                     <div class="box-tools pull-right">
-                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
-                            </button>
+                        <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="box-body">
@@ -144,31 +192,6 @@
                     {% else %}
                         <p><b>No evidence available</b></p>
                     {% endif %}
-                </div>
-            </div>
-            <div class="box box-default collapsed-box">
-                <div class="box-header with-border">
-                    <h3 class="box-title">
-                            Suggested Flags
-                    </h3>
-                    <div class="box-tools pull-right">
-                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
-                            </button>
-                    </div>
-                </div>
-                <div class="box-body">
-                    <table id="suggested-flag-list" class="table table-condensed table-responsive table-bordered
-                    table-hover">
-                        <thead>
-                            <th>Measurement</th>
-                            <th>Flag</th>
-                            <th>Date</th>
-                            <th>ISP</th>
-                            <th>Probe</th>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -245,14 +268,231 @@
                 "bServerSide": true,
                 "sAjaxSource": "{% url 'events:event_front:suggested-flags-ajax' pk=object.pk %}",
                 "aoColumns": [
-                    { "mData": "Measurement"},
-                    { "mData": "Flag"},
-                    { "mData": "Date"},
-                    { "mData": "ISP"},
-                    { "mData": "Probe"}
+                    {
+                        "mData": "Checkbox",
+                        "mRender": function(data){
+                            return '<input type="checkbox" name="flag_checkbox" value="' + data + '"> ' + data
+                        }
+                    },
+                    {
+                        "mData": "Measurement",
+                        "mRender": function(data){
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data);
+                            url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
+                            return url_measurement
+                        }
+                    },
+                    {
+                        "mData": "Flag",
+                        "mRender": function ( data ) {
+
+                            var flag_icon = "";
+
+                            if (data == 'hard'){
+                            flag_icon = 'Hard <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            }
+                            if (data == 'soft'){
+                                flag_icon = 'Soft <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            }
+                            if (data == 'muted'){
+                                flag_icon = 'Muted <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            }
+
+                            if (data == 'none'){
+                                flag_icon = "No Flag"
+                            }
+
+                            return flag_icon;
+                        }
+                    },
+                    {
+                        "mData": "Date"
+                    },
+                    {
+                        "mData": "ISP"
+                    },
+                    {
+                        "mData": "Probe"
+                    }
                 ]
             });
-        })
+        });
+
+        // Handle click on a row of principal datatable
+        $('#suggested-flag-list tbody').on('click', 'tr', function () {
+
+            var flags = $( '#id_flags' );
+            var id_flag = $( this ).context.childNodes[0].getElementsByTagName('input')[0].value;
+
+            var flag = $( this ).context.childNodes[1].innerText;
+            var measurement = $( this ).context.childNodes[3].innerText;
+            var input = $( this ).context.childNodes[4].innerText;
+
+            $( this ).toggleClass('selected');
+            if( $( this ).hasClass( 'selected' ) ){
+                $(this).find(":checkbox").prop("checked", true);
+                var selected_rows = $('#selected-table').find('tbody').find('tr');
+                var check_existed = false;
+                $(selected_rows).each(function(index) {
+                    var row = selected_rows[index];
+                    var row_id = row.childNodes[0].innerText;
+                    if (row_id == id_flag){
+                        check_existed = true;
+                    }
+                });
+                if (check_existed == false){
+                    // Add id in hidden input
+                    flags.val( flags.val() + id_flag + '&');
+                    // Add row to selected table
+                    selected_table.row.add([
+                        id_flag,
+                        flag,
+                        measurement,
+                        input,
+                        remove_button
+                    ]).draw();
+                }
+            }else{
+                $(this).find(":checkbox").prop("checked", false);
+                // Remove id from hidden input
+                var flag_index = flags.val().indexOf(id_flag);
+                flags.val(
+                    flags.val().substring(
+                            0,
+                            flag_index
+                    ) +
+                    flags.val().substring(
+                            flag_index + id_flag.length + 1 ,
+                            flags.val().length
+                    )
+                );
+
+                $('#example-select-all').prop("checked", false);
+
+                var selected_rows = $('#selected-table').find('tbody').find('tr');
+                $(selected_rows).each(function(index) {
+                    var row = selected_rows[index];
+                    var row_id = row.childNodes[0].innerText;
+                    if (row_id == id_flag){
+                        var removed = selected_table.row(index);
+                        removed.remove().draw();
+                    }
+                });
+            }
+        });
+
+        // Handle click on "Select all" control Principal datatable
+        $('#example-select-all').on('click', function(){
+            var flags = $( '#id_flags' );
+            // Get all rows with search applied
+            var rows = $('#principal-table').find('tbody').find('tr');
+            // Check/uncheck checkboxes for all rows in the table
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+            $(rows).each(function() {
+               var checked = $('input[type="checkbox"]', rows).prop('checked');
+                var id_flag = $( this ).context.childNodes[0].getElementsByTagName('input')[0].value;
+
+                var flag = $( this ).context.childNodes[1].innerText;
+                var measurement = $( this ).context.childNodes[3].innerText;
+                var input = $( this ).context.childNodes[4].innerText;
+
+                if(checked){
+                    $(this).addClass('selected', checked);
+                    disableEventField(true);
+                }else{
+                    $(this).removeClass('selected');
+                    disableEventField(false);
+                }
+
+                if( $( this ).hasClass( 'selected' ) ){
+                    $(this).find(":checkbox").prop("checked", true);
+
+                    var selected_rows = $('#selected-table').find('tbody').find('tr');
+                    var check_existed = false;
+                    $(selected_rows).each(function(index) {
+                        var row = selected_rows[index];
+                        var row_id = row.childNodes[0].innerText;
+                        if (row_id == id_flag){
+                            check_existed = true;
+                        }
+                    });
+                    if (check_existed == false){
+                        // Add id in hidden input
+                        flags.val( flags.val() + id_flag + '&');
+                        // Add row to selected table
+                        selected_table.row.add([
+                                id_flag, flag, measurement, input,remove_button
+                            ]).draw();
+                    }
+                }else{
+                    $(this).find(":checkbox").prop("checked", false);
+                    // Remove id from hidden input
+                    var flag_index = flags.val().indexOf(id_flag);
+                    flags.val(
+                            flags.val().substring(
+                                    0,
+                                    flag_index
+                            ) +
+                            flags.val().substring(
+                                    flag_index + id_flag.length + 1 ,
+                                    flags.val().length
+                            )
+                    );
+
+                    var selected_rows = $('#selected-table').find('tbody').find('tr');
+                    $(selected_rows).each(function(index) {
+                        // row = selected_rows[index];
+                        // row_id = row.childNodes[0].innerText;
+                        // if (row_id == id_flag){
+                        var removed = selected_table.row(index);
+                        removed.remove().draw();
+                        // }
+                    });
+
+                }
+
+            });
+        });
+
+
+        // This is when flag hidden input have a value when DOM recently charge
+        function fill_rows_tables() {
+            // body...
+            var flags = $( '#id_flags' ).val();
+
+            var array = flags.split("&");
+            array.pop();
+
+            for (var i = 0; i < array.length; i++) {
+                var id_flag = array[i];
+                var principal_rows = $('#principal-table').find('tbody').find('tr');
+                $(principal_rows).each(function(index) {
+                    var row = principal_rows[index];
+                    var row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
+                    if (row_id == id_flag){
+                        $(this).toggleClass('selected');
+                        var flag = $( this ).context.childNodes[1].innerText;
+                        var measurement = $( this ).context.childNodes[3].innerText;
+                        var input = $( this ).context.childNodes[4].innerText;
+
+                        selected_table.row.add([
+                            id_flag,
+                            flag,
+                            measurement,
+                            input,
+                            remove_button
+                        ]).draw();
+                    }
+                    if( $( this ).hasClass( 'selected' ) ){
+                        $(this).find(":checkbox").prop("checked", true);
+                         // Add row to selected table
+                    }else{
+                        $(this).find(":checkbox").prop("checked", false);
+
+                    }
+                });
+            }
+        }
     </script>
     <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
     <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>

@@ -70,7 +70,7 @@
                         <td>{{probe.region}}</td>
                         <td>{{probe.country}}</td>
                         <td>{{probe.city}}</td>
-                        <td>{{probe.isp}}</td>
+                        <td>{{probe.isp.name}}</td>
                         <td>{{probe.plan}}</td>
                         <td>
                             <div class="btn-group ">
@@ -80,10 +80,10 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="{% url 'measurements:measurement_front:detail-probe' probe.id %}">Detail</a></li>
-                                    <li><a href="{% url 'measurements:measurement_front:edit-probe' probe.id %}">Edit</a></li>
+                                    <li><a href="{% url 'measurements:measurement_front:detail-probe' probe.identification %}">Detail</a></li>
+                                    <li><a href="{% url 'measurements:measurement_front:edit-probe' probe.identification %}">Edit</a></li>
                                     <li><a href="{% url 'measurements:measurement_front:list-report-probe' probe.identification %}">Reports</a></li>
-                                    <li><a href="" style="color:red;" class="delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{probe.id}}">Delete</a></li>
+                                    <li><a href="" style="color:red;" class="delete-btn" data-toggle="modal" data-target="#modal_delete" data-id="{{probe.identification}}">Delete</a></li>
                                 </ul>
                             </div>
                         </td>

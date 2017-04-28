@@ -231,7 +231,7 @@
             if (list[i]['mData'] == "measurement"){
                  list[i]['mRender'] = function ( data, type, full ) {
                         if (data != null){
-                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', full.measurement_id)
+                            var url_measurement = "{% url 'measurements:measurement_front:detail-measurement' 'data' %}".replace('data', data);
                             url_measurement = "<a href='" + url_measurement + "'>" + data + "</a>";
                             return url_measurement
                         }else{

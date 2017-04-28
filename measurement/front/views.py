@@ -391,7 +391,7 @@ class MeasurementAjaxView(DatatablesView):
 class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     model = Metric
     slug_url_kwarg = 'id'
-    slug_field = 'id__contains'
+    slug_field = 'measurement__contains'
     template_name = 'detail_measurement.html'
     page_header = "Measurement Detail"
     page_header_description = ""
@@ -1196,6 +1196,8 @@ class DetailProbe(PageTitleMixin, generic.DetailView):
     """DetailProbe: DetailView than
     give the details of a specific Probe object"""
     model = Probe
+    slug_url_kwarg = 'identification'
+    slug_field = 'identification'
     context_object_name = "probe"
     template_name = "detail_probe.html"
     page_header = "Probe Details"
@@ -1206,6 +1208,8 @@ class DetailProbe(PageTitleMixin, generic.DetailView):
 class DeleteProbe(generic.DeleteView):
     """DeleteProbe: DeleteView for deleting a specific probe."""
     model = Probe
+    slug_url_kwarg = 'identification'
+    slug_field = 'identification'
     success_url = reverse_lazy('measurements:measurement_front:list-probe')
 
 
@@ -1218,6 +1222,8 @@ class UpdateProbe(PageTitleMixin, generic.UpdateView):
     page_header_description = ""
     breadcrumb = ["Probes", "Edit Probe"]
     model = Probe
+    slug_url_kwarg = 'identification'
+    slug_field = 'identification'
     success_url = reverse_lazy('measurements:measurement_front:list-probe')
     template_name = 'create_probe.html'
 

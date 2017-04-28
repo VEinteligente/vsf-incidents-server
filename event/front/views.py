@@ -219,14 +219,71 @@ class DeleteEvent(LoginRequiredMixin, generic.DeleteView):
 
 
 class DetailEvent(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
-    """DetailEvent: DetailView than
-    give the details of a specific Event object"""
+    """
+    DetailEvent: DetailView than
+    give the details of a specific Event object
+    """
+    http_method_names = [u'get', u'post']
+
     model = Event
     context_object_name = "event"
     template_name = "detail_event.html"
     page_header = "Event Details"
     page_header_description = ""
     breadcrumb = ["Events", "Event Details"]
+    object = None
+
+    def post(self, request, *args, **kwargs):
+
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+
+        if 'clear-suggested-flags' in request.POST:
+            self.clear_suggested_flags()
+
+        if 'search-suggested-flag' in request.POST:
+            suggestedFlags(self.object)
+
+        if 'add-selected-flags' in request.POST:
+            self.add_selected_flags(request)
+
+        if 'add-all-flags' in request.POST:
+            self.add_all_flags()
+
+        return self.render_to_response(context)
+
+    def add_selected_flags(self, request):
+        flags = request.POST['flags'].split('&')
+        event = self.object
+        flags = filter(None, flags)
+        flags = Flag.objects.filter(
+            uuid__in=flags
+        )
+
+        for flag in flags:
+            if flag.flag == Flag.NONE and flag.manual_flag is False:
+                flag.flag = Flag.SOFT
+                flag.manual_flag = True
+            flag.event = event
+            flag.suggested_events.clear()
+            flag.save()
+
+    def add_all_flags(self):
+        flags = Flag.objects.filter(
+            suggested_events=self.object
+        )
+
+        for flag in flags:
+            if flag.flag == Flag.NONE and flag.manual_flag is False:
+                flag.flag = Flag.SOFT
+                flag.manual_flag = True
+            flag.event = self.object
+            flag.suggested_events.clear()
+            flag.save()
+
+    def clear_suggested_flags(self):
+        self.object.suggested_flags.clear()
+        self.object.save()
 
 
 class SuggestedFlagsTable(DatatablesView):
@@ -236,6 +293,7 @@ class SuggestedFlagsTable(DatatablesView):
     model = Flag
     queryset = Flag.objects.filter(event=None)
     fields = {
+        'Checkbox': 'uuid',
         'Measurement': 'metric__measurement',
         'Flag': 'flag',
         'Date': 'metric_date',

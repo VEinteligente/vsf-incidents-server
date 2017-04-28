@@ -13,7 +13,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
 from event.front.forms import EventEvidenceForm
-from event.models import Event, Url
+from event.models import Event, Url, ISP
 from event.utils import suggestedFlags
 from measurement.models import Flag
 
@@ -73,23 +73,6 @@ class PluginCreateEventView(
             form.fields['identification'].initial = identification
             context['form'] = form
         return context
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handles POST requests, instantiating a form instance with the passed
-        POST variables and then checked for validity.
-        """
-        print "1"
-        form = self.get_form()
-        print form
-        print "2"
-
-        if form.is_valid():
-            print "3"
-            return self.form_valid(form)
-        else:
-            print "4"
-            return self.form_invalid(form)
 
     def form_valid(self, form):
         """
@@ -271,11 +254,6 @@ class PluginUpdateEventView(
                 }
             )
         return context
-
-    def form_invalid(self, form):
-        print "SOY INVALIDO"
-        print form.errors
-        return super(PluginUpdateEventView, self).form_invalid(form)
 
 
 class DatatablesView(EditableDatatablesView):

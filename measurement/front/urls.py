@@ -73,17 +73,17 @@ urlpatterns = [
         name='list-probe'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/detail-probe/$',
+        r'^(?P<identification>[0-9]+)/detail-probe/$',
         views.DetailProbe.as_view(),
         name='detail-probe'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/delete-probe/$',
+        r'^(?P<identification>[0-9]+)/delete-probe/$',
         views.DeleteProbe.as_view(),
         name='delete-probe'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/edit-probe/$',
+        r'^(?P<identification>[0-9]+)/edit-probe/$',
         views.UpdateProbe.as_view(),
         name='edit-probe'
     ),
