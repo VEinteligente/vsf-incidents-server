@@ -387,7 +387,7 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
         )
 
 
-class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListView):
+class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
     """ListEventSuggestedFlags: ListView than
     display a list of all events with suggested flags"""
     model = Event
@@ -396,8 +396,35 @@ class ListEventSuggestedFlags(LoginRequiredMixin, PageTitleMixin, generic.ListVi
     page_header = "Event Suggestions"
     page_header_description = "Matches between existing events and hard flags"
     breadcrumb = ["Events", "Event Suggestions"]
+
+
+class ListEventSuggestedFlagsAjax(LoginRequiredMixin, DatatablesView):
     queryset = Event.objects.exclude(
-        suggested_flags=None).prefetch_related('suggested_flags', 'flags')
+        suggested_flags=None
+    ).prefetch_related(
+        'suggested_flags',
+        'flags'
+    ).annotate(
+        count_flags=Count('flags'),
+        count_suggested_flags=Count('suggested_flags')
+    )
+    fields = {
+        'id': 'id',
+        'Event': 'identification',
+        'Type': 'plugin_name',
+        'Current Flags': 'count_flags',
+        'Suggested Flags': 'count_suggested_flags',
+        'ISP': 'isp__name',
+        'Target': 'target__url',
+        'Start': 'start_date',
+        'Finish': 'end_date',
+        'Status': 'draft'
+    }
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
 
 
 # Deprecated - each pluggin have his own create event

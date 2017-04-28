@@ -21,7 +21,16 @@
         <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
     </a>
     <ul class="treeview-menu">
-        <li><a href="{% url 'events:event_front:list-event' %}"><span class="opt-name">List Events</span></a></li>
+        <li>
+            <a href="#">
+                <span class="opt-name">List</span>
+                <span class="pull-right-container"><i class="fa fa-angle-left pull-right"></i></span>
+            </a>
+            <ul class="treeview-menu">
+                <li><a href="{% url 'events:event_front:list-event' %}"><span class="opt-name">All Events</span></a></li>
+                <li><a href="{% url 'events:event_front:suggestions-event' %}"><span class="opt-name">With Suggested Flags</span></a></li>
+            </ul>
+        </li>
         <li><a href="{% url 'events:event_front:create-event' %}"><span class="opt-name">New Event</span></a></li>
         <li><a href="{% url 'events:event_front:create-event-evidence' %}"><span class="opt-name">New Event (External Evidence)</span></a></li>
     </ul>

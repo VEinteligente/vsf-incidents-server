@@ -14,22 +14,22 @@ urlpatterns = [
         name='create-ajax'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/update/$',
+        r'^(?P<pk>\w+)/update/$',
         views.UpdateEvent.as_view(),
         name='update-event'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/change-status/$',
+        r'^(?P<pk>\w+)/change-status/$',
         views.ChangeEventStatus.as_view(),
         name='change-event-status'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/delete/$',
+        r'^(?P<pk>\w+)/delete/$',
         views.DeleteEvent.as_view(),
         name='delete-event'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/detail/$',
+        r'^(?P<pk>\w+)/detail/$',
         views.DetailEvent.as_view(),
         name='detail-event'
     ),
@@ -54,7 +54,12 @@ urlpatterns = [
         name='suggestions-event'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/create_from_measurements/$',
+        r'^suggestions/table-ajax/$',
+        views.ListEventSuggestedFlagsAjax.as_view(),
+        name='suggestions-event-ajax'
+    ),
+    url(
+        r'^(?P<pk>\w+)/create_from_measurements/$',
         views.CreateEventMeasurementView.as_view(),
         name='create-event-from-measurements'
     ),
@@ -64,7 +69,7 @@ urlpatterns = [
         name='create-event-evidence'
     ),
     url(
-        r'^(?P<pk>[0-9]+)/update-with-evidence/$',
+        r'^(?P<pk>\w+)/update-with-evidence/$',
         views.UpdateEventEvidenceView.as_view(),
         name='update-event-evidence'
     ),

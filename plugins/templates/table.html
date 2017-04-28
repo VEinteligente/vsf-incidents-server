@@ -487,21 +487,34 @@
                 var id_flag = array[i];
                 var principal_rows = $('#principal-table').find('tbody').find('tr');
                 $(principal_rows).each(function(index) { 
-                    row = principal_rows[index];
-                    row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
+                    var row = principal_rows[index];
+                    var row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
                     if (row_id == id_flag){
                         $(this).toggleClass('selected');
                         var flag = $( this ).context.childNodes[1].innerText;
                         var measurement = $( this ).context.childNodes[3].innerText;
                         var input = $( this ).context.childNodes[4].innerText;
 
-                        selected_table.row.add([
-                            id_flag, 
-                            flag,
-                            measurement,
-                            input,
-                            remove_button
-                        ]).draw();
+                        var selected_rows = $('#selected-table').find('tbody').find('tr');
+                        var insert_row = false;
+                        $(selected_rows).each(function(index) {
+
+                            var row_selected_table = selected_rows[index];
+                            var row_selected_table_id = row_selected_table.childNodes[0].getElementsByTagName('input')[0].value;
+                            if (row_selected_table_id == id_flag){
+                                insert_row = true;
+                            }
+                        });
+
+                        if (insert_row) {
+                            selected_table.row.add([
+                                id_flag,
+                                flag,
+                                measurement,
+                                input,
+                                remove_button
+                            ]).draw();
+                        }
                     }
                     if( $( this ).hasClass( 'selected' ) ){
                         $(this).find(":checkbox").prop("checked", true);
