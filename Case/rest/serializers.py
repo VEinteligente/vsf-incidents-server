@@ -7,7 +7,7 @@ from rest_framework import serializers
 from Case.models import Case, Update, Category
 from measurement.models import State, Probe
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Url, Site
+from event.models import Target, Site
 
 import django_filters
 
@@ -57,7 +57,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
     def get_domains(self, obj):
         url_list = obj.events.all().values('target')
-        dm = Url.objects.filter(id__in=url_list)
+        dm = Target.objects.filter(id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
     def get_category(self, obj):

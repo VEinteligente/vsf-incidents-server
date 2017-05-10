@@ -12,7 +12,7 @@ from django.views import generic
 from eztables.views import DatatablesView
 
 from dashboard.mixins import PageTitleMixin
-from event.models import Event, Url
+from event.models import Event, Target
 from event.utils import suggestedFlags
 from measurement.models import Flag
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
@@ -52,7 +52,7 @@ class CreateEvent(LoginRequiredMixin, PageTitleMixin, generic.CreateView):
 
         for f in flags:
             split = f.split('&')
-            target = Url.objects.get(url=split[1])
+            target = Target.objects.get(url=split[1])
             flag = Flag.objects.filter(
                 Q(medicion=split[0],
                   target=target,
@@ -549,7 +549,7 @@ class CreateEventEvidenceView(
             self.object.end_date = None
 
         # Get or create Url object to be used as event target
-        target, created = Url.objects.get_or_create(
+        target, created = Target.objects.get_or_create(
             site=form.cleaned_data['target_site'],
             url=form.cleaned_data['target_url'],
             ip=form.cleaned_data['target_ip'])
@@ -622,7 +622,7 @@ class UpdateEventEvidenceView(
             self.object.end_date = None
 
         # Get or create Url object to be used as event target
-        target, created = Url.objects.get_or_create(
+        target, created = Target.objects.get_or_create(
             site=form.cleaned_data['target_site'],
             url=form.cleaned_data['target_url'],
             ip=form.cleaned_data['target_ip'])

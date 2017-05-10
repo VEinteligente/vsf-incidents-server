@@ -1,4 +1,4 @@
-from event.models import Event, Url
+from event.models import Event, Target
 from measurement.models import Flag, DNS
 from django.db.models import Q
 
@@ -26,8 +26,8 @@ def suggestedEvents(flag):
         isp = flag.metric.probe.isp
 
     try:
-        url = Url.objects.get(url=flag.metric.input)
-    except Url.DoesNotExist:
+        url = Target.objects.get(url=flag.metric.input)
+    except Target.DoesNotExist:
         url = None
 
     # this filter will return a queryset with duplicate events

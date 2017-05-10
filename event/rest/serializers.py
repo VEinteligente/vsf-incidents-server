@@ -1,6 +1,6 @@
 from django.db.models import Q, Count
 from rest_framework import serializers
-from event.models import Event, Url, Site
+from event.models import Event, Target, Site
 
 import django_filters
 from measurement.rest.serializers import FlagSerializer
@@ -10,7 +10,7 @@ class UrlSerializer(serializers.ModelSerializer):
     site = serializers.StringRelatedField()
 
     class Meta:
-        model = Url
+        model = Target
 
 
 class UrlFlagSerializer(UrlSerializer):
@@ -51,7 +51,7 @@ class BlockedSiteSerializer(SiteSerializer):
         )
         url_list = events.values('target')
 
-        dm = Url.objects.filter(site=obj, id__in=url_list)
+        dm = Target.objects.filter(site=obj, id__in=url_list)
         return UrlSerializer(dm, many=True).data
 
     class Meta(SiteSerializer.Meta):

@@ -15,7 +15,7 @@ from django.utils.module_loading import import_module
 from django.views import generic
 
 from event.models import (
-    Url,
+    Target,
     MutedInput
 )
 from event.utils import (
@@ -178,7 +178,7 @@ class UpdateFlagView(generic.UpdateView):
             else:
                 dns_isp = None
 
-            url, created = Url.objects\
+            url, created = Target.objects\
                               .get_or_create(url=row['input'])
 
             # dns_isp = 'cantv' # POR AHORA
@@ -299,7 +299,7 @@ class UpdateFlagView(generic.UpdateView):
             else:
                 dns_isp = None
 
-            url, created = Url.objects\
+            url, created = Target.objects\
                               .get_or_create(url=row['input'])
 
             for tcp in tcp_connect:
@@ -348,7 +348,7 @@ class UpdateFlagView(generic.UpdateView):
             else:
                 dns_isp = None
 
-            url, created = Url.objects\
+            url, created = Target.objects\
                               .get_or_create(url=row['input'])
 
             if not test_key.get_headers_match() and \

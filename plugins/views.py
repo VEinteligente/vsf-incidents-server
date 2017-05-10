@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from django.http import HttpResponseRedirect
 
 from event.front.forms import EventEvidenceForm
-from event.models import Event, Url, ISP
+from event.models import Event, Target, ISP
 from event.utils import suggestedFlags
 from measurement.models import Flag
 
@@ -114,7 +114,7 @@ class PluginCreateEventView(
                 except Exception:
                     flags_isp = None
 
-            target, created = Url.objects.get_or_create(
+            target, created = Target.objects.get_or_create(
                 url=flags_input
             )
 
@@ -171,7 +171,7 @@ class PluginCreateEventView(
             ###################################################
             # Get Target from form fields
             ###################################################
-            target, created = Url.objects.get_or_create(
+            target, created = Target.objects.get_or_create(
                 site=form.cleaned_data['target_site'],
                 url=form.cleaned_data['target_url'],
                 ip=form.cleaned_data['target_ip']

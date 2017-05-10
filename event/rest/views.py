@@ -15,7 +15,7 @@ from .serializers import (
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
-from event.models import Event, Url, Site
+from event.models import Event, Target, Site
 from datetime import datetime
 
 
@@ -40,7 +40,7 @@ class BlockedDomains(generics.ListAPIView):
 
     def get_queryset(self):
         url_list = self.queryset.values('target')
-        queryset = Url.objects.filter(id__in=url_list)
+        queryset = Target.objects.filter(id__in=url_list)
         return queryset
 
 

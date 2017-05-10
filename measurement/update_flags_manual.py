@@ -8,7 +8,7 @@ from django.db.models import (
 )
 
 from event.models import (
-    Url,
+    Target,
     MutedInput
 )
 from event.utils import (
@@ -38,7 +38,7 @@ def update_dns_flags(rows):
         else:
             dns_isp = None
 
-        url, created = Url.objects\
+        url, created = Target.objects\
                           .get_or_create(url=row['input'])
 
         # dns_isp = 'cantv' # POR AHORA
@@ -153,7 +153,7 @@ def update_tcp_flags(rows):
         else:
             dns_isp = None
 
-        url, created = Url.objects\
+        url, created = Target.objects\
                           .get_or_create(url=row['input'])
 
         for tcp in tcp_connect:
@@ -198,7 +198,7 @@ def update_http_flags(rows):
         else:
             dns_isp = None
 
-        url, created = Url.objects\
+        url, created = Target.objects\
                           .get_or_create(url=row['input'])
 
         if not test_key.get_headers_match() and \

@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 
-from event.models import Url, Event
+from event.models import Target, Event
 from event.utils import suggestedFlags
 from measurement.models import Metric, Flag, Probe, Measurement
 
@@ -134,7 +134,7 @@ def change_to_manual_flag_sql(metric_sql):
 
         if not flags:
             # Get or Create Url Input
-            url, created = Url.objects\
+            url, created = Target.objects\
                               .get_or_create(url=metric_sql['input'])
 
             type_med = get_type_med(metric_sql['test_name'])
@@ -176,7 +176,7 @@ def change_to_manual_flag_and_create_event(metrics_sql, type_med):
 
         if not flags:
             # Get or Create Url Input
-            url, created = Url.objects\
+            url, created = Target.objects\
                               .get_or_create(url=metric_sql['input'])
 
             if type_med == "MED":
@@ -280,7 +280,7 @@ def change_to_flag_and_create_event(metrics_sql, list_ip, type_med):
 
                 if not flags:
                     # Get or Create Url Input
-                    url, created = Url.objects\
+                    url, created = Target.objects\
                                       .get_or_create(url=metric_sql['input'])
 
                     # Create Manual Flag

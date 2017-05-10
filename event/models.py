@@ -80,15 +80,27 @@ class Plan(models.Model):
         return u"%s" % self.name
 
 
-class Site(models.Model):
+class SiteCategory(models.Model):
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=50)
+    description = models.TextField(null=True, blank=True)
+    abbreviation = models.CharField(max_length=5, null=True, blank=True)
 
     def __unicode__(self):
         return u"%s" % self.name
 
 
-class Url(models.Model):
+class Site(models.Model):
+
+    name = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    category = models.ForeignKey(SiteCategory, null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s" % self.name
+
+
+class Target(models.Model):
 
     site = models.ForeignKey(Site, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
@@ -130,7 +142,7 @@ class Event(models.Model):
     isp = models.ForeignKey(ISP, null=True, blank=True)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
-    target = models.ForeignKey(Url)  # input in metrics
+    target = models.ForeignKey(Target)  # input in metrics
     region = models.ForeignKey(State, null=True, blank=True)
     identification = models.CharField(max_length=50, unique=True)
     draft = models.BooleanField(default=True)
