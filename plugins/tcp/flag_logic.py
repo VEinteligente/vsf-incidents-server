@@ -5,8 +5,10 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
-from measurement.models import Metric, Flag, MutedInput
+from measurement.models import Metric, Flag
+from event.models import MutedInput
 from plugins.tcp.models import TCP
+from event.utils import suggestedEvents
 
 
 def web_connectivity_to_tcp():
@@ -159,7 +161,7 @@ def soft_to_hard_flags():
             flags_to_update.update(flag=Flag.HARD)
 
             for flag in flags_to_update:
-                pass
+                suggestedEvents(flag)
                 # Here comes the code to suggest events to each hard flag
                 # Here comes the code to suggest hard to another
                 # hard flags to create a new event
@@ -230,7 +232,7 @@ def soft_to_hard_flags():
                 flags_to_update.update(flag=Flag.HARD)
 
                 for flag in flags_to_update:
-                    pass
+                    suggestedEvents(flag)
                     # Here comes the code to suggest events to each hard flag
                     # Here comes the code to suggest hard to another
                     # hard flags to create a new event

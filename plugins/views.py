@@ -1,11 +1,12 @@
 from django.shortcuts import render
 
+from datetime import datetime
 from eztables.views import DatatablesView as EditableDatatablesView
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.mixins import PageTitleMixin
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 import time
@@ -44,8 +45,8 @@ class PluginTableView(
     def get_context_data(self, **kwargs):
         context = super(PluginTableView, self).get_context_data(**kwargs)
         context['titles'] = self.titles
-        json = self.get_render_json()
-        context['aoColumns_json'] = json
+        aux_json = self.get_render_json()
+        context['aoColumns_json'] = aux_json
         if self.url_ajax is not None:
             context['url_ajax'] = self.url_ajax
         return context
@@ -200,7 +201,9 @@ class PluginUpdateEventView(
     success_url = reverse_lazy('events:event_front:list-event')
 
     def get_context_data(self, **kwargs):
-        '''Initial data for Event form'''
+        """
+        Initial data for Event form
+        """
 
         context = super(PluginUpdateEventView, self).get_context_data(**kwargs)
 
@@ -254,6 +257,46 @@ class PluginUpdateEventView(
                 }
             )
         return context
+
+
+class SuggestedEventsAjax(LoginRequiredMixin, generic.View):
+    http_method_names = [u'get', ]
+    flag = None
+
+    def get(self, request, *args, **kwargs):
+        try:
+
+            self.flag = Flag.objects.get(uuid=request.GET['flag'])
+        except Flag.DoesNotExist:
+            return JsonResponse(
+                {
+                    'status': 'false',
+                    'message': 'No matching flag'
+                },
+                status=404
+            )
+
+        events = self.flag.suggested_events.all()
+
+        response = []
+
+        for event in events:
+            start_date = datetime.date(event.start_date).strftime('%b. %d, %Y, %I:%M %p')
+            if event.end_date is None:
+                end_date = 'Open ended'
+            else:
+                end_date = datetime.date(event.end_date).strftime('%b. %d, %Y, %I:%M %p')
+
+            node = {
+                'id': event.id,
+                'name': event.identification,
+                'isp': event.isp.name,
+                'start': start_date,
+                'end': end_date
+            }
+            response.append(node)
+
+        return JsonResponse({'events': response})
 
 
 class DatatablesView(EditableDatatablesView):

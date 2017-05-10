@@ -1,54 +1,63 @@
-from event.models import Event
+from event.models import Event, Url
 from measurement.models import Flag, DNS
 from django.db.models import Q
 
 
 def suggestedEvents(flag):
     """
-    suggestedEvents: Function than assign a given hard flag (parameter)
+    suggestedEvents: Function than assign a given flag (parameter)
     to every existing event with same target and isp. This function save
     directly to DB and return true when the function finish successfully
     or false when a error happens during the execution of this function
     Args:
         flag: Flag object with a hard flag data
     """
+    # searching for events open ended with same target, same isp,
+    # and with associated flags with que same region
+
+    region = flag.metric.probe.region
+    plugin_name = flag.plugin_name
     try:
-        # get all types of event according the hard flag
-        event_types = get_event_types(flag)
-        # searching for events open ended with same target, same isp,
-        # and with associated flags with que same region
+        dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)
+        isp = dns_server.isp
+        if isp != flag.metric.probe.isp:
+            region = None
+    except Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist:
+        isp = flag.metric.probe.isp
 
-        region = flag.metric.probe.region
+    try:
+        url = Url.objects.get(url=flag.metric.input)
+    except Url.DoesNotExist:
+        url = None
 
-        try:
-            dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)
-            isp = dns_server.isp
-            if isp != flag.metric.probe.isp:
-                region = None
-        except Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist:
-            isp = flag.metric.probe.isp
+    # this filter will return a queryset with duplicate events
+    events = Event.objects.filter(Q(
+        isp=isp,
+        target=url,
+        region=region,
+        plugin_name=plugin_name
+    ) | Q(
+        isp=isp,
+        target=url,
+        region=None,
+        plugin_name=plugin_name
+    ))
 
-        # this filter will return a queryset with duplicate events
-        events = Event.objects.filter(
-            isp=isp,
-            target=flag.metric.input,
-            end_date=None,
-            flags__metric__probe__region=region
-        )
-        if event_types:
-            events = events.filter(
-                type__in=event_types,
-            )
+    events = events.filter(Q(
+        start_date__lte=flag.metric.measurement_start_time,
+        end_date__gte=flag.metric.measurement_start_time
+    ) | Q(
+        start_date__lte=flag.metric.measurement_start_time,
+        end_date=None
+    ))
 
-        # eliminate duplicate events in queryset
-        # defining a set with the queryset
-        events = set(events)
-        # assign every event in the list as a suggested_event of
-        # the hard flag
-        flag.suggested_events.add(events)
-        return True
-    except Exception:
-        return False
+    # eliminate duplicate events in queryset
+    # defining a set with the queryset
+    events = set(events)
+    # assign every event in the list as a suggested_event of
+    # the hard flag
+    flag.suggested_events.add(events)
+    return True
 
 
 def suggestedFlags(event):

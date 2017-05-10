@@ -5,6 +5,11 @@
 
 {% block extracss %}
     {% datatables_bootstrap_css %}
+    <style type="text/css">
+        .popover{
+            max-width: 100%; /* Max Width of the popover (depending on the container!) */
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -116,7 +121,7 @@
 
 
 {% block extrajs %}
-<script>
+<script type="application/javascript">
 
     $(function () {
 
@@ -178,16 +183,24 @@
                  list[i]['mRender'] = function ( data, type, full ) {
 
                         var flag_icon = "";
-                       
                         
                         if (data == 'hard'){
-                        flag_icon = 'Hard <i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i><span class="hide">hard</span>';
+                            flag_icon = '<span title="Suggested Events" class="btn btn-xs btn-default" ' +
+                                'data-toggle="popover" data-content="' +
+                                ajax_and_render_suggested_events(full.checkbox) +
+                                '">Hard ' +
+                                '<i class="glyphicon glyphicon-flag" style="color: red;" aria-hidden="true"></i></span>';
                         }
                         if (data == 'soft'){
-                            flag_icon = 'Soft <i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i><span class="hide">soft</span>';
+                            flag_icon = '<span title="Suggested Events" class="btn btn-xs btn-default" ' +
+                                'data-toggle="popover" data-content="' +
+                                ajax_and_render_suggested_events(full.checkbox) +
+                                '">Soft ' +
+                                '<i class="glyphicon glyphicon-flag" style="color: yellow;" aria-hidden="true"></i></span>';
                         }
                         if (data == 'muted'){
-                            flag_icon = 'Muted <i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i><span class="hide">mute</span>';
+                            flag_icon = '<span class="">mute</span> ' +
+                                '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>';
                         }
                         
                         if (data == 'none'){
@@ -267,6 +280,10 @@
             "aoColumns": list,
             "fnDrawCallback": function( oSettings ) {
                 fill_rows_tables();
+                $('[data-toggle="popover"]').popover({
+                    html: true
+                });
+                $('.suggested-events-table').dataTable();
             }
         });
 
@@ -526,7 +543,60 @@
                 });
             }
         }
+
+        function ajax_and_render_suggested_events(flag){
+            var table = $('#data-toggle-suggested-events-table').html();
+            var trows = "";
+            var theres_no_events_or_error = true;
+            var response = "";
+            $.ajax({
+                url: "{% url 'plugins:suggested-events-ajax' %}",
+                method: 'GET',
+                data: {'flag': flag},
+                async: false,
+                error: function(obj){
+                    theres_no_events_or_error = false;
+                    response = obj.responseJSON.message;
+                },
+                success: function(data){
+                    if( data.events.length < 1 ){
+                        theres_no_events_or_error = false;
+                        response = "No events";
+                    }
+                    for(var i=0; i<data.events.length; i++){
+                        var node = "<tr>" +
+                            "<td>" + data.events[i].isp + "</td>" +
+                            "<td>" + data.events[i].name + "</td>" +
+                            "<td>" + data.events[i].start + "</td>" +
+                            "<td>" + data.events[i].end + "</td>" +
+                            "<td><a href='" + data.events[i].id + "' class='btn btn-sm btn-primary'>Add</a></td>" +
+                            "</tr>";
+                        trows = trows.concat(node);
+                    }
+                    table = table.replace('__table-rows__', trows);
+                }
+            });
+            if ( theres_no_events_or_error == true ){
+                return table
+            }else{
+                return response
+            }
+        }
     })
 
+</script>
+<script type="text/html" id="data-toggle-suggested-events-table">
+    <table class='table table-responsive suggested-events-table'>
+        <thead>
+            <th>ISP</th>
+            <th>Name</th>
+            <th>Init</th>
+            <th>End</th>
+            <th>Actions</th>
+        </thead>
+        <tbody>
+            __table-rows__
+        </tbody>
+    </table>
 </script>
 {% endblock %}
