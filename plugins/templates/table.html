@@ -204,7 +204,9 @@
                         }
                         
                         if (data == 'none'){
-                            flag_icon = "No Flag"
+                            flag_icon = "<a class='add_manual_flag' data-content='" +
+                                full.checkbox +
+                                "'>No Flag</a>"
                         }
 
                         return flag_icon;
@@ -283,7 +285,6 @@
                 $('[data-toggle="popover"]').popover({
                     html: true
                 });
-                $('.suggested-events-table').dataTable();
             }
         });
 
@@ -582,6 +583,25 @@
                 return response
             }
         }
+
+        $(document).on("click", ".add_manual_flag", function(){
+            var flag_id = $(this).attr('data-content');
+            if(confirm("Are you sure you want to convert this measurement to a flag?")){
+                $.ajax({
+                    url: "{% url 'measurements:measurement_front:create_manual_flag' %}",
+                    method: 'POST',
+                    data: {
+                        flag: flag_id
+                    },
+                    error: function(a, b , c){
+                        principal_table.fnDraw();
+                    },
+                    success: function(data){
+                        principal_table.fnDraw();
+                    }
+                });
+            }
+        });
     })
 
 </script>

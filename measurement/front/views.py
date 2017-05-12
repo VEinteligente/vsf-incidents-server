@@ -22,6 +22,7 @@ from measurement.front.forms import (
     MeasurementToEventForm
 )
 from event.models import Target, MutedInput, Country, State, ISP, Plan
+from event.utils import suggestedEvents
 from measurement.utils import *
 from plugins.views import PluginTableView
 from plugins.dns.models import DNS as DNS_METRIC
@@ -1607,7 +1608,24 @@ class EventFromHTTPMeasurementView(EventFromMeasurementView):
     measurement_type = 'HTTP'
 
 
+class CreateManualFlag(generic.View):
+
+    flag_id = None
+    object = None
+
+    def post(self, request, *args, **kwargs):
+
+            self.flag_id = request.POST['flag']
+            self.object = Flag.objects.get(uuid=self.flag_id)
+            self.object.flag = Flag.HARD
+            self.object.manual_flag = True
+            self.object.save()
+            suggestedEvents(self.object)
+
+            return JsonResponse({'data': True})
+
 ######################## PRUEBA #######################################
+
 
 class PruebaDataTable(generic.TemplateView):
 

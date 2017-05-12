@@ -22,7 +22,7 @@ def suggestedEvents(flag):
         isp = dns_server.isp
         if isp != flag.metric.probe.isp:
             region = None
-    except Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist:
+    except (Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist) as e:
         isp = flag.metric.probe.isp
 
     try:
@@ -53,10 +53,12 @@ def suggestedEvents(flag):
 
     # eliminate duplicate events in queryset
     # defining a set with the queryset
+    print events
     events = set(events)
+    print events
     # assign every event in the list as a suggested_event of
     # the hard flag
-    flag.suggested_events.add(events)
+    flag.suggested_events.add(*events)
     return True
 
 

@@ -76,7 +76,7 @@ def tcp_to_flag():
 
     for p in tcp_paginator.page_range:
         print tcp_paginator.count
-        page = tcp_paginator.page(1)
+        page = tcp_paginator.page(p)
 
         for tcp_obj in page.object_list:
             flag = Flag(

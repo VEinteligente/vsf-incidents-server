@@ -133,6 +133,11 @@ urlpatterns = [
         name='measurements_to_event'
     ),
     url(
+        r'^create_manual_flag/$',
+        views.CreateManualFlag.as_view(),
+        name='create_manual_flag'
+    ),
+    url(
         r'^prueba/$',
         views.PruebaDataTable.as_view(),
         name='test'
