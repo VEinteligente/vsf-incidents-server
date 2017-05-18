@@ -1,6 +1,12 @@
 import json
 import threading
 
+import datetime
+import logging
+import time
+
+from django.conf import settings
+
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
 from django.db.models import (
@@ -486,16 +492,27 @@ def luigiUpdateFlagTask():
     global running
     running += 1
     print "comenzo a hacer el hilo"
+
+    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+    SYNCHRONIZE_logger.info("[%s]comenzo a hacer el hilo" %
+                            datetime.datetime.now())
+
     copy_from_measurements_to_metrics()
     # ----------------------------------------------
     for module in FLAG_TESTS:
+        SYNCHRONIZE_logger.info("[%s]comenzo con %s" %
+                                (datetime.datetime.now(), module['module_name']))
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
             methodToCall = getattr(m, function)
             result = methodToCall()
+        SYNCHRONIZE_logger.info("[%s]termino con %s" %
+                                (datetime.datetime.now(), module['module_name']))
     # ---------------------------------------------
     running -= 1
     print "termino el hilo"
+    SYNCHRONIZE_logger.info("[%s]Termino el hilo" %
+                            datetime.datetime.now())
 
 
 """
@@ -513,10 +530,12 @@ class LuigiUpdateFlagView(generic.View):
     exclusive thread to update flags.
     """
     def get(self, request, *args, **kwargs):
+        SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
         global running
         if running < 1:
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
         else:
-            print "task already run"
+            SYNCHRONIZE_logger.info("[%s]Threat already running" %
+                                    datetime.datetime.now())
         return HttpResponse(status=200)

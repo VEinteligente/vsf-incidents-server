@@ -15,6 +15,8 @@ from measurement.models import Metric, Flag, Probe, Measurement
 def copy_from_measurements_to_metrics():
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
+    SYNCHRONIZE_logger.info("[%s]Starting synchronization" %
+                            datetime.datetime.now())
     print SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -27,6 +29,8 @@ def copy_from_measurements_to_metrics():
         ).latest('measurement_start_time').measurement_start_time
     else:
         print "SYNCHRONIZE_DATE is None"
+        SYNCHRONIZE_logger.info("[%s]YNCHRONIZE_DATE is None" %
+                                datetime.datetime.now())
         measurements = Measurement.objects.all()
         measurements_date = Measurement.objects.all().latest(
             'measurement_start_time').measurement_start_time
@@ -40,6 +44,8 @@ def copy_from_measurements_to_metrics():
 #         ).measurement_start_time
 
     print "Start Creating/updating"
+    SYNCHRONIZE_logger.info("[%s]Start Creating/updating" %
+                            datetime.datetime.now())
     metric_paginator = Paginator(measurements, 1000)
 
     print metric_paginator.page_range
