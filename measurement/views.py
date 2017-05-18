@@ -22,6 +22,7 @@ from event.utils import (
     suggestedEvents
 )
 from measurement.front.views import DBconnection, DNSTestKey
+from measurement.utils import copy_from_measurements_to_metrics
 from measurement.models import (
     Flag,
     DNS,
@@ -485,7 +486,7 @@ def luigiUpdateFlagTask():
     global running
     running += 1
     print "comenzo a hacer el hilo"
-    update_flags_manual()
+    copy_from_measurements_to_metrics()
     # ----------------------------------------------
     for module in FLAG_TESTS:
         m = import_module("plugins.%s.flag_logic" % module['module_name'])

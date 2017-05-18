@@ -102,12 +102,30 @@ class Site(models.Model):
 
 class Target(models.Model):
 
+    SITE = 'site'
+    URL = 'url'
+    IP = 'ip'
+
+    TYPE = (
+        (SITE, 'Site'),
+        (URL, 'Url'),
+        (IP, 'Ip')
+    )
+
     site = models.ForeignKey(Site, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
 
+    type = models.CharField(choices=TYPE, default=SITE, max_length=5)
+
     def __unicode__(self):
-        return u"%s@%s - ip:%s" % (self.site, self.url, self.ip)
+
+        if self.type == self.SITE:
+            return u"%s -> %s" % (self.type, self.site)
+        elif self.type == self.URL:
+            return u"%s -> %s" % (self.type, self.url)
+        elif self.type == self.IP:
+            return u"%s -> %s" % (self.type, self.ip)
 
 
 class Event(models.Model):
