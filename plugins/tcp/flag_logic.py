@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
 from measurement.models import Metric, Flag
-from event.models import MutedInput
+from event.models import MutedInput, Target
 from plugins.tcp.models import TCP
 from event.utils import suggestedEvents
 
@@ -54,12 +54,19 @@ def web_connectivity_to_tcp():
                     tcp_connect['status']['blocked'] is not None) and (
                     tcp_connect['status']['success'] is not None
                 ):
+                    try:
+                        target = Target.objects.get(ip=tcp_connect['ip'], type=Target.IP)
+                    except Target.DoesNotExist:
+                        target = Target(ip=tcp_connect['ip'], type=Target.IP)
+                        target.save()
+                    except Target.MultipleObjectsReturned:
+                        target = Target.objects.filter(ip=tcp_connect['ip'], type=Target.IP).first()
                     tcp = TCP(
                         metric_id=tcp_metric['id'],
                         status_blocked=tcp_connect['status']['blocked'],
                         status_failure=tcp_connect['status']['failure'],
                         status_success=tcp_connect['status']['success'],
-                        target=tcp_connect['ip']
+                        target=target
                     )
                     tcp.save()
 
@@ -82,6 +89,7 @@ def tcp_to_flag():
             flag = Flag(
                 metric_date=tcp_obj.metric.measurement_start_time,
                 metric=tcp_obj.metric,
+                target=tcp_obj.target,
                 plugin_name=tcp_obj.__class__.__name__
             )
             # If there is a true flag give 'soft' type

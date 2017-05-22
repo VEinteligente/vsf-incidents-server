@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 from measurement.models import Flag, Metric
+from event.models import Target
 
 
 class DNS(models.Model):
@@ -23,3 +24,4 @@ class DNS(models.Model):
     answers = JSONField(null=True)
     resolver_hostname = models.GenericIPAddressField(
         null=True, blank=True)  # servidor DNS que se esta evaluando, (target)
+    target = models.ForeignKey(Target, null=True, blank=True)

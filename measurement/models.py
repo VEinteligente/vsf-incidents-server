@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import uuid
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from event.models import Event, State, Country, ISP, Plan
+from event.models import Event, State, Country, ISP, Plan, Target
 
 
 class Probe(models.Model):
@@ -134,6 +134,7 @@ class Flag(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     metric = models.ForeignKey(Metric, null=True)
     metric_date = models.DateTimeField()
+    target = models.ForeignKey(Target, null=True, blank=True)
     plugin_name = models.CharField(max_length=100, null=True, blank=True)
 
     # ---------------------------------------------------

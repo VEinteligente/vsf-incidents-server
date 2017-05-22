@@ -25,20 +25,15 @@ def suggestedEvents(flag):
     except (Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist) as e:
         isp = flag.metric.probe.isp
 
-    try:
-        url = Target.objects.get(url=flag.metric.input)
-    except Target.DoesNotExist:
-        url = None
-
     # this filter will return a queryset with duplicate events
     events = Event.objects.filter(Q(
         isp=isp,
-        target=url,
+        target=flag.target,
         region=region,
         plugin_name=plugin_name
     ) | Q(
         isp=isp,
-        target=url,
+        target=flag.target,
         region=None,
         plugin_name=plugin_name
     ))
@@ -53,9 +48,7 @@ def suggestedEvents(flag):
 
     # eliminate duplicate events in queryset
     # defining a set with the queryset
-    print events
     events = set(events)
-    print events
     # assign every event in the list as a suggested_event of
     # the hard flag
     flag.suggested_events.add(*events)
@@ -82,13 +75,13 @@ def suggestedFlags(event):
             Q(
                 flag=Flag.SOFT,
                 event=None,
-                metric__input=event.target.url,
+                target=event.target,
                 metric__probe__isp=event.isp,
                 plugin_name=event.plugin_name) |
             Q(
                 flag=Flag.HARD,
                 event=None,
-                metric__input=event.target.url,
+                target=event.target,
                 metric__probe__isp=event.isp,
                 plugin_name=event.plugin_name)
         )

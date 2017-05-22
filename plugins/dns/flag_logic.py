@@ -5,7 +5,7 @@ from django.utils.timezone import make_aware
 
 from vsf import conf
 from django.db.models import F, Count, Case, When, CharField, Q
-from event.models import MutedInput
+from event.models import MutedInput, Target
 from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
 from event.utils import suggestedEvents
@@ -56,12 +56,24 @@ def web_connectivity_to_dns():
         for query in dns_metric['queries']:
             for answer in query['answers']:
                 if dns_metric['dnss'] is None:
+                    if 'hostname' in query:
+                        domain = query['hostname']
+                        try:
+                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                        except Target.DoesNotExist:
+                            target = Target(domain=domain, type=Target.DOMAIN)
+                            target.save()
+                        except Target.MultipleObjectsReturned:
+                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                    else:
+                        target = None
                     dns = DNS(
                         metric_id=dns_metric['id'],
                         control_resolver_failure=cr['failure'],
                         control_resolver_answers=cr['answers'],
                         failure=query['failure'],
-                        answers=answer
+                        answers=answer,
+                        target=target
                     )
                     dns.save()
 
@@ -125,6 +137,14 @@ def dns_consistency_to_dns():
         for query in dns_metric['queries']:
             if query['resolver_hostname'] != cr_ip:
                 if dns_metric['dnss'] is None:
+                    domain = dns_metric['input']
+                    try:
+                        target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                    except Target.DoesNotExist:
+                        target = Target(domain=domain, type=Target.DOMAIN)
+                        target.save()
+                    except Target.MultipleObjectsReturned:
+                        target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
                     dns = DNS(
                         metric_id=dns_metric['id'],
                         control_resolver_failure=cr['failure'],
@@ -133,6 +153,7 @@ def dns_consistency_to_dns():
                         failure=query['failure'],
                         answers=query['answers'],
                         resolver_hostname=query['resolver_hostname'],
+                        target=target
                     )
                     dns.save()
 
@@ -185,6 +206,7 @@ def dns_to_flag():
             flag = Flag(
                 metric_date=dns.metric.measurement_start_time,
                 metric=dns.metric,
+                target=dns.target,
                 plugin_name=dns.__class__.__name__
             )
 

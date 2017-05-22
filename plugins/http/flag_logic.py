@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 from django.db.models import F, Count, Case, When, CharField, Q
 from vsf import conf
 from measurement.models import Metric, Flag
-from event.models import MutedInput
+from event.models import MutedInput, Target
 from plugins.http.models import HTTP
 from event.utils import suggestedEvents
 
@@ -75,12 +75,22 @@ def web_connectivity_to_http():
                 metric_id=http_metric['id']
             ).exists()
             if not http_exist:
+                url = http_metric['input']
+                try:
+                    target = Target.objects.get(url=url, type=Target.URL)
+                except Target.DoesNotExist:
+                    target = Target(url=url, type=Target.URL)
+                    target.save()
+                except Target.MultipleObjectsReturned:
+                    target = Target.objects.filter(url=url, type=Target.URL).first()
+
                 http = HTTP(
                     metric_id=http_metric['id'],
                     status_code_match=http_metric['status_code_match'],
                     headers_match=http_metric['headers_match'],
                     body_length_match=http_metric['body_length_match'],
-                    body_proportion=http_metric['body_proportion']
+                    body_proportion=http_metric['body_proportion'],
+                    target=target
                 )
                 http.save()
 
@@ -121,6 +131,7 @@ def http_to_flag():
             flag = Flag(
                 metric_date=http.metric.measurement_start_time,
                 metric=http.metric,
+                target=http.target,
                 plugin_name=http.__class__.__name__
             )
 

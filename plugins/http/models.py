@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from event.models import Target
 from measurement.models import Flag, Metric
 
 
@@ -14,3 +15,4 @@ class HTTP(models.Model):
     body_length_match = models.BooleanField(default=False)
 
     body_proportion = models.FloatField()
+    target = models.ForeignKey(Target, null=True, blank=True)

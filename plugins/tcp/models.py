@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from event.models import Target
 from measurement.models import Flag, Metric
 
 
@@ -13,4 +14,4 @@ class TCP(models.Model):
     status_failure = models.TextField(null=True)
     status_success = models.BooleanField(default=True)
 
-    target = models.GenericIPAddressField(null=True, blank=True)
+    target = models.ForeignKey(Target, null=True, blank=True)

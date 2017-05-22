@@ -102,21 +102,22 @@ class Site(models.Model):
 
 class Target(models.Model):
 
-    SITE = 'site'
+    DOMAIN = 'domain'
     URL = 'url'
     IP = 'ip'
 
     TYPE = (
-        (SITE, 'Site'),
+        (DOMAIN, 'Domain'),
         (URL, 'Url'),
         (IP, 'Ip')
     )
 
     site = models.ForeignKey(Site, null=True, blank=True)
+    domain = models.CharField(max_length=100, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
 
-    type = models.CharField(choices=TYPE, default=SITE, max_length=5)
+    type = models.CharField(choices=TYPE, default=DOMAIN, max_length=10)
 
     def __unicode__(self):
 
