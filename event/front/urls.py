@@ -73,4 +73,9 @@ urlpatterns = [
         views.UpdateEventEvidenceView.as_view(),
         name='update-event-evidence'
     ),
+    url(
+        r'^targets-list/$',
+        views.ListTargets.as_view(),
+        name='targets-list'
+    ),
 ]

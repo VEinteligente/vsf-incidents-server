@@ -427,6 +427,13 @@ class ListEventSuggestedFlagsAjax(LoginRequiredMixin, DatatablesView):
         )
 
 
+class ListTargets(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
+    template_name = "list_eventflagmatch.html"
+    page_header = "Targets List"
+    page_header_description = "List of targets"
+    breadcrumb = ["Events", "Targets"]
+
+
 # Deprecated - each pluggin have his own create event
 class CreateEventMeasurementView(
     UpdateEvent,
