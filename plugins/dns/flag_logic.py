@@ -247,10 +247,6 @@ def soft_to_hard_flags():
     ).prefetch_related(
         'dnss__metric'
     ).annotate(
-        target=Case(
-            default=F('dnss__metric__input'),
-            output_field=CharField()
-        ),
         isp=Case(
             default=F('dnss__resolver_hostname'),
             output_field=CharField()
@@ -281,7 +277,7 @@ def soft_to_hard_flags():
             # Get flags to update to hard flags
             flags_to_update_id = flags.filter(
                 isp=r['isp'],
-                target=r['target']
+                target__id=r['target']
             ).values_list('id', flat=True)
 
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
@@ -309,10 +305,6 @@ def soft_to_hard_flags():
     ).prefetch_related(
         'dnss__metric__probe__isp'
     ).annotate(
-        target=Case(
-            default=F('dnss__metric__input'),
-            output_field=CharField()
-        ),
         isp=Case(
             default=F('dnss__metric__probe__isp__name'),
             output_field=CharField()
@@ -342,7 +334,7 @@ def soft_to_hard_flags():
             # Get flags to update to hard flags
             flags_to_update_id = flags.filter(
                 isp=r['isp'],
-                target=r['target']
+                target__id=r['target']
             ).values_list('id', flat=True)
 
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
@@ -377,10 +369,6 @@ def soft_to_hard_flags():
         ).prefetch_related(
             'dnss__metric__probe__region'
         ).annotate(
-            target=Case(
-                default=F('dnss__metric__input'),
-                output_field=CharField()
-            ),
             isp=Case(
                 default=F('dnss__resolver_hostname'),
                 output_field=CharField()
@@ -421,7 +409,7 @@ def soft_to_hard_flags():
                 # Get flags to update to hard flags
                 flags_to_update_id = flags.filter(
                     isp=r['isp'],
-                    target=r['target'],
+                    target__id=r['target'],
                     region=r['region']
                 ).values_list('id', flat=True)
 
@@ -449,10 +437,6 @@ def soft_to_hard_flags():
         ).prefetch_related(
             'dnss__metric__probe__isp'
         ).annotate(
-            target=Case(
-                default=F('dnss__metric__input'),
-                output_field=CharField()
-            ),
             isp=Case(
                 default=F('dnss__metric__probe__isp__name'),
                 output_field=CharField()
@@ -486,7 +470,7 @@ def soft_to_hard_flags():
                 # Get flags to update to hard flags
                 flags_to_update_id = flags.filter(
                     isp=r['isp'],
-                    target=r['target'],
+                    target__id=r['target'],
                     region=r['region']
                 ).values_list('id', flat=True)
 
