@@ -497,7 +497,7 @@ def luigiUpdateFlagTask():
     SYNCHRONIZE_logger.info("[%s]comenzo a hacer el hilo" %
                             datetime.datetime.now())
 
-    copy_from_measurements_to_metrics()
+    # copy_from_measurements_to_metrics()
     # ----------------------------------------------
     for module in FLAG_TESTS:
         SYNCHRONIZE_logger.info("[%s]comenzo con %s" %

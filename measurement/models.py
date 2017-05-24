@@ -113,6 +113,10 @@ class Metric(models.Model):
         return super(Metric, self).save(force_insert=False, force_update=False, using=None,
                                         update_fields=None)
 
+    def __unicode__(self):
+
+        return u"%s -> %s" % (self.test_name, self.measurement)
+
 
 class Flag(models.Model):
 

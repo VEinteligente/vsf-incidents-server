@@ -121,8 +121,8 @@ class Target(models.Model):
 
     def __unicode__(self):
 
-        if self.type == self.SITE:
-            return u"%s -> %s" % (self.type, self.site)
+        if self.type == self.DOMAIN:
+            return u"%s -> %s" % (self.type, self.domain)
         elif self.type == self.URL:
             return u"%s -> %s" % (self.type, self.url)
         elif self.type == self.IP:

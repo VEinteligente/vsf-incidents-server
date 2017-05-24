@@ -116,7 +116,8 @@ def dns_consistency_to_dns():
         'measurement',
         'queries',
         'control_resolver',
-        'dnss'
+        'dnss',
+        'input'
     )
 
     # for each dns metric get control resolver and other fields
