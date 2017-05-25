@@ -495,7 +495,7 @@ def luigiUpdateFlagTask():
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
     SYNCHRONIZE_logger.info("comenzo a hacer el hilo")
 
-    # copy_from_measurements_to_metrics()
+    copy_from_measurements_to_metrics()
     # ----------------------------------------------
     for module in FLAG_TESTS:
         SYNCHRONIZE_logger.info("comenzo con %s" % module['module_name'])

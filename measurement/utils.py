@@ -44,8 +44,7 @@ def copy_from_measurements_to_metrics():
 #         ).measurement_start_time
 
     print "Start Creating/updating"
-    SYNCHRONIZE_logger.info("[%s]Start Creating/updating" %
-                            datetime.datetime.now())
+    SYNCHRONIZE_logger.info("Start Creating/updating")
     metric_paginator = Paginator(measurements, 1000)
 
     print metric_paginator.page_range
@@ -53,12 +52,12 @@ def copy_from_measurements_to_metrics():
     for p in metric_paginator.page_range:
         page = metric_paginator.page(p)
         print p
+        SYNCHRONIZE_logger.info("Page %s of %s" % (str(p), str(metric_paginator.page_range)))
         for measurement in page.object_list:
             update_or_create(measurement)
 
     settings.SYNCHRONIZE_DATE = str(measurements_date)
-    SYNCHRONIZE_logger.info("[%s]Last SYNCHRONIZE date: '%s'" % (
-        datetime.datetime.now(), settings.SYNCHRONIZE_DATE))
+    SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
     print settings.SYNCHRONIZE_DATE
 
 
