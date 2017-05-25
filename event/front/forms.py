@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models.expressions import RawSQL
 from django.db.models import F, Count, Case, When, CharField, Q
-from event.models import Event, Site, ISP
+from event.models import Event, Site, ISP, Target
 from measurement.models import Flag
 
 
@@ -162,9 +162,6 @@ class EventEvidenceForm(forms.ModelForm):
                     )
                 )
 
-            print 'flags'
-            print bd_flags
-
             if bd_flags:
 
                 # If not all flags are the same target, isp and type then
@@ -193,3 +190,16 @@ class EventEvidenceForm(forms.ModelForm):
                         None,
                         'One flag is already asociated to an event'
                     )
+
+
+class SelectSiteForm(forms.ModelForm):
+
+    target = forms.CharField(
+        widget=forms.widgets.HiddenInput()
+    )
+
+    class Meta:
+        model = Target
+        fields = [
+            'site',
+        ]

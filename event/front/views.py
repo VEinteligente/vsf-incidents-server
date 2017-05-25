@@ -7,15 +7,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse_lazy
 from django.db.models import Q, Count, Case, When, IntegerField
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.views import generic
 from eztables.views import DatatablesView
 
 from dashboard.mixins import PageTitleMixin
-from event.models import Event, Target
+from event.models import Event, Target, Site
 from event.utils import suggestedFlags
 from measurement.models import Flag
-from .forms import EventForm, EventExtendForm, EventEvidenceForm
+from .forms import EventForm, EventExtendForm, EventEvidenceForm, SelectSiteForm
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -427,11 +427,48 @@ class ListEventSuggestedFlagsAjax(LoginRequiredMixin, DatatablesView):
         )
 
 
-class ListTargets(LoginRequiredMixin, PageTitleMixin, generic.TemplateView):
-    template_name = "list_eventflagmatch.html"
+class ListTargets(LoginRequiredMixin, PageTitleMixin, generic.FormView):
+    form_class = SelectSiteForm
+    template_name = "list_targets.html"
     page_header = "Targets List"
     page_header_description = "List of targets"
     breadcrumb = ["Events", "Targets"]
+    success_url = reverse_lazy('events:event_front:targets-list')
+    site = None
+    target = None
+
+    def form_valid(self, form):
+        """
+        If the form is valid, redirect to the supplied URL.
+        """
+        try:
+            self.target = Target.objects.get(
+                id=form.cleaned_data['target']
+            )
+        except Site.DoesNotExist:
+            raise Http404("target does not exist")
+
+        self.target.site = form.cleaned_data['site']
+        self.target.save()
+
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class ListTargetsAjax(LoginRequiredMixin, DatatablesView):
+    queryset = Target.objects.prefetch_related('site__name')
+    fields = {
+        'ID': 'id',
+        'Type': 'type',
+        'Site': 'site__name',
+        'Domain': 'domain',
+        'URL': 'url',
+        'IP_Address': 'ip'
+    }
+
+    def json_response(self, data):
+        return HttpResponse(
+            json.dumps(data, cls=DjangoJSONEncoder),
+        )
 
 
 # Deprecated - each pluggin have his own create event

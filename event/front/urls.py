@@ -78,4 +78,9 @@ urlpatterns = [
         views.ListTargets.as_view(),
         name='targets-list'
     ),
+    url(
+        r'^targets-list/table-ajax/$',
+        views.ListTargetsAjax.as_view(),
+        name='targets-list-ajax'
+    ),
 ]

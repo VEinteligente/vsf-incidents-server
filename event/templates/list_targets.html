@@ -1,0 +1,153 @@
+{% extends 'dashboard/layout.html' %}
+{% load staticfiles %}
+{% load key_value %}
+{% load bootstrap3 %}
+
+{% block content %}
+    {% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
+
+    <div class="box">
+        <div class="box-body">
+            <div class="table">
+                <table id="target-list" class="table table-bordered table-hover dataTable">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Site</th>
+                            <th>Domain</th>
+                            <th>URL</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th>Type</th>
+                            <th>Site</th>
+                            <th>Domain</th>
+                            <th>URL</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" tabindex="-1" role="dialog" id="siteModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form action="." method="post">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Set site to <span class="modal-target-title"></span></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            {% csrf_token %}
+                            <div class="col-md-12">
+                                {% bootstrap_field form.site %}
+                            </div>
+                            {% bootstrap_field form.target %}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <input type="submit" value="Save" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block extrajs %}
+    <script src="{% static "plugins/select2/select2.full.js" %}"></script>
+    <script>
+        $(function() {
+
+            $('#target-list').dataTable({
+                "bProcessing": true,
+                "bServerSide": true,
+                "sAjaxSource": "{% url 'events:event_front:targets-list-ajax' %}",
+                "aoColumns": [
+                    {
+                        "mData": "Type"
+                    },
+                    {
+                        "mData": "Site",
+                        "mRender": function ( data, type, full ) {
+                            var url_measurement = data;
+                            if( !data ){
+                                url_measurement = "<a class='add-site' data-id='" + full.ID + "'" +
+                                    "data-domain='" + full.Domain + "'data-url='" + full.URL + "'" +
+                                    "'data-ip='" + full.IP_Address + "'>Add Site</a>";
+                            }
+                            return url_measurement
+                        }
+                    },
+                    {
+                        "mData": "Domain"
+                    },
+                    {
+                        "mData": "URL"
+                    },
+                    {
+                        "mData": "IP_Address"
+                    }
+                ]
+            });
+
+            $(document).on('click', '.add-site', function() {
+                var modal = $('#siteModal').modal();
+                var self = $(this);
+                var title = $(".modal-target-title");
+
+                $('#id_site').val("");
+
+                if( self.attr('data-ip') != '' )
+                    title.html('<b>' + self.attr('data-ip') + '</b>');
+                if( self.attr('data-url') != '' )
+                    title.html('<b>' + self.attr('data-url') + '</b>');
+                if( self.attr('data-domain') != '' )
+                    title.html('<b>' + self.attr('data-domain') + '</b>');
+                $("#id_target").val(self.attr('data-id'));
+                modal.show();
+            });
+         
+        });
+
+        $('document').ready(function(){
+            $('select').select2({ width: '100%' });
+        });
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    <link rel="stylesheet" href="{% static "plugins/select2/select2.css" %}">
+{% endblock extracss %}
