@@ -491,28 +491,26 @@ def luigiUpdateFlagTask():
     """
     global running
     running += 1
-    print "comenzo a hacer el hilo"
 
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
-    SYNCHRONIZE_logger.info("[%s]comenzo a hacer el hilo" %
-                            datetime.datetime.now())
+    SYNCHRONIZE_logger.info("comenzo a hacer el hilo")
 
-    copy_from_measurements_to_metrics()
+    # copy_from_measurements_to_metrics()
     # ----------------------------------------------
     for module in FLAG_TESTS:
-        SYNCHRONIZE_logger.info("[%s]comenzo con %s" %
-                                (datetime.datetime.now(), module['module_name']))
+        SYNCHRONIZE_logger.info("comenzo con %s" % module['module_name'])
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
-            methodToCall = getattr(m, function)
-            result = methodToCall()
-        SYNCHRONIZE_logger.info("[%s]termino con %s" %
-                                (datetime.datetime.now(), module['module_name']))
+            try:
+                method_to_call = getattr(m, function)
+                result = method_to_call()
+            except Exception as e:
+                SYNCHRONIZE_logger.info("Fallo en %s.%s con el siguiente mensaje: %s" %
+                                        (module['module_name'], str(function), str(e)))
+        SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
     # ---------------------------------------------
     running -= 1
-    print "termino el hilo"
-    SYNCHRONIZE_logger.info("[%s]Termino el hilo" %
-                            datetime.datetime.now())
+    SYNCHRONIZE_logger.info("Termino el hilo")
 
 
 """
