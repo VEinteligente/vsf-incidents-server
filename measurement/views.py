@@ -505,8 +505,8 @@ def luigiUpdateFlagTask():
                 method_to_call = getattr(m, function)
                 result = method_to_call()
             except Exception as e:
-                SYNCHRONIZE_logger.info("Fallo en %s.%s con el siguiente mensaje: %s" %
-                                        (module['module_name'], str(function), str(e)))
+                SYNCHRONIZE_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
+                                         (module['module_name'], str(function), str(e)))
         SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
     # ---------------------------------------------
     running -= 1
