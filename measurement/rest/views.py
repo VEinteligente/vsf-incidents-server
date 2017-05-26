@@ -27,6 +27,7 @@ class DNSMeasurementRestView(generics.ListAPIView):
     for displaying a list of DNS measurements"""
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
+
     queryset = Metric.objects.filter(test_name='dns_consistency')
     serializer_class = DNSMeasurementSerializer
 
@@ -44,17 +45,36 @@ class FlagListView(generics.ListAPIView):
 class SoftFlagListView(FlagListView):
     """SoftFlagListView: ListAPIView extends of FlagListView
     for displaying a list of all soft flags"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
     queryset = Flag.objects.filter(flag=False)
 
 
 class HardFlagListView(FlagListView):
     """HardFlagListView: ListAPIView extends of FlagListView
     for displaying a list of all hard flags"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
     queryset = Flag.objects.filter(flag=True)
 
 
 class MutedFlagListView(FlagListView):
     """MutedFlagListView: ListAPIView extends of FlagListView
     for displaying a list of all muted flags"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
+    queryset = Flag.objects.filter(flag=None)
+
+
+class NDTMetrics(generics.ListAPIView):
+    """
+
+    """
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
     queryset = Flag.objects.filter(flag=None)
 

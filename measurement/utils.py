@@ -54,7 +54,10 @@ def copy_from_measurements_to_metrics():
         print p
         SYNCHRONIZE_logger.info("Page %s of %s" % (str(p), str(metric_paginator.page_range)))
         for measurement in page.object_list:
-            update_or_create(measurement)
+            try:
+                update_or_create(measurement)
+            except Exception, e:
+                SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
 
     settings.SYNCHRONIZE_DATE = str(measurements_date)
     SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)

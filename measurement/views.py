@@ -495,7 +495,10 @@ def luigiUpdateFlagTask():
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
     SYNCHRONIZE_logger.info("comenzo a hacer el hilo")
 
-    copy_from_measurements_to_metrics()
+    try:
+        copy_from_measurements_to_metrics()
+    except Exception as e:
+        SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
     # ----------------------------------------------
     for module in FLAG_TESTS:
         SYNCHRONIZE_logger.info("comenzo con %s" % module['module_name'])
@@ -534,6 +537,5 @@ class LuigiUpdateFlagView(generic.View):
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
         else:
-            SYNCHRONIZE_logger.info("[%s]Threat already running" %
-                                    datetime.datetime.now())
+            SYNCHRONIZE_logger.info("Threat already running")
         return HttpResponse(status=200)
