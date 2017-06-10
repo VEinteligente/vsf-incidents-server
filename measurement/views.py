@@ -534,8 +534,11 @@ class LuigiUpdateFlagView(generic.View):
         SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
         global running
         if running < 1:
+            running += 1
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
+            running -= 1
         else:
             SYNCHRONIZE_logger.info("Threat already running")
+            print "Threat already running"
         return HttpResponse("<h1>Luigi was called!</h1>", status=200)
