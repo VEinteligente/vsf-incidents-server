@@ -534,6 +534,7 @@ class LuigiUpdateFlagView(generic.View):
         SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
         global running
         if running < 1:
+            SYNCHRONIZE_logger.info("Running: %s" % str(running))
             running += 1
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
