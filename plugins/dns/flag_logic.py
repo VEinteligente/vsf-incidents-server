@@ -27,6 +27,9 @@ def web_connectivity_to_dns():
             measurement_start_time__gte=SYNCHRONIZE_DATE
         )
 
+    SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
+    SYNCHRONIZE_logger.info("Total de web_connectivity's en el query: %s" % (str(web_connectivity_metrics.count())))
+
     web_connectivity_metrics = web_connectivity_metrics.annotate(
         queries=RawSQL(
             "test_keys->'queries'", ()
@@ -115,6 +118,9 @@ def dns_consistency_to_dns():
                 "test_keys->'control_resolver'", ()
             )
         )
+
+    SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
+    SYNCHRONIZE_logger.info("Total de dns_consistency's en el query: %s" % (str(dns_consistency_metrics.count())))
 
     dns_consistency_metrics = dns_consistency_metrics.prefetch_related(
         'dnss'
