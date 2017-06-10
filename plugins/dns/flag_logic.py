@@ -135,7 +135,7 @@ def dns_consistency_to_dns():
 
     # for each dns metric get control resolver and other fields
 
-    for dns_metric in dns_consistency_metrics:
+    for i, dns_metric in enumerate(dns_consistency_metrics):
         # Get control_resolver ip address
         cr_ip = dns_metric['control_resolver'].split(':')[0]
 
@@ -174,6 +174,9 @@ def dns_consistency_to_dns():
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+
+        if i % 1000 == 0:
+            SYNCHRONIZE_logger.error("Hemos pasado ya %s metrics!" % str(i))
 
 
 def dns_to_flag():
