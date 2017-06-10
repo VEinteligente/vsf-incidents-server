@@ -61,8 +61,8 @@ def web_connectivity_to_dns():
 
         for query in dns_metric['queries']:
             for answer in query['answers']:
-                if dns_metric['dnss'] is None:
-                    try:
+                try:
+                    if dns_metric['dnss'] is None:
                         if 'hostname' in query:
                             domain = query['hostname']
                             try:
@@ -83,9 +83,9 @@ def web_connectivity_to_dns():
                             target=target
                         )
                         dns.save()
-                    except Exception as e:
-                        SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
-                                                 "siguiente mensaje: %s" % (str(dns_metric.measurement), str(e)))
+                except Exception as e:
+                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                                             "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
 
 def dns_consistency_to_dns():
@@ -173,7 +173,7 @@ def dns_consistency_to_dns():
                         dns.save()
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
-                                         "siguiente mensaje: %s" % (str(dns_metric.measurement), str(e)))
+                                         "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
 
 def dns_to_flag():

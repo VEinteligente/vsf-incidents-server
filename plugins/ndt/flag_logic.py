@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from django.db.models.expressions import RawSQL
@@ -9,6 +10,8 @@ from django.db.models import Avg
 
 from measurement.models import Metric, Flag, ISP, Probe
 from models import NDT, DailyTest
+
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 
 def date_range(start_date, end_date):
@@ -69,36 +72,43 @@ def metric_to_ndt():
     )
 
     ndt_paginator = Paginator(ndt_metrics, 1000)
+    SYNCHRONIZE_logger.info("Aqui el total de metrics de NDT: %s - total de paginas de 1000 metrics: %s" %
+                            (str(ndt_metrics.count()), str(ndt_paginator.page_range)))
 
     for p in ndt_paginator.page_range:
+        SYNCHRONIZE_logger.info("Pagina %s de NDT" % str(p))
         page = ndt_paginator.page(p)
         for ndt_metric in page.object_list:
-            if ndt_metric.probe is None:
-                isp = None
-            else:
-                isp = ndt_metric.probe.isp
-            flag = Flag(
-                metric=ndt_metric,
-                metric_date=ndt_metric.measurement_start_time,
-                flag=Flag.NONE,
-                manual_flag=False,
-                plugin_name=ndt_metric.__class__.__name__
-            )
-            flag.save()
-            ndt = NDT(
-                flag=flag,
-                metric=ndt_metric,
-                isp=isp,
-                date=ndt_metric.measurement_start_time,
-                upload_speed=ndt_metric.download,
-                download_speed=ndt_metric.upload,
-                ping=ndt_metric.ping,
-                max_ping=ndt_metric.max_ping,
-                min_ping=ndt_metric.min_ping,
-                timeout=ndt_metric.timeout,
-                package_loss=ndt_metric.package_loss
-            )
-            ndt.save()
+            try:
+                if ndt_metric.probe is None:
+                    isp = None
+                else:
+                    isp = ndt_metric.probe.isp
+                flag = Flag(
+                    metric=ndt_metric,
+                    metric_date=ndt_metric.measurement_start_time,
+                    flag=Flag.NONE,
+                    manual_flag=False,
+                    plugin_name=ndt_metric.__class__.__name__
+                )
+                flag.save()
+                ndt = NDT(
+                    flag=flag,
+                    metric=ndt_metric,
+                    isp=isp,
+                    date=ndt_metric.measurement_start_time,
+                    upload_speed=ndt_metric.download,
+                    download_speed=ndt_metric.upload,
+                    ping=ndt_metric.ping,
+                    max_ping=ndt_metric.max_ping,
+                    min_ping=ndt_metric.min_ping,
+                    timeout=ndt_metric.timeout,
+                    package_loss=ndt_metric.package_loss
+                )
+                ndt.save()
+            except Exception as e:
+                SYNCHRONIZE_logger.error("Fallo en metric_to_ndt, en la metric '%s' con el "
+                                         "siguiente mensaje: %s" % (str(ndt_metric.measurement), str(e)))
 
 
 def ndt_to_daily_test():

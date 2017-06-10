@@ -1,3 +1,4 @@
+import logging
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -9,6 +10,8 @@ from measurement.models import Metric, Flag
 from event.models import MutedInput, Target
 from plugins.tcp.models import TCP
 from event.utils import suggestedEvents
+
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 
 def web_connectivity_to_tcp():
@@ -50,25 +53,29 @@ def web_connectivity_to_tcp():
 
         for tcp_metric in page.object_list:
             for tcp_connect in tcp_metric['tcp_connect']:
-                if tcp_metric['tcps'] is None and (
-                    tcp_connect['status']['blocked'] is not None) and (
-                    tcp_connect['status']['success'] is not None
-                ):
-                    try:
-                        target = Target.objects.get(ip=tcp_connect['ip'], type=Target.IP)
-                    except Target.DoesNotExist:
-                        target = Target(ip=tcp_connect['ip'], type=Target.IP)
-                        target.save()
-                    except Target.MultipleObjectsReturned:
-                        target = Target.objects.filter(ip=tcp_connect['ip'], type=Target.IP).first()
-                    tcp = TCP(
-                        metric_id=tcp_metric['id'],
-                        status_blocked=tcp_connect['status']['blocked'],
-                        status_failure=tcp_connect['status']['failure'],
-                        status_success=tcp_connect['status']['success'],
-                        target=target
-                    )
-                    tcp.save()
+                try:
+                    if tcp_metric['tcps'] is None and (
+                        tcp_connect['status']['blocked'] is not None) and (
+                        tcp_connect['status']['success'] is not None
+                    ):
+                        try:
+                            target = Target.objects.get(ip=tcp_connect['ip'], type=Target.IP)
+                        except Target.DoesNotExist:
+                            target = Target(ip=tcp_connect['ip'], type=Target.IP)
+                            target.save()
+                        except Target.MultipleObjectsReturned:
+                            target = Target.objects.filter(ip=tcp_connect['ip'], type=Target.IP).first()
+                        tcp = TCP(
+                            metric_id=tcp_metric['id'],
+                            status_blocked=tcp_connect['status']['blocked'],
+                            status_failure=tcp_connect['status']['failure'],
+                            status_success=tcp_connect['status']['success'],
+                            target=target
+                        )
+                        tcp.save()
+                except Exception as e:
+                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
+                                             "siguiente mensaje: %s" % (str(tcp_metric['measurement']), str(e)))
 
 
 def tcp_to_flag():
@@ -86,24 +93,28 @@ def tcp_to_flag():
         page = tcp_paginator.page(p)
 
         for tcp_obj in page.object_list:
-            flag = Flag(
-                metric_date=tcp_obj.metric.measurement_start_time,
-                metric=tcp_obj.metric,
-                target=tcp_obj.target,
-                plugin_name=tcp_obj.__class__.__name__
-            )
-            # If there is a true flag give 'soft' type
-            if tcp_obj.status_blocked is True:
-                flag.flag = Flag.SOFT
-                # Check if is a muted input
-                muted = muteds.filter(
-                    url=tcp_obj.metric.input
+            try:
+                flag = Flag(
+                    metric_date=tcp_obj.metric.measurement_start_time,
+                    metric=tcp_obj.metric,
+                    target=tcp_obj.target,
+                    plugin_name=tcp_obj.__class__.__name__
                 )
-                if muted:
-                    flag.flag = Flag.MUTED
-            flag.save()
-            tcp_obj.flag = flag
-            tcp_obj.save()
+                # If there is a true flag give 'soft' type
+                if tcp_obj.status_blocked is True:
+                    flag.flag = Flag.SOFT
+                    # Check if is a muted input
+                    muted = muteds.filter(
+                        url=tcp_obj.metric.input
+                    )
+                    if muted:
+                        flag.flag = Flag.MUTED
+                flag.save()
+                tcp_obj.flag = flag
+                tcp_obj.save()
+            except Exception as e:
+                SYNCHRONIZE_logger.error("Fallo en tcp_to_flag, en el TCP '%s' con el "
+                                         "siguiente mensaje: %s" % (str(tcp_obj.id), str(e)))
 
 
 def soft_to_hard_flags():
