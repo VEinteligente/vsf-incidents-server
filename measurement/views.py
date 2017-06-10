@@ -538,4 +538,4 @@ class LuigiUpdateFlagView(generic.View):
             t.start()
         else:
             SYNCHRONIZE_logger.info("Threat already running")
-        return HttpResponse("<p>Luigi was called!</p>", status=200)
+        return HttpResponse("<h1>Luigi was called!</h1>", status=200)
