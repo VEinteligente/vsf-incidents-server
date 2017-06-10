@@ -1,3 +1,4 @@
+import logging
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
@@ -10,6 +11,8 @@ from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
 from event.utils import suggestedEvents
 from measurement.views import send_email_users
+
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 
 def web_connectivity_to_dns():
@@ -56,26 +59,30 @@ def web_connectivity_to_dns():
         for query in dns_metric['queries']:
             for answer in query['answers']:
                 if dns_metric['dnss'] is None:
-                    if 'hostname' in query:
-                        domain = query['hostname']
-                        try:
-                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
-                        except Target.DoesNotExist:
-                            target = Target(domain=domain, type=Target.DOMAIN)
-                            target.save()
-                        except Target.MultipleObjectsReturned:
-                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
-                    else:
-                        target = None
-                    dns = DNS(
-                        metric_id=dns_metric['id'],
-                        control_resolver_failure=cr['failure'],
-                        control_resolver_answers=cr['answers'],
-                        failure=query['failure'],
-                        answers=answer,
-                        target=target
-                    )
-                    dns.save()
+                    try:
+                        if 'hostname' in query:
+                            domain = query['hostname']
+                            try:
+                                target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                            except Target.DoesNotExist:
+                                target = Target(domain=domain, type=Target.DOMAIN)
+                                target.save()
+                            except Target.MultipleObjectsReturned:
+                                target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                        else:
+                            target = None
+                        dns = DNS(
+                            metric_id=dns_metric['id'],
+                            control_resolver_failure=cr['failure'],
+                            control_resolver_answers=cr['answers'],
+                            failure=query['failure'],
+                            answers=answer,
+                            target=target
+                        )
+                        dns.save()
+                    except Exception as e:
+                        SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                                                 "siguiente mensaje: %s" % (str(dns_metric.measurement), str(e)))
 
 
 def dns_consistency_to_dns():
@@ -136,27 +143,31 @@ def dns_consistency_to_dns():
                 cr['resolver_hostname'] = query['resolver_hostname']
 
         for query in dns_metric['queries']:
-            if query['resolver_hostname'] != cr_ip:
-                if dns_metric['dnss'] is None:
-                    domain = dns_metric['input']
-                    try:
-                        target = Target.objects.get(domain=domain, type=Target.DOMAIN)
-                    except Target.DoesNotExist:
-                        target = Target(domain=domain, type=Target.DOMAIN)
-                        target.save()
-                    except Target.MultipleObjectsReturned:
-                        target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
-                    dns = DNS(
-                        metric_id=dns_metric['id'],
-                        control_resolver_failure=cr['failure'],
-                        control_resolver_answers=cr['answers'],
-                        control_resolver_resolver_hostname=cr['resolver_hostname'],
-                        failure=query['failure'],
-                        answers=query['answers'],
-                        resolver_hostname=query['resolver_hostname'],
-                        target=target
-                    )
-                    dns.save()
+            try:
+                if query['resolver_hostname'] != cr_ip:
+                    if dns_metric['dnss'] is None:
+                        domain = dns_metric['input']
+                        try:
+                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                        except Target.DoesNotExist:
+                            target = Target(domain=domain, type=Target.DOMAIN)
+                            target.save()
+                        except Target.MultipleObjectsReturned:
+                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                        dns = DNS(
+                            metric_id=dns_metric['id'],
+                            control_resolver_failure=cr['failure'],
+                            control_resolver_answers=cr['answers'],
+                            control_resolver_resolver_hostname=cr['resolver_hostname'],
+                            failure=query['failure'],
+                            answers=query['answers'],
+                            resolver_hostname=query['resolver_hostname'],
+                            target=target
+                        )
+                        dns.save()
+            except Exception as e:
+                SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                                         "siguiente mensaje: %s" % (str(dns_metric.measurement), str(e)))
 
 
 def dns_to_flag():
@@ -172,57 +183,61 @@ def dns_to_flag():
     dnss = dnss.select_related('metric', 'flag')
 
     for dns in dnss:
-        if dns.flag is None:
-            muteds = MutedInput.objects.filter(
-                type_med=MutedInput.DNS
-            )
-            is_flag = False
-            if dns.metric.test_name == 'dns_consistency':
-                if dns.control_resolver_failure is None:
-                    if dns.failure == "no_answer":
-                        is_flag = True
-                    else:
-                        if dns.failure is None:
-                            if dns.control_resolver_answers != dns.answers:
-                                is_flag = True
-
-            if dns.metric.test_name == 'web_connectivity':
-                if (dns.control_resolver_failure is None) and (
-                    dns.control_resolver_answers is not None
-                ):
-                    if dns.failure == "no_answer":
-                        is_flag = True
-                    else:
-                        if dns.failure is None and dns.answers is not None:
-                            try:
-                                addr = dns.answers['ipv4']
-                            except Exception:
-                                try:
-                                    addr = dns.answers['ipv6']
-                                except Exception:
-                                    addr = dns.answers['hostname']
-                            if addr not in dns.control_resolver_answers['addrs']:
-                                is_flag = True
-
-            flag = Flag(
-                metric_date=dns.metric.measurement_start_time,
-                metric=dns.metric,
-                target=dns.target,
-                plugin_name=dns.__class__.__name__
-            )
-
-            # If there is a true flag give 'soft' type
-            if is_flag is True:
-                flag.flag = Flag.SOFT
-                # Check if is a muted input
-                muted = muteds.filter(
-                    url=dns.metric.input
+        try:
+            if dns.flag is None:
+                muteds = MutedInput.objects.filter(
+                    type_med=MutedInput.DNS
                 )
-                if muted:
-                    flag.flag = Flag.MUTED
-            flag.save()
-            dns.flag = flag
-            dns.save()
+                is_flag = False
+                if dns.metric.test_name == 'dns_consistency':
+                    if dns.control_resolver_failure is None:
+                        if dns.failure == "no_answer":
+                            is_flag = True
+                        else:
+                            if dns.failure is None:
+                                if dns.control_resolver_answers != dns.answers:
+                                    is_flag = True
+
+                if dns.metric.test_name == 'web_connectivity':
+                    if (dns.control_resolver_failure is None) and (
+                        dns.control_resolver_answers is not None
+                    ):
+                        if dns.failure == "no_answer":
+                            is_flag = True
+                        else:
+                            if dns.failure is None and dns.answers is not None:
+                                try:
+                                    addr = dns.answers['ipv4']
+                                except Exception:
+                                    try:
+                                        addr = dns.answers['ipv6']
+                                    except Exception:
+                                        addr = dns.answers['hostname']
+                                if addr not in dns.control_resolver_answers['addrs']:
+                                    is_flag = True
+
+                flag = Flag(
+                    metric_date=dns.metric.measurement_start_time,
+                    metric=dns.metric,
+                    target=dns.target,
+                    plugin_name=dns.__class__.__name__
+                )
+
+                # If there is a true flag give 'soft' type
+                if is_flag is True:
+                    flag.flag = Flag.SOFT
+                    # Check if is a muted input
+                    muted = muteds.filter(
+                        url=dns.metric.input
+                    )
+                    if muted:
+                        flag.flag = Flag.MUTED
+                flag.save()
+                dns.flag = flag
+                dns.save()
+        except Exception as e:
+            SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                                     (str(dns.id), str(e)))
 
 
 def soft_to_hard_flags():
@@ -282,6 +297,8 @@ def soft_to_hard_flags():
             ).values_list('id', flat=True)
 
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
+
+            SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             print "Hard Flags!"
             print flags_to_update.first().id
 
@@ -339,6 +356,7 @@ def soft_to_hard_flags():
             ).values_list('id', flat=True)
 
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
+            SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             print "Hard Flags!"
             print flags_to_update.first().id
 
@@ -415,6 +433,7 @@ def soft_to_hard_flags():
                 ).values_list('id', flat=True)
 
                 flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
+                SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
                 print "Hard Flags!"
                 print flags_to_update.first().id
                 flags_to_update.update(flag=Flag.HARD)
@@ -477,6 +496,7 @@ def soft_to_hard_flags():
 
                 flags_to_update = Flag.objects.filter(
                     id__in=flags_to_update_id)
+                SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
                 print "Hard Flags!"
                 print flags_to_update.first().id
                 flags_to_update.update(flag=Flag.HARD)
@@ -500,14 +520,30 @@ def soft_to_hard_flags():
 
 def metric_to_dns():
     print "Start Web_connectivity test"
+    SYNCHRONIZE_logger.info("Start Web_connectivity test")
+
     web_connectivity_to_dns()
+
     print "End Web_connectivity test"
+    SYNCHRONIZE_logger.info("End Web_connectivity test")
     print "Start dns_consistency test"
+    SYNCHRONIZE_logger.info("Start dns_consistency test")
+
     dns_consistency_to_dns()
+
     print "End dns_consistency test"
+    SYNCHRONIZE_logger.info("End dns_consistency test")
     print "Start Evaluate DNS Flags"
+    SYNCHRONIZE_logger.info("Start Evaluate DNS Flags")
+
     dns_to_flag()
+
     print "End Evaluate DNS Flags"
+    SYNCHRONIZE_logger.info("End Evaluate DNS Flags")
     print "Start HARD DNS Flags"
+    SYNCHRONIZE_logger.info("Start HARD DNS Flags")
+
     soft_to_hard_flags()
+
     print "End HARD DNS Flags"
+    SYNCHRONIZE_logger.info("End HARD DNS Flags")
