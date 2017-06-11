@@ -23,8 +23,11 @@ def suggestedEvents(flag):
         isp = flag.metric.probe.isp
 
     try:
-        region = flag.metric.probe.region
-        if isp != flag.metric.probe.isp:
+        if flag.metric.probe:
+            region = flag.metric.probe.region
+            if isp != flag.metric.probe.isp:
+                region = None
+        else:
             region = None
     except AttributeError:
         region = None
