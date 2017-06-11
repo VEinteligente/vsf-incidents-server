@@ -17,7 +17,7 @@ def suggestedEvents(flag):
 
     try:
         region = flag.metric.probe.region
-    except AttributeError, e:
+    except AttributeError:
         region = None
     plugin_name = flag.plugin_name
     try:
