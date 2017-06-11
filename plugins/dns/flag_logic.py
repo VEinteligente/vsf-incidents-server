@@ -10,6 +10,7 @@ from event.models import MutedInput, Target
 from measurement.models import Metric, Flag
 from plugins.dns.models import DNS
 from event.utils import suggestedEvents
+from plugins.utils import dict_compare
 from measurement.views import send_email_users
 
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
@@ -194,18 +195,24 @@ def dns_to_flag():
     for dns in dnss:
         try:
             if dns.flag is None:
-                muteds = MutedInput.objects.filter(
-                    type_med=MutedInput.DNS
-                )
                 is_flag = False
                 if dns.metric.test_name == 'dns_consistency':
                     if dns.control_resolver_failure is None:
-                        if dns.failure == "no_answer":
+                        if dns.failure == "no_answer": 
                             is_flag = True
+                            # dead code - not happening at the moment
+                            # this failure as no_awnser is not a dns error 
+                            # but an anwser in other part of the report/metric
                         else:
                             if dns.failure is None:
-                                if dns.control_resolver_answers != dns.answers:
-                                    is_flag = True
+                                if dns.control_resolver_answers and dns.answers:
+                                    added, removed, modified, same = dict_compare(
+                                        dns.control_resolver_answers,
+                                        dns.answers
+                                    )
+                                    if len(dns.control_resolver_answers) != len(same): 
+                                        is_flag = True
+                                        #if all elements are not the same
 
                 if dns.metric.test_name == 'web_connectivity':
                     if (dns.control_resolver_failure is None) and (
@@ -236,6 +243,9 @@ def dns_to_flag():
                 if is_flag is True:
                     flag.flag = Flag.SOFT
                     # Check if is a muted input
+                    muteds = MutedInput.objects.filter(
+                        type_med=MutedInput.DNS
+                    )
                     muted = muteds.filter(
                         url=dns.metric.input
                     )
