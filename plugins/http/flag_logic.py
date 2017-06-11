@@ -62,7 +62,8 @@ def web_connectivity_to_http():
             'status_code_match',
             'headers_match',
             'body_length_match',
-            'body_proportion'
+            'body_proportion', 
+            'input'
         )
 
     for http_metric in web_connectivity_metrics:
