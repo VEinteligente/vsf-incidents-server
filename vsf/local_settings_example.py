@@ -221,15 +221,15 @@ LOGGING = {
         'default': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'INSERT_LOG_URL_ADDRESS'),
+            'filename': os.path.join(BASE_DIR, 'logs/vsf_log.log'),
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 20,
             'formatter': 'standard',
         },
-        'syncronize_logfile': {
+        'SYNCHRONIZE_logfile': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'INSERT_LOG_URL_ADDRESS'),
+            'filename': os.path.join(BASE_DIR, 'logs/SYNCHRONIZE_log.log'),
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 20,
             'formatter': 'standard',
@@ -241,8 +241,8 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True
         },
-        'syncronize_logger': {
-            'handlers': ['syncronize_logfile'],
+        'SYNCHRONIZE_logger': {
+            'handlers': ['SYNCHRONIZE_logfile'],
             'level': 'DEBUG',
             'propagate': True
         },
