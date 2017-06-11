@@ -198,8 +198,11 @@ def dns_to_flag():
                 is_flag = False
                 if dns.metric.test_name == 'dns_consistency':
                     if dns.control_resolver_failure is None:
-                        if dns.failure == "no_answer":
+                        if dns.failure == "no_answer": 
                             is_flag = True
+                            # dead code - not happening at the moment
+                            # this failure as no_awnser is not a dns error 
+                            # but an anwser in other part of the report/metric
                         else:
                             if dns.failure is None:
                                 if dns.control_resolver_answers and dns.answers:
@@ -207,8 +210,9 @@ def dns_to_flag():
                                         dns.control_resolver_answers,
                                         dns.answers
                                     )
-                                    if not added and not removed and not modified and same:
+                                    if len(dns.control_resolver_answers) != len(same): 
                                         is_flag = True
+                                        #if all elements are not the same
 
                 if dns.metric.test_name == 'web_connectivity':
                     if (dns.control_resolver_failure is None) and (
