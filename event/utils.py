@@ -15,7 +15,10 @@ def suggestedEvents(flag):
     # searching for events open ended with same target, same isp,
     # and with associated flags with que same region
 
-    region = flag.metric.probe.region
+    try:
+        region = flag.metric.probe.region
+    except AttributeError, e:
+        region = None
     plugin_name = flag.plugin_name
     try:
         dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)

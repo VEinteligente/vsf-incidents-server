@@ -176,7 +176,7 @@ def dns_consistency_to_dns():
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
         if i % 1000 == 0:
-            SYNCHRONIZE_logger.error("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
 
 
 def dns_to_flag():
