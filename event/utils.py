@@ -15,18 +15,22 @@ def suggestedEvents(flag):
     # searching for events open ended with same target, same isp,
     # and with associated flags with que same region
 
-    try:
-        region = flag.metric.probe.region
-    except AttributeError:
-        region = None
     plugin_name = flag.plugin_name
     try:
         dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)
         isp = dns_server.isp
-        if isp != flag.metric.probe.isp:
-            region = None
     except (Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist) as e:
         isp = flag.metric.probe.isp
+
+    try:
+        if flag.metric.probe:
+            region = flag.metric.probe.region
+            if isp != flag.metric.probe.isp:
+                region = None
+        else:
+            region = None
+    except AttributeError:
+        region = None
 
     # this filter will return a queryset with duplicate events
     events = Event.objects.filter(Q(
