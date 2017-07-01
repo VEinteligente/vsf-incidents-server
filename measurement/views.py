@@ -1,11 +1,7 @@
 import json
 import threading
 
-import datetime
 import logging
-import time
-
-from django.conf import settings
 
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
@@ -35,7 +31,6 @@ from measurement.models import (
     Metric,
     Probe
 )
-from update_flags_manual import update_flags_manual
 from vsf import conf
 from vsf.settings import FLAG_TESTS
 
@@ -493,15 +488,22 @@ def luigiUpdateFlagTask():
     running += 1
 
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+    td_logger = logging.getLogger('TRUE_DEBUG_logger')
+
     SYNCHRONIZE_logger.info("comenzo a hacer el hilo")
+    td_logger.info("comenzo a hacer el hilo")
 
     try:
         copy_from_measurements_to_metrics()
     except Exception as e:
         SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
+        td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
     # ----------------------------------------------
     for module in FLAG_TESTS:
+
         SYNCHRONIZE_logger.info("comenzo con %s" % module['module_name'])
+        td_logger.info("comenzo con %s" % module['module_name'])
+
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
             try:
@@ -510,10 +512,14 @@ def luigiUpdateFlagTask():
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
                                          (module['module_name'], str(function), str(e)))
+                td_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
+                                (module['module_name'], str(function), str(e)))
         SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
+        td_logger.info("termino con %s" % module['module_name'])
     # ---------------------------------------------
     running -= 1
     SYNCHRONIZE_logger.info("Termino el hilo")
+    td_logger.info("Termino el hilo")
 
 
 """
@@ -532,13 +538,15 @@ class LuigiUpdateFlagView(generic.View):
     """
     def get(self, request, *args, **kwargs):
         SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+        td_logger = logging.getLogger('TRUE_DEBUG_logger')
         global running
         if running < 1:
             SYNCHRONIZE_logger.info("Running: %s" % str(running))
+            td_logger.info("Running: %s" % str(running))
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
         else:
             SYNCHRONIZE_logger.info("Threat already running")
-            print "Threat already running"
+            td_logger.info("Threat already running")
             return HttpResponse("<h1>Luigi is already working!</h1>", status=200)
         return HttpResponse("<h1>Luigi was called!</h1>", status=200)

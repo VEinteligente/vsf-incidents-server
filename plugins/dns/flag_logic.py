@@ -14,6 +14,7 @@ from plugins.utils import dict_compare
 from measurement.views import send_email_users
 
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+td_logger = logging.getLogger('TRUE_DEBUG_logger')
 
 
 def web_connectivity_to_dns():
@@ -30,6 +31,8 @@ def web_connectivity_to_dns():
 
     SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
     SYNCHRONIZE_logger.info("Total de web_connectivity's en el query: %s" % (str(web_connectivity_metrics.count())))
+    td_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
+    td_logger.info("Total de web_connectivity's en el query: %s" % (str(web_connectivity_metrics.count())))
 
     web_connectivity_metrics = web_connectivity_metrics.annotate(
         queries=RawSQL(
@@ -60,6 +63,8 @@ def web_connectivity_to_dns():
         except Exception:
             cr['answers'] = None
 
+        td_logger.info('Total de queries para la metric %s: %s' % str(dns_metric.id), str(len(dns_metric['queries'])))
+
         for query in dns_metric['queries']:
             for answer in query['answers']:
                 try:
@@ -84,9 +89,12 @@ def web_connectivity_to_dns():
                             target=target
                         )
                         dns.save()
+                        td_logger.info('Answer guardada exitosamente para metric %s' % str(dns_metric.id))
                 except Exception as e:
                     SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+                    td_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                                    "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
 
 def dns_consistency_to_dns():
@@ -122,6 +130,9 @@ def dns_consistency_to_dns():
 
     SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
     SYNCHRONIZE_logger.info("Total de dns_consistency's en el query: %s" % (str(dns_consistency_metrics.count())))
+
+    td_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
+    td_logger.info("Total de dns_consistency's en el query: %s" % (str(dns_consistency_metrics.count())))
 
     dns_consistency_metrics = dns_consistency_metrics.prefetch_related(
         'dnss'
@@ -172,12 +183,17 @@ def dns_consistency_to_dns():
                             target=target
                         )
                         dns.save()
+                        td_logger.info('DNS consistency guardo exitosamente medicion logica'
+                                       ' perteneciente a la metric %s' % str(dns_metric.id))
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+                td_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                                "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
         if i % 1000 == 0:
             SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
+            td_logger.info("Hemos pasado ya %s metrics!" % str(i))
 
 
 def dns_to_flag():
@@ -192,7 +208,9 @@ def dns_to_flag():
 
     dnss = dnss.select_related('metric', 'flag')
 
-    for dns in dnss:
+    td_logger.info("Total de mediciones DNS a convertir a flags: %s" % str(dnss.count()))
+
+    for i, dns in enumerate(dnss):
         try:
             if dns.flag is None:
                 is_flag = False
@@ -254,9 +272,13 @@ def dns_to_flag():
                 flag.save()
                 dns.flag = flag
                 dns.save()
+                td_logger.info('%s dns convertido a flag, perteneciente a la metric %s' %
+                               (str(i), str(dnss.metric.id)))
         except Exception as e:
             SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                      (str(dns.id), str(e)))
+            td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                            (str(dns.id), str(e)))
 
 
 def soft_to_hard_flags():
@@ -318,6 +340,7 @@ def soft_to_hard_flags():
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
 
             SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
+            td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             print "Hard Flags!"
             print flags_to_update.first().id
 
@@ -376,6 +399,7 @@ def soft_to_hard_flags():
 
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
             SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
+            td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             print "Hard Flags!"
             print flags_to_update.first().id
 
@@ -453,6 +477,7 @@ def soft_to_hard_flags():
 
                 flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
                 SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
+                td_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
                 print "Hard Flags!"
                 print flags_to_update.first().id
                 flags_to_update.update(flag=Flag.HARD)
@@ -517,6 +542,7 @@ def soft_to_hard_flags():
                     id__in=flags_to_update_id)
                 SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
                 print "Hard Flags!"
+                td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
                 print flags_to_update.first().id
                 flags_to_update.update(flag=Flag.HARD)
 
@@ -534,35 +560,44 @@ def soft_to_hard_flags():
     ##########################################################
     if send_email:
         print "Sending email"
+        td_logger.info("Sending email")
         # send_email_users()
 
 
 def metric_to_dns():
     print "Start Web_connectivity test"
     SYNCHRONIZE_logger.info("Start Web_connectivity test")
+    td_logger.info("Start Web_connectivity test")
 
     web_connectivity_to_dns()
 
     print "End Web_connectivity test"
     SYNCHRONIZE_logger.info("End Web_connectivity test")
+    td_logger.info("End Web_connectivity test")
     print "Start dns_consistency test"
     SYNCHRONIZE_logger.info("Start dns_consistency test")
+    td_logger.info("Start dns_consistency test")
 
     dns_consistency_to_dns()
 
     print "End dns_consistency test"
     SYNCHRONIZE_logger.info("End dns_consistency test")
+    td_logger.info("End dns_consistency test")
     print "Start Evaluate DNS Flags"
     SYNCHRONIZE_logger.info("Start Evaluate DNS Flags")
+    td_logger.info("Start Evaluate DNS Flags")
 
     dns_to_flag()
 
     print "End Evaluate DNS Flags"
     SYNCHRONIZE_logger.info("End Evaluate DNS Flags")
+    td_logger.info("End Evaluate DNS Flags")
     print "Start HARD DNS Flags"
     SYNCHRONIZE_logger.info("Start HARD DNS Flags")
+    td_logger.info("Start HARD DNS Flags")
 
     soft_to_hard_flags()
 
     print "End HARD DNS Flags"
     SYNCHRONIZE_logger.info("End HARD DNS Flags")
+    td_logger.info("End HARD DNS Flags")
