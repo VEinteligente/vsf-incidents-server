@@ -10,15 +10,18 @@ class Probe(models.Model):
 
     identification = models.CharField(max_length=50, unique=True)
     region = models.ForeignKey(
-        State, related_name='probes', default=3479
+        State, related_name='probes', default=3479,
+        null=True, blank=True
     )
     country = models.ForeignKey(
-        Country, related_name='probes', default=231
+        Country, related_name='probes', default=231,
+        null=True, blank=True
     )
-    city = models.CharField(max_length=100)
-    isp = models.ForeignKey(ISP)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    isp = models.ForeignKey(ISP, null=True, blank=True)
     plan = models.ForeignKey(
-        Plan, null=True, blank=True, related_name='probes')
+        Plan, null=True, blank=True, related_name='probes'
+    )
 
     def __unicode__(self):
         return u"%s - %s" % (self.identification, self.region)
@@ -104,11 +107,13 @@ class Metric(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
 
+        probe = self.annotations['probe']
         try:
-            probe = self.annotations['probe']
             self.probe = Probe.objects.get(identification=probe)
         except Exception:
-            self.probe = None
+            p = Probe(identification=probe)
+            p.save()
+            self.probe = p
 
         return super(Metric, self).save(force_insert=False, force_update=False, using=None,
                                         update_fields=None)

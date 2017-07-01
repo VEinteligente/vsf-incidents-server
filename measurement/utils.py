@@ -19,8 +19,8 @@ def copy_from_measurements_to_metrics():
     SYNCHRONIZE_logger.info("[%s]Starting synchronization" %
                             datetime.datetime.now())
 
-    td_logger.info('Settings synchronize date %s' % SYNCHRONIZE_DATE)
-    td_logger.info('comenzando la sincronizacion de metrics entre titan y pandora.')
+    td_logger.info("[%s]Starting synchronization" % datetime.datetime.now())
+    td_logger.debug('comenzando la sincronizacion de metrics entre titan y pandora.')
 
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -51,7 +51,7 @@ def copy_from_measurements_to_metrics():
     td_logger.info('Hay un total de %s mediciones en titan.' % measurements.count())
     print "Start Creating/updating"
     SYNCHRONIZE_logger.info("Start Creating/updating")
-    td_logger.info("Start Creating/updating")
+    td_logger.debug("Start Creating/updating")
     metric_paginator = Paginator(measurements, 1000)
     i = 0
 
@@ -62,18 +62,20 @@ def copy_from_measurements_to_metrics():
         for measurement in page.object_list:
             try:
                 i += 1
-                td_logger.info('Metric %s' % i)
-                td_logger.info('Se comenzo a copiar la metric %s' % measurement.id)
+                td_logger.debug('Metric %s' % i)
+                td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
+
                 update_or_create(measurement)
-                td_logger.info('Se termino a copiar la metric %s' % measurement.id)
-                td_logger.info('-------------------------------------------------------')
+
+                td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
+                td_logger.debug('-------------------------------------------------------')
             except Exception, e:
                 SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
                 td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
 
     settings.SYNCHRONIZE_DATE = str(measurements_date)
     SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
-    td_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
+    td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
 
 
 def update_or_create(measurement):
