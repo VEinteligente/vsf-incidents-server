@@ -8,7 +8,11 @@ def dict_compare(d1, d2):
     if not isinstance(d2, list):
         d2 = list(d2)
 
-    return set(d1) == set(d2)
+    for dict1 in d1:
+        if dict1 not in d2:
+            return False
+
+    return True
 
 
 def give_probes_to_metrics():
