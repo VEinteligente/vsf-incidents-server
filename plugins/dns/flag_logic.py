@@ -287,7 +287,7 @@ def dns_to_flag():
                 dns.flag = flag
                 dns.save()
                 td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
-                               (str(i), str(dnss.metric.id)))
+                               (str(i), str(dns.metric.id)))
         except Exception as e:
             SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                      (str(dns.id), str(e)))
