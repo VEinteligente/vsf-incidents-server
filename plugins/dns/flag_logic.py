@@ -91,7 +91,7 @@ def web_connectivity_to_dns():
                             target=target
                         )
                         dns.save()
-                        td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric.id))
+                        td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
                     SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
@@ -190,7 +190,7 @@ def dns_consistency_to_dns():
                         )
                         dns.save()
                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
-                                       ' perteneciente a la metric %s' % str(dns_metric.id))
+                                       ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
@@ -282,7 +282,7 @@ def dns_to_flag():
                 dns.flag = flag
                 dns.save()
                 td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
-                               (str(i), str(dnss.metric.id)))
+                                (str(i), str(dns.metric.id)))
         except Exception as e:
             SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                      (str(dns.id), str(e)))
