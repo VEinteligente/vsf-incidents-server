@@ -31,6 +31,8 @@ def copy_from_measurements_to_metrics():
         measurements_date = Measurement.objects.filter(
             measurement_start_time__gte=SYNCHRONIZE_DATE
         ).latest('measurement_start_time').measurement_start_time
+        td_logger.info('Synchronize date: %s' % str(SYNCHRONIZE_DATE))
+        td_logger.info('Total de metrics desde esa fecha %s' % str(measurements.count()))
     else:
         SYNCHRONIZE_logger.info("[%s]YNCHRONIZE_DATE is None" %
                                 datetime.datetime.now())
