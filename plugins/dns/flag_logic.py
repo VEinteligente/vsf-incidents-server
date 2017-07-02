@@ -161,7 +161,7 @@ def dns_consistency_to_dns():
         cr = {}
         for query in dns_metric['queries']:
             # searching for control resolver
-            if query['resolver_hostname'] == cr_ip:
+            if query['resolver_hostname'] == cr_ip and dns_metric.input == query['hostname']:
                 cr['failure'] = query['failure']
                 cr['answers'] = query['answers']
                 cr['resolver_hostname'] = query['resolver_hostname']
@@ -233,11 +233,11 @@ def dns_to_flag():
                         else:
                             if dns.failure is None:
                                 if dns.control_resolver_answers and dns.answers:
-                                    added, removed, modified, same = dict_compare(
+                                    same = dict_compare(
                                         dns.control_resolver_answers,
                                         dns.answers
                                     )
-                                    if len(dns.control_resolver_answers) != len(same): 
+                                    if not same:
                                         is_flag = True
                                         #if all elements are not the same
 
