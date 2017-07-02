@@ -28,17 +28,17 @@ def copy_from_measurements_to_metrics():
         measurements = Measurement.objects.filter(
             measurement_start_time__gte=SYNCHRONIZE_DATE
         )
-        measurements_date = Measurement.objects.filter(
-            measurement_start_time__gte=SYNCHRONIZE_DATE
-        ).latest('measurement_start_time').measurement_start_time
+        # measurements_date = Measurement.objects.filter(
+        #     measurement_start_time__gte=SYNCHRONIZE_DATE
+        # ).latest('measurement_start_time').measurement_start_time
     else:
         SYNCHRONIZE_logger.info("[%s]YNCHRONIZE_DATE is None" %
                                 datetime.datetime.now())
         td_logger.info("[%s]YNCHRONIZE_DATE is None" %
                        datetime.datetime.now())
         measurements = Measurement.objects.all()
-        measurements_date = Measurement.objects.all().latest(
-            'measurement_start_time').measurement_start_time
+        # measurements_date = Measurement.objects.all().latest(
+        #     'measurement_start_time').measurement_start_time
 
         # descomentar en produccion ^
 
@@ -73,9 +73,9 @@ def copy_from_measurements_to_metrics():
                 SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
                 td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
 
-    settings.SYNCHRONIZE_DATE = str(measurements_date)
-    SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
-    td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
+    # settings.SYNCHRONIZE_DATE = str(measurements_date)
+    # SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
+    # td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
 
 
 def update_or_create(measurement):

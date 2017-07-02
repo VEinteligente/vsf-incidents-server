@@ -26,13 +26,14 @@ from event.utils import (
 from measurement.front.views import DBconnection, DNSTestKey
 from measurement.utils import copy_from_measurements_to_metrics
 from measurement.models import (
+    Measurement,
     Flag,
     DNS,
     Metric,
     Probe
 )
 from vsf import conf
-from vsf.settings import FLAG_TESTS
+from vsf.settings import FLAG_TESTS, SYNCHRONIZE_DATE
 
 
 def send_email_users():
@@ -516,6 +517,19 @@ def luigiUpdateFlagTask():
                                 (module['module_name'], str(function), str(e)))
         SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
         td_logger.info("termino con %s" % module['module_name'])
+    # Set SYNCRONIZE_DATE
+    if SYNCHRONIZE_DATE is not None:
+        measurements_date = Measurement.objects.filter(
+            measurement_start_time__gte=SYNCHRONIZE_DATE
+        ).latest('measurement_start_time').measurement_start_time
+    else:
+        measurements_date = Measurement.objects.all().latest(
+            'measurement_start_time').measurement_start_time
+
+    SYNCHRONIZE_DATE = str(measurements_date)
+    SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
+    td_logger.debug("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
+
     # ---------------------------------------------
     running -= 1
     SYNCHRONIZE_logger.info("Termino el hilo")
