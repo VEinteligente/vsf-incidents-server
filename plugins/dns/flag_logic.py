@@ -18,6 +18,8 @@ td_logger = logging.getLogger('TRUE_DEBUG_logger')
 
 
 def web_connectivity_to_dns():
+    td_logger.info("Comenzando con web_connectivity en DNS")
+
     web_connectivity_metrics = Metric.objects.filter(
         test_name='web_connectivity'
     )
@@ -95,12 +97,16 @@ def web_connectivity_to_dns():
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
                     td_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                     "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+    td_logger.info("Terminando con web_connectivity en DNS")
 
 
 def dns_consistency_to_dns():
     # Get all metrics with test_name dns_consistency
     # but only values measurement, test_keys->'queries'
     # and test_keys->'control_resolver'
+
+    td_logger.info("Comenzando con dns_consistency")
+
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -194,9 +200,12 @@ def dns_consistency_to_dns():
         if i % 1000 == 0:
             SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
             td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+    td_logger.info("Terminando con dns_consistency")
 
 
 def dns_to_flag():
+    td_logger.info("Comenzando con dns_to_flag")
+
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -279,9 +288,12 @@ def dns_to_flag():
                                      (str(dns.id), str(e)))
             td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                             (str(dns.id), str(e)))
+    td_logger.info("Terminando con dns_to_flag")
 
 
 def soft_to_hard_flags():
+    td_logger.info("Comenzando con soft_to_hard_flags")
+
     ids = Metric.objects.values_list('id', flat=True)
     second_cond = True
     send_email = False
@@ -560,6 +572,7 @@ def soft_to_hard_flags():
         print "Sending email"
         td_logger.debug("Sending email")
         # send_email_users()
+    td_logger.info("Terminando con soft_to_hard_flags")
 
 
 def metric_to_dns():

@@ -28,9 +28,10 @@ def copy_from_measurements_to_metrics():
         measurements = Measurement.objects.filter(
             measurement_start_time__gte=SYNCHRONIZE_DATE
         )
-        # measurements_date = Measurement.objects.filter(
-        #     measurement_start_time__gte=SYNCHRONIZE_DATE
-        # ).latest('measurement_start_time').measurement_start_time
+
+        td_logger.info('Synchronize date: %s' % str(SYNCHRONIZE_DATE))
+        td_logger.info('Total de metrics desde esa fecha %s' % str(measurements.count()))
+
     else:
         SYNCHRONIZE_logger.info("[%s]YNCHRONIZE_DATE is None" %
                                 datetime.datetime.now())
@@ -70,8 +71,10 @@ def copy_from_measurements_to_metrics():
                 td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
                 td_logger.debug('-------------------------------------------------------')
             except Exception, e:
-                SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
-                td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
+                SYNCHRONIZE_logger.error("Fallo creando el metric '%s' con el siguiente mensaje: %s" %
+                                         (str(measurement.id), str(e)))
+                td_logger.error("Fallo creando el metric '%s' con el siguiente mensaje: %s" %
+                                (str(measurement.id), str(e)))
 
     # settings.SYNCHRONIZE_DATE = str(measurements_date)
     # SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
