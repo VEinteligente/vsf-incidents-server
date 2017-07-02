@@ -215,7 +215,7 @@ def dns_to_flag():
     else:
         dnss = DNS.objects.all()
 
-    td_logger.debug("dns a convertir a flag: %s" % str(DNS.count()))
+    td_logger.debug("dns a convertir a flag: %s" % str(dnss.count()))
 
     dnss = dnss.select_related('metric', 'flag')
 
