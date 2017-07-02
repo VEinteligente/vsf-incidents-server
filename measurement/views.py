@@ -501,9 +501,6 @@ def luigiUpdateFlagTask():
     # ----------------------------------------------
     for module in FLAG_TESTS:
 
-        SYNCHRONIZE_logger.info("comenzo con %s" % module['module_name'])
-        td_logger.info("comenzo con %s" % module['module_name'])
-
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
             try:
@@ -514,8 +511,6 @@ def luigiUpdateFlagTask():
                                          (module['module_name'], str(function), str(e)))
                 td_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
                                 (module['module_name'], str(function), str(e)))
-        SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
-        td_logger.info("termino con %s" % module['module_name'])
     # ---------------------------------------------
     running -= 1
     SYNCHRONIZE_logger.info("Termino el hilo")

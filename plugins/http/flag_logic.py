@@ -1,3 +1,4 @@
+import logging
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -11,10 +12,16 @@ from plugins.http.models import HTTP
 from event.utils import suggestedEvents
 
 
+td_logger = logging.getLogger('TRUE_DEBUG_logger')
+
+
 def web_connectivity_to_http():
     # Get all metrics with test_name web_connectivity
     # but only values id, measurement, test_keys->'status_code_match',
     # test_keys->'headers_match' and test_keys->'body_length_match'
+
+    td_logger.info("Comenzando con web_connectivity en HTTP")
+
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -95,8 +102,12 @@ def web_connectivity_to_http():
                 )
                 http.save()
 
+    td_logger.info("Terminando con web_connectivity en HTTP")
+
 
 def http_to_flag():
+    td_logger.info("Comenzando con http_to_flag")
+
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
@@ -150,8 +161,12 @@ def http_to_flag():
             http.flag = flag
             http.save()
 
+    td_logger.info("terminando con http_to_flag")
+
 
 def soft_to_hard_flags():
+    td_logger.info("Comenzando con soft_to_hard_flags")
+
     ids = Metric.objects.values_list('id', flat=True)
     second_cond = True
     send_email = False
@@ -290,7 +305,9 @@ def soft_to_hard_flags():
 ##########################################################
     if send_email:
         print "Sending email"
+        td_logger.info("Sending mails")
         # send_email_users()
+    td_logger.info("Terminando con soft_to_hard_flags")
 
 
 def metric_to_http():
