@@ -33,7 +33,7 @@ from measurement.models import (
     Probe
 )
 from vsf import conf
-from vsf.settings import FLAG_TESTS, SYNCHRONIZE_DATE
+from vsf import settings
 
 
 def send_email_users():
@@ -500,7 +500,7 @@ def luigiUpdateFlagTask():
         SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
         td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
     # ----------------------------------------------
-    for module in FLAG_TESTS:
+    for module in settings.FLAG_TESTS:
 
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
@@ -515,9 +515,9 @@ def luigiUpdateFlagTask():
         SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
         td_logger.info("termino con %s" % module['module_name'])
     # Set SYNCRONIZE_DATE
-    if SYNCHRONIZE_DATE is not None:
+    if settings.SYNCHRONIZE_DATE is not None:
         measurements_date = Measurement.objects.filter(
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            measurement_start_time__gte=settings.SYNCHRONIZE_DATE
         ).latest('measurement_start_time').measurement_start_time
     else:
         measurements_date = Measurement.objects.all().latest(
