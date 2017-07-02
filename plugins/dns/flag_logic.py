@@ -161,7 +161,7 @@ def dns_consistency_to_dns():
         cr = {}
         for query in dns_metric['queries']:
             # searching for control resolver
-            if query['resolver_hostname'] == cr_ip and dns_metric.input == query['hostname']:
+            if query['resolver_hostname'] == cr_ip and dns_metric['input'] == query['hostname']:
                 cr['failure'] = query['failure']
                 cr['answers'] = query['answers']
                 cr['resolver_hostname'] = query['resolver_hostname']
