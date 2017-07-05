@@ -24,6 +24,7 @@ def web_connectivity_to_http():
 
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
+        td_logger.info("Con fecha de inicio para HTTP")
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         web_connectivity_metrics = Metric.objects.filter(
             test_name='web_connectivity',
@@ -49,6 +50,7 @@ def web_connectivity_to_http():
             'body_proportion'
         )
     else:
+        td_logger.info("Sin fecha de inicio para HTTP")
         web_connectivity_metrics = Metric.objects.filter(
             test_name='web_connectivity'
         ).annotate(
@@ -72,6 +74,8 @@ def web_connectivity_to_http():
             'body_proportion',
             'input'
         )
+
+    td_logger.info("Cantidad de metrics para http: %s" % web_connectivity_metrics.count())
 
     for http_metric in web_connectivity_metrics:
         if (http_metric['status_code_match'] is not None) and (
