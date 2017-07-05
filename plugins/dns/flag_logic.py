@@ -161,7 +161,7 @@ def dns_consistency_to_dns():
         cr = {}
         for query in dns_metric['queries']:
             # searching for control resolver
-            if query['resolver_hostname'] == cr_ip and dns_metric.input == query['hostname']:
+            if query['resolver_hostname'] == cr_ip and dns_metric['input'] == query['hostname']:
                 cr['failure'] = query['failure']
                 cr['answers'] = query['answers']
                 cr['resolver_hostname'] = query['resolver_hostname']
@@ -190,7 +190,7 @@ def dns_consistency_to_dns():
                         )
                         dns.save()
                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
-                                       ' perteneciente a la metric %s' % str(dns_metric.id))
+                                       ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
@@ -225,25 +225,28 @@ def dns_to_flag():
                 is_flag = False
                 if dns.metric.test_name == 'dns_consistency':
                     if dns.control_resolver_failure is None:
-                        if dns.failure == "no_answer": 
+                        if not dns.answers and dns.control_resolver_answers:
                             is_flag = True
-                            # dead code - not happening at the moment
-                            # this failure as no_awnser is not a dns error
-                            # but an anwser in other part of the report/metric
-                        else:
-                            if dns.failure is None:
-                                if dns.control_resolver_answers and dns.answers:
-                                    try:
-                                        if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
-                                            is_flag = True
-                                    except Exception:
-                                        same = dict_compare(
-                                            dns.control_resolver_answers,
-                                            dns.answers
-                                        )
-                                        if not same:
-                                            is_flag = True
-                                    #     #if all elements are not the same
+                        elif dns.answers:
+                            if dns.failure == "no_answer":
+                                is_flag = True
+                                # dead code - not happening at the moment
+                                # this failure as no_awnser is not a dns error
+                                # but an anwser in other part of the report/metric
+                            else:
+                                if dns.failure is None:
+                                    if dns.control_resolver_answers and dns.answers:
+                                        try:
+                                            if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
+                                                is_flag = True
+                                        except Exception:
+                                            same = dict_compare(
+                                                dns.control_resolver_answers,
+                                                dns.answers
+                                            )
+                                            if not same:
+                                                is_flag = True
+                                        #     #if all elements are not the same
 
 
                 if dns.metric.test_name == 'web_connectivity':
