@@ -152,10 +152,6 @@ class EventEvidenceForm(forms.ModelForm):
                 ).select_related(
                     'metric__probe__isp'
                 ).annotate(
-                    target=Case(
-                        default=F('metric__input'),
-                        output_field=CharField()
-                    ),
                     isp=Case(
                         default=F('metric__probe__isp__name'),
                         output_field=CharField()
