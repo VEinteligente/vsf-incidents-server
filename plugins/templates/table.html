@@ -21,10 +21,19 @@
                         
                     <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
                     {% else %}
-                    <th> {{ table_title|title }} </th>
+                    <th class="select-filter"> {{ table_title|title }} </th>
                     {% endif %}
                 {% endfor %}
             </thead>
+            <tfoot>
+                {% for table_title in titles %}
+                    {% if  table_title == "checkbox" %}
+                    <th></th>
+                    {% else %}
+                    <th class="select-filter"> {{ table_title|title }} </th>
+                    {% endif %}
+                {% endfor %}
+            </tfoot>
         </table>
     </div>
 
@@ -275,7 +284,7 @@
 
         //Principal Datatable
 
-        var principal_table = $('#principal-table').dataTable({
+        var principal_table = $('#principal-table').DataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": url_datatable,
@@ -285,8 +294,29 @@
                 $('[data-toggle="popover"]').popover({
                     html: true
                 });
-            }
-        }).columnFilter();
+            },
+            "initComplete": function () {
+            this.api().columns('.select-filter').every( function () {
+                var column = this;
+                console.log(column.data());
+                var select = $('<select><option value=""></option></select>')
+                    .appendTo( $(column.footer()).empty() )
+                    .on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+ 
+                        column
+                            .search( val ? '^'+val+'$' : '', true, false )
+                            .draw();
+                    } );
+ 
+                column.data().unique().sort().each( function ( d, j ) {
+                    select.append( '<option value="'+d+'">'+d+'</option>' )
+                } );
+            } );
+        }
+        });
 
         // Selected flags table
         var selected_table = $('#selected-table').DataTable();
