@@ -83,6 +83,7 @@ def web_connectivity_to_http():
             http_metric['headers_match'] is not None) and (
             http_metric['body_proportion'] is not None
         ):
+            print http_metric
             http_exist = HTTP.objects.filter(
                 metric_id=http_metric['id']
             ).exists()
