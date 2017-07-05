@@ -78,6 +78,7 @@ def web_connectivity_to_http():
     td_logger.info("Cantidad de metrics para http: %s" % web_connectivity_metrics.count())
 
     for http_metric in web_connectivity_metrics:
+        print '.'
         if (http_metric['status_code_match'] is not None) and (
             http_metric['body_length_match'] is not None) and (
             http_metric['headers_match'] is not None) and (
