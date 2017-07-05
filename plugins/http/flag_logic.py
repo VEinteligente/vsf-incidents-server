@@ -47,7 +47,8 @@ def web_connectivity_to_http():
             'status_code_match',
             'headers_match',
             'body_length_match',
-            'body_proportion'
+            'body_proportion',
+            'input'
         )
     else:
         td_logger.info("Sin fecha de inicio para HTTP")
@@ -78,13 +79,11 @@ def web_connectivity_to_http():
     td_logger.info("Cantidad de metrics para http: %s" % web_connectivity_metrics.count())
 
     for http_metric in web_connectivity_metrics:
-        print '.'
         if (http_metric['status_code_match'] is not None) and (
             http_metric['body_length_match'] is not None) and (
             http_metric['headers_match'] is not None) and (
             http_metric['body_proportion'] is not None
         ):
-            print http_metric
             http_exist = HTTP.objects.filter(
                 metric_id=http_metric['id']
             ).exists()
