@@ -300,7 +300,7 @@ class MetricAjaxView(DatatablesView):
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',
         'probe id': 'metric__probe__identification',
-        'probe ISP': 'metric__probe__isp'
+        'probe ISP': 'metric__probe__isp__name'
 
     }
 
@@ -351,6 +351,7 @@ class MeasurementAjaxView(DatatablesView):
         'Flag': 'flag',
         'manual_flag': 'manual_flag',
         'flag_id': 'uuid',
+        'probe_isp': 'metric__probe__isp__name',
         'input': 'metric__input',
         'report_id': 'metric__report_id',
         'test_name': 'metric__test_name',

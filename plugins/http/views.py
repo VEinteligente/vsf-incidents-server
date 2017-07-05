@@ -21,6 +21,7 @@ class HTTPTableView(PluginCreateEventView):
         'manual flag',
         'measurement',
         'input',
+        'isp',
         'test name',
         'measurement_start_time',
         'status code match',
@@ -49,6 +50,7 @@ class HTTPUpdateEventView(PluginUpdateEventView):
         'manual flag',
         'measurement',
         'input',
+        'isp',
         'test name',
         'measurement_start_time',
         'status code match',
@@ -85,12 +87,13 @@ class HTTPAjaxView(DatatablesView):
         'measurement': 'metric__measurement',  # Customized
         'measurement_id': 'metric__id',  # Required for measurement
         'input': 'metric__input',
+        'isp': 'metric__probe__isp__name',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification'
     }
 
-    queryset = HTTP.objects.all().select_related('metric__probe', 'flag')
+    queryset = HTTP.objects.all().select_related('metric__probe__region', 'flag')
 
     def json_response(self, data):
         return HttpResponse(

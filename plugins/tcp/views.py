@@ -20,6 +20,7 @@ class TCPTableView(PluginCreateEventView):
         'flag',
         'manual flag',
         'measurement',
+        'isp',
         'input',
         'test name',
         'measurement_start_time',
@@ -47,6 +48,7 @@ class TCPUpdateEventView(PluginUpdateEventView):
         'flag',
         'manual flag',
         'measurement',
+        'isp',
         'input',
         'test name',
         'measurement_start_time',
@@ -82,6 +84,7 @@ class TCPAjaxView(DatatablesView):
         'measurement': 'metric__measurement',  # Customized
         'measurement_id': 'metric__id',  # Required for measurement
         'input': 'metric__input',
+        'isp': 'metric__probe__isp__name',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification'

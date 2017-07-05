@@ -23,6 +23,7 @@ class DNSTableView(PluginCreateEventView):
         'input',
         'test name',
         'measurement_start_time',
+        'isp'
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
@@ -53,6 +54,7 @@ class DNSUpdateEventView(PluginUpdateEventView):
         'input',
         'test name',
         'measurement_start_time',
+        'isp',
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
@@ -85,6 +87,7 @@ class DNSAjaxView(DatatablesView):
         'control resolver failure': 'control_resolver_failure',
         'control resolver answers': 'control_resolver_answers',  # Customized
         'control resolver hostname': 'control_resolver_resolver_hostname',
+        'isp': 'resolver_hostname',
         'failure': 'failure',
         'answers': 'answers',  # Customized
         'resolver hostname': 'resolver_hostname',
