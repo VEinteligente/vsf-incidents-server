@@ -21,9 +21,12 @@ class DNSTableView(PluginCreateEventView):
         'manual flag',
         'measurement',
         'input',
+        'site',
+        'category',
         'test name',
         'measurement_start_time',
-        'isp'
+        'isp',
+        'region',
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
@@ -52,9 +55,12 @@ class DNSUpdateEventView(PluginUpdateEventView):
         'manual flag',
         'measurement',
         'input',
+        'site',
+        'category',
         'test name',
         'measurement_start_time',
         'isp',
+        'region',
         'control resolver failure',
         'control resolver answers',
         'control resolver hostname',
@@ -88,6 +94,7 @@ class DNSAjaxView(DatatablesView):
         'control resolver answers': 'control_resolver_answers',  # Customized
         'control resolver hostname': 'control_resolver_resolver_hostname',
         'isp': 'resolver_hostname',
+        'region': 'metric__probe__region__name',
         'failure': 'failure',
         'answers': 'answers',  # Customized
         'resolver hostname': 'resolver_hostname',
@@ -95,6 +102,8 @@ class DNSAjaxView(DatatablesView):
         'measurement': 'metric__measurement',  # Customized
         'measurement_id': 'metric__id',  # Required for measurement
         'input': 'metric__input',
+        'site': 'flag__target__site__name',
+        'category': 'flag__target__site__category',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification'

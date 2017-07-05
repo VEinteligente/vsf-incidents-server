@@ -21,7 +21,10 @@ class HTTPTableView(PluginCreateEventView):
         'manual flag',
         'measurement',
         'input',
+        'site',
+        'category',
         'isp',
+        'region',
         'test name',
         'measurement_start_time',
         'status code match',
@@ -50,7 +53,10 @@ class HTTPUpdateEventView(PluginUpdateEventView):
         'manual flag',
         'measurement',
         'input',
+        'site',
+        'category',
         'isp',
+        'region',
         'test name',
         'measurement_start_time',
         'status code match',
@@ -87,7 +93,10 @@ class HTTPAjaxView(DatatablesView):
         'measurement': 'metric__measurement',  # Customized
         'measurement_id': 'metric__id',  # Required for measurement
         'input': 'metric__input',
+        'site': 'flag__target__site__name',
+        'category': 'flag__target__site__category',
         'isp': 'metric__probe__isp__name',
+        'region': 'metric__probe__region__name',
         'measurement_start_time': 'metric__measurement_start_time',
         'report_id': 'metric__report_id',  # Customized
         'probe id': 'metric__probe__identification'

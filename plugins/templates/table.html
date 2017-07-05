@@ -237,6 +237,21 @@
                             '"> Open </button>';
                     }
             }
+            if (list[i]['mData'] == "test keys"){
+                list[i]['bSearchable'] = false;
+            }
+            if (list[i]['mData'] == "status code match"){
+                list[i]['bSearchable'] = false;
+            }
+            if (list[i]['mData'] == "headers match"){
+                list[i]['bSearchable'] = false;
+            }
+            if (list[i]['mData'] == "body lenght match"){
+                list[i]['bSearchable'] = false;
+            }
+            if (list[i]['mData'] == "body proportion"){
+                list[i]['bSearchable'] = false;
+            }
             if (list[i]['mData'] == "manual flag"){
                 list[i]['mRender'] = function ( data, type, full ) {
 
@@ -300,7 +315,7 @@
         // Setup - add a text input to each footer cell
         $('#principal-table tfoot th').each( function () {
             var title = $(this).text();
-            if (title != "checkbox") {
+            if (title != "") {
                 $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
             }
         } );
