@@ -1,10 +1,12 @@
 {% extends 'dashboard/layout.html' %}
 {% load eztables %}
 {% load bootstrap3 %}
+{% load static %}
 
 
 {% block extracss %}
     {% datatables_bootstrap_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'plugins/pretty-json/css/pretty-json.css' %}" />
     <style type="text/css">
         .popover{
             max-width: 100%; /* Max Width of the popover (depending on the container!) */
@@ -115,8 +117,15 @@
                 <h4 class="modal-title">Test Keys</h4>
             </div>
             <div class="modal-body">
-                <div class="col-md-12 form-group">
-                    <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>
+                    </div>
+                    <div class="col-md-6 from-group">
+                        <div class="form-group">
+                            <span id="modal-json-result"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -130,6 +139,9 @@
 
 
 {% block extrajs %}
+<script type="text/javascript" src="{% static 'plugins/pretty-json/libs/underscore-min.js' %}" ></script>
+<script type="text/javascript" src="{% static 'plugins/pretty-json/libs/backbone-min.js' %}" ></script>
+<script type="text/javascript" src="{% static 'plugins/pretty-json/build/pretty-json-min.js' %}"></script>
 <script type="application/javascript">
 
     $(function () {
@@ -226,11 +238,12 @@
 
                         var test_key_content = JSON.stringify(data, null, 2);
 
-                        return '<textarea rows="2" class="form-control test-key-area" metric-id="'
+                        return '<input type="hidden" class="form-control test-key-area" metric-id="'
                             +
                             full.checkbox
                             +
-                            '">' + test_key_content + '</textarea> <button type="button" class="btn btn-info test_key-button" metric-id="'
+                            "\" value='" + test_key_content + "'/> " +
+                            '<button type="button" class="btn btn-xs btn-info test_key-button" metric-id="'
                             +
                             full.checkbox
                             +
@@ -347,14 +360,27 @@
 
         // Test key button click action
         $(document).on("click", ".test_key-button", function () {
-             var metric_id = $(this).attr('metric-id');
-             var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').val();
-             // var test_keys = 1;
-             // alert(test_keys);
-             $('#modal-textarea').val(test_keys);
-             // alert($('#modal-textarea').val());
-             $('#test_key-modal').modal('show');
-             // alert('hola mundo');
+            var metric_id = $(this).attr('metric-id');
+            var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').val();
+            $('#modal-textarea').val(test_keys);
+            // alert($('#modal-textarea').val());
+
+            var json = test_keys;
+            var data;
+            try{ data = JSON.parse(test_keys); }
+            catch(e){
+                alert('not valid JSON');
+                return;
+            }
+
+            var node = new PrettyJSON.view.Node({
+                el:$("#modal-json-result"),
+                data: data,
+                dateFormat:"DD/MM/YYYY - HH24:MI:SS"
+            });
+
+            $('#test_key-modal').modal('show');
+            // alert('hola mundo');
         });
 
         // Selected Table's remove button click action
