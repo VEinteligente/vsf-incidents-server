@@ -307,7 +307,14 @@
                     return '<textarea rows="6" class="answers-area">' + answers_content + '</textarea>';
                 }
             }
+            if (list[i]['mData'] == "resolver hostname"){
+                list[i]['mRender'] = function ( data, type, full ) {
 
+                    var answers_content = JSON.stringify(data, null, 2);
+
+                    return data + '<span class="'+ data +'"></span>';
+                }
+            }
         }
 
         //Principal Datatable
