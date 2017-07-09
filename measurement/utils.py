@@ -62,7 +62,7 @@ def copy_from_measurements_to_metrics():
 
     for p in metric_paginator.page_range:
         page = metric_paginator.page(p)
-        ids = metric_id_paginator.page(p).object_list
+        ids = list(metric_id_paginator.page(p).object_list)
         SYNCHRONIZE_logger.info(
             "Page %s of %s" % (str(p), str(metric_paginator.page_range)))
         td_logger.info(
