@@ -49,31 +49,72 @@ def copy_from_measurements_to_metrics():
 #             'measurement_start_time'
 #         ).measurement_start_time
 
-    td_logger.info('Hay un total de %s mediciones en titan.' % measurements.count())
+    td_logger.info(
+        'Hay un total de %s mediciones en titan.' % measurements.count())
     SYNCHRONIZE_logger.info("Start Creating/updating")
     td_logger.debug("Start Creating/updating")
-    metric_paginator = Paginator(measurements, 1000)
+
+    metric_paginator = Paginator(measurements, 2000)
+    metric_id_paginator = Paginator(
+        measurements.values_list('id', flat=True), 2000)
+    new_metrics = list()
     i = 0
 
     for p in metric_paginator.page_range:
         page = metric_paginator.page(p)
-        SYNCHRONIZE_logger.info("Page %s of %s" % (str(p), str(metric_paginator.page_range)))
-        td_logger.info("Page %s of %s" % (str(p), str(metric_paginator.page_range)))
+        ids = metric_id_paginator.page(p).object_list
+        SYNCHRONIZE_logger.info(
+            "Page %s of %s" % (str(p), str(metric_paginator.page_range)))
+        td_logger.info(
+            "Page %s of %s" % (str(p), str(metric_paginator.page_range)))
+
+        collisions = Metric.objects.filter(
+            measurement__in=ids).values_list('measurement', flat=True)
+
         for measurement in page.object_list:
-            try:
-                i += 1
-                td_logger.debug('Metric %s' % i)
-                td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
+            if measurement.id in collisions:
+                # We don't want to update the metrics that already exists in
+                # the database.
+                collisions.remove(measurement.id)
+                continue
 
-                update_or_create(measurement)
+            i += 1
+            td_logger.debug('Metric %s' % i)
+            td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
 
-                td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
-                td_logger.debug('-------------------------------------------------------')
-            except Exception, e:
-                SYNCHRONIZE_logger.error("Fallo creando el metric '%s' con el siguiente mensaje: %s" %
-                                         (str(measurement.id), str(e)))
-                td_logger.error("Fallo creando el metric '%s' con el siguiente mensaje: %s" %
-                                (str(measurement.id), str(e)))
+            obj = Metric.objects.get(measurement=measurement.id)
+            obj.input = measurement.input
+            obj.annotations = measurement.annotations
+            obj.report_id = measurement.report_id
+            obj.report_filename = measurement.report_filename
+            obj.options = measurement.options
+            obj.probe_cc = measurement.probe_cc
+            obj.probe_asn = measurement.probe_asn
+            obj.probe_ip = measurement.probe_ip
+            obj.data_format_version = measurement.data_format_version
+            obj.test_name = measurement.test_name
+            obj.test_start_time = make_aware(measurement.test_start_time)
+            obj.measurement_start_time = make_aware(measurement.measurement_start_time)
+            obj.test_runtime = measurement.test_runtime
+            obj.test_helpers = measurement.test_helpers
+            obj.test_keys = measurement.test_keys
+            obj.software_name = measurement.software_name
+            obj.software_version = measurement.software_version
+            obj.test_version = measurement.test_version
+            obj.bucket_date = measurement.bucket_date
+
+            td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
+            td_logger.debug('-------------------------------------------------------')
+
+
+            new_metrics.append(obj)
+
+            if len(new_metrics) >= 2000:
+                Metric.objects.bulk_create(new_metrics)
+                new_metrics = list()
+
+    if len(new_metrics) > 0:
+        Metric.objects.bulk_create(new_metrics)
 
     # settings.SYNCHRONIZE_DATE = str(measurements_date)
     # SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
@@ -82,16 +123,17 @@ def copy_from_measurements_to_metrics():
 
 def update_or_create(measurement):
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
-    # try:
-    #     obj = Metric.objects.get(measurement=measurement.id)
-    # except Metric.DoesNotExist:
-    #     obj = Metric(
-    #         measurement=measurement.id,
-    #     )
-    # else:
-    #     td_logger.error('Esta medicion ya existia y se esta sobreescribiendo en la base de datos: %s'
-    #                     % str(measurement.id))
-    obj = Metric(measurement=measurement.id)
+    create = True
+    try:
+        obj = Metric.objects.get(measurement=measurement.id)
+    except Metric.DoesNotExist:
+        obj = Metric(
+            measurement=measurement.id,
+        )
+    else:
+        create = False
+        td_logger.error('Esta medicion ya existia y se esta sobreescribiendo en la base de datos: %s'
+                        % str(measurement.id))
     obj.input = measurement.input
     obj.annotations = measurement.annotations
     obj.report_id = measurement.report_id
@@ -112,7 +154,7 @@ def update_or_create(measurement):
     obj.test_version = measurement.test_version
     obj.bucket_date = measurement.bucket_date
 
-    obj.save()
+    return obj, create
 
 
 def get_type_med(test_name):
