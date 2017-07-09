@@ -16,3 +16,7 @@ class HTTP(models.Model):
 
     body_proportion = models.FloatField()
     target = models.ForeignKey(Target, null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s - %s - Flag: %s" % (
+            self.metric.input, self.metric.measurement, self.flag.flag)

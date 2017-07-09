@@ -10,6 +10,7 @@ class MetricAdmin(admin.ModelAdmin):
 
 
 class FlagAdmin(admin.ModelAdmin):
+    raw_id_fields = ('metric', 'target', 'event', 'suggested_events')
     list_filter = ('flag', 'manual_flag')
     search_fields = ('metric__measurement', 'metric__input')
 
