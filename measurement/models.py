@@ -77,7 +77,7 @@ class Metric(models.Model):
     # http_header_field_manipulation
     # http_invalid_request_line
 
-    measurement = models.CharField(max_length=200)
+    measurement = models.CharField(max_length=200, unique=True)
     input = models.CharField(max_length=50, null=True, db_index=True)
     annotations = JSONField()
     report_id = models.CharField(max_length=100, db_index=True)
@@ -97,7 +97,8 @@ class Metric(models.Model):
     software_version = models.CharField(max_length=10)
     test_version = models.CharField(max_length=10, db_index=True)
     bucket_date = models.DateTimeField()
-    probe = models.ForeignKey(Probe, null=True, blank=True, db_index=True)
+    probe = models.ForeignKey(
+        Probe, null=True, blank=True, db_index=True)
 
     class Meta:
         index_together = [
