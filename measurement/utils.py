@@ -111,9 +111,14 @@ def copy_from_measurements_to_metrics():
 
             new_metrics.append(obj)
 
-            if len(new_metrics) >= 2000:
-                Metric.objects.bulk_create(new_metrics)
-                new_metrics = list()
+        td_logger.debug(
+            "Saliendo de la pagina %s, voy a crear %s metricas."
+            %
+            (str(p), str(len(new_metrics)))
+        )
+
+        Metric.objects.bulk_create(new_metrics)
+        new_metrics = list()
 
     if len(new_metrics) > 0:
         Metric.objects.bulk_create(new_metrics)
