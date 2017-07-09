@@ -82,15 +82,16 @@ def copy_from_measurements_to_metrics():
 
 def update_or_create(measurement):
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
-    try:
-        obj = Metric.objects.get(measurement=measurement.id)
-    except Metric.DoesNotExist:
-        obj = Metric(
-            measurement=measurement.id,
-        )
-    else:
-        td_logger.error('Esta medicion ya existia y se esta sobreescribiendo en la base de datos: %s'
-                        % str(measurement.id))
+    # try:
+    #     obj = Metric.objects.get(measurement=measurement.id)
+    # except Metric.DoesNotExist:
+    #     obj = Metric(
+    #         measurement=measurement.id,
+    #     )
+    # else:
+    #     td_logger.error('Esta medicion ya existia y se esta sobreescribiendo en la base de datos: %s'
+    #                     % str(measurement.id))
+    obj = Metric(measurement=measurement.id)
     obj.input = measurement.input
     obj.annotations = measurement.annotations
     obj.report_id = measurement.report_id
@@ -110,7 +111,7 @@ def update_or_create(measurement):
     obj.software_version = measurement.software_version
     obj.test_version = measurement.test_version
     obj.bucket_date = measurement.bucket_date
-    
+
     obj.save()
 
 
