@@ -50,7 +50,6 @@ def copy_from_measurements_to_metrics():
 #         ).measurement_start_time
 
     td_logger.info('Hay un total de %s mediciones en titan.' % measurements.count())
-    print "Start Creating/updating"
     SYNCHRONIZE_logger.info("Start Creating/updating")
     td_logger.debug("Start Creating/updating")
     metric_paginator = Paginator(measurements, 1000)
@@ -88,48 +87,30 @@ def update_or_create(measurement):
     except Metric.DoesNotExist:
         obj = Metric(
             measurement=measurement.id,
-            input=measurement.input,
-            annotations=measurement.annotations,
-            report_id=measurement.report_id,
-            report_filename=measurement.report_filename,
-            options=measurement.options,
-            probe_cc=measurement.probe_cc,
-            probe_asn=measurement.probe_asn,
-            probe_ip=measurement.probe_ip,
-            data_format_version=measurement.data_format_version,
-            test_name=measurement.test_name,
-            test_start_time=make_aware(measurement.test_start_time),
-            measurement_start_time=make_aware(measurement.measurement_start_time),
-            test_runtime=measurement.test_runtime,
-            test_helpers=measurement.test_helpers,
-            test_keys=measurement.test_keys,
-            software_name=measurement.software_name,
-            software_version=measurement.software_version,
-            test_version=measurement.test_version,
-            bucket_date=measurement.bucket_date
         )
     else:
         td_logger.error('Esta medicion ya existia y se esta sobreescribiendo en la base de datos: %s'
                         % str(measurement.id))
-        obj.input = measurement.input
-        obj.annotations = measurement.annotations
-        obj.report_id = measurement.report_id
-        obj.report_filename = measurement.report_filename
-        obj.options = measurement.options
-        obj.probe_cc = measurement.probe_cc
-        obj.probe_asn = measurement.probe_asn
-        obj.probe_ip = measurement.probe_ip
-        obj.data_format_version = measurement.data_format_version
-        obj.test_name = measurement.test_name
-        obj.test_start_time = make_aware(measurement.test_start_time)
-        obj.measurement_start_time = make_aware(measurement.measurement_start_time)
-        obj.test_runtime = measurement.test_runtime
-        obj.test_helpers = measurement.test_helpers
-        obj.test_keys = measurement.test_keys
-        obj.software_name = measurement.software_name
-        obj.software_version = measurement.software_version
-        obj.test_version = measurement.test_version
-        obj.bucket_date = measurement.bucket_date
+    obj.input = measurement.input
+    obj.annotations = measurement.annotations
+    obj.report_id = measurement.report_id
+    obj.report_filename = measurement.report_filename
+    obj.options = measurement.options
+    obj.probe_cc = measurement.probe_cc
+    obj.probe_asn = measurement.probe_asn
+    obj.probe_ip = measurement.probe_ip
+    obj.data_format_version = measurement.data_format_version
+    obj.test_name = measurement.test_name
+    obj.test_start_time = make_aware(measurement.test_start_time)
+    obj.measurement_start_time = make_aware(measurement.measurement_start_time)
+    obj.test_runtime = measurement.test_runtime
+    obj.test_helpers = measurement.test_helpers
+    obj.test_keys = measurement.test_keys
+    obj.software_name = measurement.software_name
+    obj.software_version = measurement.software_version
+    obj.test_version = measurement.test_version
+    obj.bucket_date = measurement.bucket_date
+    
     obj.save()
 
 
