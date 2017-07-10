@@ -28,7 +28,8 @@ class NDT(models.Model):
 
     flag = models.OneToOneField(Flag, related_name='ndts')
     metric = models.ForeignKey(Metric, related_name='ndts')
-    daily_test = models.ForeignKey(DailyTest, null=True, blank=True, related_name='measurement')
+    daily_test = models.ForeignKey(
+        DailyTest, null=True, blank=True, related_name='measurement')
     isp = models.ForeignKey(ISP, null=True, blank=True)
     date = models.DateField()
 
@@ -41,5 +42,5 @@ class NDT(models.Model):
     package_loss = models.FloatField()
 
     def __unicode__(self):
-        return u"%s - %s - Flag: %s" % (
-            self.metric.input, self.metric.measurement, self.flag.flag)
+        return u"%s" % (
+            self.metric.measurement)
