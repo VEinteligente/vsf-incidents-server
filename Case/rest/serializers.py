@@ -7,7 +7,7 @@ from rest_framework import serializers
 from Case.models import Case, Update, Category
 from measurement.models import State, Probe
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Target, Site
+from event.models import Target, Site, ISP
 
 import django_filters
 
@@ -18,10 +18,10 @@ class CaseSerializer(serializers.ModelSerializer):
     updates (just title) and isp"""
     events = serializers.StringRelatedField(many=True)
     updates = serializers.StringRelatedField(many=True)
+    category = serializers.StringRelatedField()
     isp = serializers.SerializerMethodField()
     region = serializers.SerializerMethodField()
     domains = serializers.SerializerMethodField()
-    category = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -37,8 +37,9 @@ class CaseSerializer(serializers.ModelSerializer):
         """
         isp = []
         for event in obj.events.all():
-            isp.append(event.isp)
-        return isp
+            if event.isp not in isp:
+                isp.append(event.isp)
+        return ISPSerializer(isp, many=True).data
 
     def get_region(self, obj):
         """Region List value of a case
@@ -51,29 +52,14 @@ class CaseSerializer(serializers.ModelSerializer):
         """
         region = []
         for event in obj.events.all():
-            for flag in event.flags.all():
-                region.append(flag.region)
-        return list(set(region))
+            if event.region not in region:
+                region.append(event.region)
+        return RegionSerializer(region, many=True).data
 
     def get_domains(self, obj):
         url_list = obj.events.all().values('target')
         dm = Target.objects.filter(id__in=url_list)
         return UrlSerializer(dm, many=True).data
-
-    def get_category(self, obj):
-        """Name of the category
-
-        Args:
-            obj: case Objects
-
-        Returns:
-            value of dict {'name': name, 'display_name': display_name}
-        """
-        category = Category.objects.get(id=obj.category.id)
-        name = category.name
-        display_name = category.display_name
-
-        return {'name': name, 'display_name': display_name}
 
 
 class GanttChartSerializer(CaseSerializer):
@@ -201,8 +187,14 @@ class DetailEventCaseSerializer(serializers.ModelSerializer):
 class RegionSerializer(serializers.ModelSerializer):
     """RegionSerializer: ModelSerializer
     for serialize a State object"""
+    country = serializers.StringRelatedField()
+
+    def get_country(self):
+        pass
+
     class Meta:
         model = State
+        file = ('name', 'country')
 
 
 class RegionCaseSerializer(RegionSerializer):
@@ -301,21 +293,13 @@ class CategoryCaseSerializer(CategorySerializer):
         return len(cases)
 
 
-class ISPSerializer(serializers.Serializer):
+class ISPSerializer(serializers.ModelSerializer):
     """ISPCaseSerializer: Serializer
     for serialize the ISP of the cases"""
-    isp = serializers.SerializerMethodField()
 
-    def get_isp(self, obj):
-        """ Name of the isp
-
-        Args:
-            obj: dict {'isp': 'value'}
-
-        Returns:
-           value of dict {'isp': 'value'}
-        """
-        return obj['isp']
+    class Meta:
+        model = ISP
+        fields = ('name',)
 
 
 class ISPCaseSerializer(ISPSerializer):

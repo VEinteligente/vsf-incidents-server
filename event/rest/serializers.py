@@ -1,6 +1,6 @@
 from django.db.models import Q, Count
 from rest_framework import serializers
-from event.models import Event, Target, Site
+from event.models import Event, Target, Site, ISP, SiteCategory
 
 import django_filters
 from measurement.rest.serializers import FlagSerializer
@@ -11,6 +11,7 @@ class UrlSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Target
+        exclude = ('id',)
 
 
 class UrlFlagSerializer(UrlSerializer):
@@ -33,7 +34,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class SiteSerializer(serializers.ModelSerializer):
-    class Meta():
+    class Meta:
         model = Site
         fields = ('name',)
 
@@ -96,6 +97,18 @@ class EventGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ('isp', 'type', 'events', 'number_events')
+
+
+class ISPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ISP
+        fields = ('name',)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteCategory
+        fields = ('name', 'description', 'abbreviation')
 
 
 # Django Filter EventGroupFilter

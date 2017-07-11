@@ -361,8 +361,6 @@ def soft_to_hard_flags():
 
             SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
-            print "Hard Flags!"
-            print flags_to_update.first().id
 
             flags_to_update.update(flag=Flag.HARD)
 
@@ -420,8 +418,6 @@ def soft_to_hard_flags():
             flags_to_update = Flag.objects.filter(id__in=flags_to_update_id)
             SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
             td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
-            print "Hard Flags!"
-            print flags_to_update.first().id
 
             flags_to_update.update(flag=Flag.HARD)
 
@@ -559,9 +555,7 @@ def soft_to_hard_flags():
                 flags_to_update = Flag.objects.filter(
                     id__in=flags_to_update_id)
                 SYNCHRONIZE_logger.info("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
-                print "Hard Flags!"
                 td_logger.warning("Se encontro una HARD FLAG en la flag '%s'" % str(flags_to_update.first().id))
-                print flags_to_update.first().id
                 flags_to_update.update(flag=Flag.HARD)
 
                 for flag in flags_to_update:
