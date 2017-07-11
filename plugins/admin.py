@@ -4,8 +4,17 @@ from dns.models import DNS
 from tcp.models import TCP
 from ndt.models import NDT, DailyTest
 
-admin.site.register(HTTP)
-admin.site.register(DNS)
-admin.site.register(TCP)
-admin.site.register(NDT)
+
+class PluginAdmin(admin.ModelAdmin):
+    raw_id_fields = ("metric", "flag", "target")
+
+
+class NDTAdmin(admin.ModelAdmin):
+    raw_id_fields = ("metric", "flag", "isp", "daily_test")
+
+
+admin.site.register(HTTP, PluginAdmin)
+admin.site.register(DNS, PluginAdmin)
+admin.site.register(TCP, PluginAdmin)
+admin.site.register(NDT, NDTAdmin)
 admin.site.register(DailyTest)

@@ -8,7 +8,8 @@ from event.models import Event, State, Country, ISP, Plan, Target
 
 class Probe(models.Model):
 
-    identification = models.CharField(max_length=50, unique=True)
+    identification = models.CharField(
+        max_length=50, unique=True, verbose_name='Probe Identification')
     region = models.ForeignKey(
         State, related_name='probes', default=3479,
         null=True, blank=True
@@ -178,4 +179,5 @@ class Flag(models.Model):
         ]
 
     def __unicode__(self):
-        return u"%s - %s" % (self.metric_date, self.flag)
+        return u"%s - %s - %s" % (
+            self.metric.input, self.metric_date, self.flag)

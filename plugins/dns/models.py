@@ -25,3 +25,7 @@ class DNS(models.Model):
     resolver_hostname = models.GenericIPAddressField(
         null=True, blank=True)  # servidor DNS que se esta evaluando, (target)
     target = models.ForeignKey(Target, null=True, blank=True)
+
+    def __unicode__(self):
+        return u"%s - %s" % (
+            self.metric.input, self.metric.measurement)
