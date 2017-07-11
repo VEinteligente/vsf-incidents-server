@@ -150,12 +150,17 @@ class EventEvidenceForm(forms.ModelForm):
                 bd_flags += Flag.objects.filter(
                     uuid=f
                 ).select_related(
-                    'metric__probe__isp'
+                    'metric__probe__isp',
+                    'metric__probe__region'
                 ).annotate(
                     isp=Case(
                         default=F('metric__probe__isp__name'),
                         output_field=CharField()
-                    )
+                    ),
+                    region=Case(
+                        default=F('metric__probe__region__name'),
+                        output_field=CharField()
+                    ),
                 )
 
             if bd_flags:
@@ -165,14 +170,14 @@ class EventEvidenceForm(forms.ModelForm):
 
                 if not all(
                     map(
-                        lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp,
+                        lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp and f.region == bd_flags[0].region,
                         bd_flags[1:]
                     )
                 ):
 
                     self.add_error(
                         None,
-                        'Selected flags must have the same inputs and ISP'
+                        'Selected flags must have the same inputs, probe ISP and probe Region'
                     )
 
                 if not all(
