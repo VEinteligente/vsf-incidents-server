@@ -81,7 +81,7 @@ def copy_from_measurements_to_metrics():
                 # We don't want to update the metrics that already exists in
                 # the database.
                 # collisions.remove(measurement.id)
-                td_logger.info('Colition found and averted for measurement %s' % measurement.id)
+                td_logger.info('Colition found and averted for measurement %s' % str(measurement.id))
                 continue
 
 
