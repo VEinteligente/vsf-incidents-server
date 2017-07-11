@@ -78,8 +78,12 @@ def copy_from_measurements_to_metrics():
                 # We don't want to update the metrics that already exists in
                 # the database.
 #                 collisions.remove(measurement.id)
-                td_logger.info('Colition found and averted for measurement - index on page %n' % i )                
+                td_logger.info('Colition found and averted for measurement  - index on page %n' % i )                
                 continue
+            if measurement.id in page_copied:
+                td_logger.error('Duplicated measurement ID in page - page: %n, iteration: %n - ID: ??' % (p, i)) # !!! TODO: add iteration mark here
+                continue
+            page_copied.append(measurement.id)
 
             td_logger.debug('Metric %s' % i)
             td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
