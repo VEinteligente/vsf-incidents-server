@@ -75,21 +75,24 @@ def copy_from_measurements_to_metrics():
         page_copied=[]
         for measurement in page.object_list:
             i += 1
-            if str(measurement.id) in collisions:
+            td_logger.info('collitions %s' % str(measurement.id))
+            if unicode(measurement.id, "utf-8") in collisions:
                 # We don't want to update the metrics that already exists in
                 # the database.
 #                 collisions.remove(measurement.id)
+                td_logger.info('! Colition found and averted')                
                 td_logger.info('! Colition found and averted for measurement %s - index on page %n' % (measurement.id, i) )                
 #                 continue
 #                 td_logger.debug('not in DB')
             elif measurement.id in page_copied:
+                td_logger.error('!!! Repeated in page found and averted')                
                 td_logger.error('!!! Duplicated measurement ID in page - page: %n, iteration: %n - ID: %s' % (p, i, measurement.id)) 
 #                 continue
 #                 td_logger.debug('not already copied in page')
             else:
                     
-                td_logger.debug('not in DB or already copied in page')
                 page_copied.append(measurement.id)
+                td_logger.debug('not in DB or already copied in page')
                 
                 
                 td_logger.debug('Metric %s' % i)
