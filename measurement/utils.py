@@ -71,7 +71,7 @@ def copy_from_measurements_to_metrics():
 
         collisions = Metric.objects.filter(
             measurement__in=ids).values_list('measurement', flat=True)
-
+        page_copied=[]
         for measurement in page.object_list:
             i += 1
             if measurement.id in collisions:
