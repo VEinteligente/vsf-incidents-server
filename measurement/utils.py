@@ -73,12 +73,15 @@ def copy_from_measurements_to_metrics():
             measurement__in=ids).values_list('measurement', flat=True)
             
             
-        td_logger.info('collitions %s' % str(collisions))
+        td_logger.info('collisions')
+        td_logger.info(str(collisions))
+        td_logger.info('ids')
+        td_logger.info(str(ids))
         page_copied=[]
         for measurement in page.object_list:
             i += 1
             td_logger.info('current id %s' % measurement.id)
-            if unicode(str(measurement.id), "utf-8") in collisions:
+            if unicode(str(measurement.id), "utf-8") in collisions: #uncetain if this complex casting is necesarry, but its working
                 # We don't want to update the metrics that already exists in
                 # the database.
 #                 collisions.remove(measurement.id)
