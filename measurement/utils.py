@@ -71,17 +71,26 @@ def copy_from_measurements_to_metrics():
 
         collisions = Metric.objects.filter(
             measurement__in=ids).values_list('measurement', flat=True)
-
+        
+        page_copied=[]
+        
+        
         for measurement in page.object_list:
+            td_logger.debug('Metric %s' % i)
             if measurement.id in collisions:
                 # We don't want to update the metrics that already exists in
                 # the database.
-                collisions.remove(measurement.id)
+                # collisions.remove(measurement.id)
+                td_logger.info('Colition found and averted for measurement %s' % measurement.id)
                 continue
 
+
+            if measurement.id in page_copied:
+                td_logger.error('Duplicated measurement ID in page - page: %n, iteration: %n - ID: %s' % (p, index, measurement.id))
+                continue
+            
+            page_copied.append(str(measurement.id))
             i += 1
-            td_logger.debug('Metric %s' % i)
-            td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
 
             obj = Metric(
                 measurement=measurement.id,
@@ -106,12 +115,12 @@ def copy_from_measurements_to_metrics():
                 bucket_date=measurement.bucket_date,
             )
 
-            td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
+            td_logger.debug('Se agrego para el bulck_create' % measurement.id)
             td_logger.debug('-------------------------------------------------------')
 
             new_metrics.append(obj)
 
-        td_logger.debug(
+        td_logger.info(
             "Saliendo de la pagina %s, voy a crear %s metricas."
             %
             (str(p), str(len(new_metrics)))
@@ -128,7 +137,7 @@ def copy_from_measurements_to_metrics():
     # td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
 
 
-def update_or_create(measurement):
+def update_or_create(measurement): #Currently deprecated code, saved for future reference or ehile testing alternatives
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
     create = True
     try:
