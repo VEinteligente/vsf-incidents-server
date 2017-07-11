@@ -76,7 +76,7 @@ def copy_from_measurements_to_metrics():
         for measurement in page.object_list:
             i += 1
             td_logger.info('collitions %s' % str(measurement.id))
-            if unicode(measurement.id, "utf-8") in collisions:
+            if unicode(str(measurement.id), "utf-8") in collisions:
                 # We don't want to update the metrics that already exists in
                 # the database.
 #                 collisions.remove(measurement.id)
