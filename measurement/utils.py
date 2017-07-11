@@ -79,49 +79,47 @@ def copy_from_measurements_to_metrics():
                 # the database.
 #                 collisions.remove(measurement.id)
                 td_logger.info('Colition found and averted for measurement %s - index on page %n' % (measurement.id, i) )                
-                continue
-            else
-                td_logger.debug('not in DB')
-
-            if measurement.id in page_copied:
+#                 continue
+#                 td_logger.debug('not in DB')
+            elif measurement.id in page_copied:
                 td_logger.error('Duplicated measurement ID in page - page: %n, iteration: %n - ID: %s' % (p, i, measurement.id)) 
-                continue
-            else
-                td_logger.debug('not already copied in page')
-                
-            td_logger.debug('not in DB or already copied in page')
-            page_copied.append(measurement.id)
-
-            td_logger.debug('Metric %s' % i)
-            td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
-
-            obj = Metric(
-                measurement=measurement.id,
-                input=measurement.input,
-                annotations=measurement.annotations,
-                report_id=measurement.report_id,
-                report_filename=measurement.report_filename,
-                options=measurement.options,
-                probe_cc=measurement.probe_cc,
-                probe_asn=measurement.probe_asn,
-                probe_ip=measurement.probe_ip,
-                data_format_version=measurement.data_format_version,
-                test_name=measurement.test_name,
-                test_start_time=make_aware(measurement.test_start_time),
-                measurement_start_time=make_aware(measurement.measurement_start_time),
-                test_runtime=measurement.test_runtime,
-                test_helpers=measurement.test_helpers,
-                test_keys=measurement.test_keys,
-                software_name=measurement.software_name,
-                software_version=measurement.software_version,
-                test_version=measurement.test_version,
-                bucket_date=measurement.bucket_date,
-            )
-
-            td_logger.debug('Se termino de crear obj para bulk_create con la metric %s' % measurement.id)
-            td_logger.debug('-------------------------------------------------------')
-
-            new_metrics.append(obj)
+#                 continue
+#                 td_logger.debug('not already copied in page')
+            else:
+                    
+                td_logger.debug('not in DB or already copied in page')
+                page_copied.append(measurement.id)
+    
+                td_logger.debug('Metric %s' % i)
+                td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
+    
+                obj = Metric(
+                    measurement=measurement.id,
+                    input=measurement.input,
+                    annotations=measurement.annotations,
+                    report_id=measurement.report_id,
+                    report_filename=measurement.report_filename,
+                    options=measurement.options,
+                    probe_cc=measurement.probe_cc,
+                    probe_asn=measurement.probe_asn,
+                    probe_ip=measurement.probe_ip,
+                    data_format_version=measurement.data_format_version,
+                    test_name=measurement.test_name,
+                    test_start_time=make_aware(measurement.test_start_time),
+                    measurement_start_time=make_aware(measurement.measurement_start_time),
+                    test_runtime=measurement.test_runtime,
+                    test_helpers=measurement.test_helpers,
+                    test_keys=measurement.test_keys,
+                    software_name=measurement.software_name,
+                    software_version=measurement.software_version,
+                    test_version=measurement.test_version,
+                    bucket_date=measurement.bucket_date,
+                )
+    
+                td_logger.debug('Se termino de crear obj para bulk_create con la metric %s' % measurement.id)
+                td_logger.debug('-------------------------------------------------------')
+    
+                new_metrics.append(obj)
 
         td_logger.debug(
             "Saliendo de la pagina %s, voy a crear %s metricas."
