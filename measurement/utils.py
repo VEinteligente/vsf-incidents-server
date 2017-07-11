@@ -91,7 +91,6 @@ def copy_from_measurements_to_metrics():
                 td_logger.debug('not in DB or already copied in page')
                 page_copied.append(measurement.id)
                 
-                td_logger.info('copied so far %s' % str(page_copied))
                 
                 td_logger.debug('Metric %s' % i)
                 td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
