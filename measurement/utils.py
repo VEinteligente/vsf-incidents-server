@@ -86,7 +86,7 @@ def copy_from_measurements_to_metrics():
 
 
             if measurement.id in page_copied:
-                td_logger.error('Duplicated measurement ID in page - page: %n, iteration: ?? - ID: %s' % (p, measurement.id)) # !!! TODO: add iteration mark here
+                td_logger.error('Duplicated measurement ID in page - page: %n, iteration: ?? - ID: %s' % (p, str(measurement.id))) # !!! TODO: add iteration mark here
                 continue
             
             page_copied.append(measurement.id)
