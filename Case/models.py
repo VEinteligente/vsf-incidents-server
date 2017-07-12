@@ -8,7 +8,7 @@ from event.models import Event
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, unique=True)
     display_name = models.CharField(max_length=50)
 
     def __unicode__(self):

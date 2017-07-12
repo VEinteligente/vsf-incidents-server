@@ -25,6 +25,7 @@ class CaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Case
+        exclude = ('id',)
 
     def get_isp(self, obj):
         """ISP List value of a case
@@ -194,7 +195,7 @@ class RegionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = State
-        file = ('name', 'country')
+        fields = ('name', 'country')
 
 
 class RegionCaseSerializer(RegionSerializer):
@@ -376,14 +377,14 @@ class CaseFilter(django_filters.FilterSet):
     """CaseFilter: FilterSet for filter a Case by
     region, start_date, end_date, domain, site, 
     isp and category"""
-    region = CharInFilter(
-        name='events__flags__region',
-        distinct=True
-    )
     start_date = django_filters.DateFilter(lookup_expr='gte')
     end_date = django_filters.DateFilter(lookup_expr='lte')
-    domain = CharInFilter(
-        name='events__target__url',
+    region = CharInFilter(
+        name='events__region__name',
+        distinct=True
+    )
+    country = CharInFilter(
+        name='events__region__country__name',
         distinct=True
     )
     site = CharInFilter(
@@ -391,7 +392,7 @@ class CaseFilter(django_filters.FilterSet):
         distinct=True
     )
     isp = CharInFilter(
-        name='events__isp',
+        name='events__isp__name',
         distinct=True
     )
     category = CharInFilter(
@@ -401,4 +402,4 @@ class CaseFilter(django_filters.FilterSet):
 
     class Meta:
         model = Case
-        fields = ('title', 'category', 'start_date', 'end_date', 'region', 'domain', 'site', 'isp')
+        fields = ('title', 'category', 'start_date', 'end_date', 'region', 'site', 'isp', 'country')
