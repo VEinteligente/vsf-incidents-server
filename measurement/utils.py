@@ -142,18 +142,69 @@ def copy_from_measurements_to_metrics():
             %
             (str(p), str(len(new_metrics)))
         )
-
         Metric.objects.bulk_create(new_metrics)
+        td_logger.info('%i metrics created in page %i -index reached: %i' % (len(new_metrics), p, i))
         new_metrics = list()
         
+        # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
+        # !!! TO-DO: integrate to the same bulk_create for performace after testing
+        if retry_measurements:
+            td_logger.info('Retry: %i Metrics to re-evaluate and copy if needed (page %i)' % (len(retry_measurements), p))
+            for measurement in retry_measurements:
+                try: # Check if metric exists on local DB
+                    obj = Metric.objects.get(measurement=measurement.id)
+                except Metric.DoesNotExist:  # Copy if it doesn't
+                    td_logger.debug('Measurement will be copied on retry - ID: %s' % measurement.id )
+        
+                    obj = Metric(
+                        measurement=measurement.id,
+                        input=measurement.input,
+                        annotations=measurement.annotations,
+                        report_id=measurement.report_id,
+                        report_filename=measurement.report_filename,
+                        options=measurement.options,
+                        probe_cc=measurement.probe_cc,
+                        probe_asn=measurement.probe_asn,
+                        probe_ip=measurement.probe_ip,
+                        data_format_version=measurement.data_format_version,
+                        test_name=measurement.test_name,
+                        test_start_time=make_aware(measurement.test_start_time),
+                        measurement_start_time=make_aware(measurement.measurement_start_time),
+                        test_runtime=measurement.test_runtime,
+                        test_helpers=measurement.test_helpers,
+                        test_keys=measurement.test_keys,
+                        software_name=measurement.software_name,
+                        software_version=measurement.software_version,
+                        test_version=measurement.test_version,
+                        bucket_date=measurement.bucket_date,
+                    )
+        
+                    td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
+                    td_logger.debug('-------------------------------------------------------')
+        
+                    new_metrics.append(obj)
+                else:
+                    td_logger.debug('Measurement will NOT be copied, already existed locally- ID: %s' % measurement.id )
+            # After the untested measuremnts are verified for collisions with locsal DB, the measurements not existing locallys will be copied
+            td_logger.debug('On Retry: %i metrics will be created, out of %i that needed check)' % (len(new_metrics), len(retry_measurements)))
+            Metric.objects.bulk_create(new_metrics)
+            td_logger.info('On Retry: %i metrics created (in page %i -index reached: %i)' % (len(new_metrics), p, i))
+            SYNCHRONIZE_logger.info('On Retry copied: \n %s)' % str(new_metrics))
+            SYNCHRONIZE_logger.info('On Retry NOT copied: \n %s)' % str(set(retry_measurements) - set(new_metrics)))
+
+            new_metrics = list() # clean lists for next iteration
+            retry_measurements = list()
+
+    # is this necesary? TO-DO double check and remove
     if len(new_metrics) > 0:
+        td_logger.warning('%i metrics left over - creating now' % len(new_metrics))
         Metric.objects.bulk_create(new_metrics)
 
     # settings.SYNCHRONIZE_DATE = str(measurements_date)
     # SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
     # td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
 
-
+# is this necesary? TO-DO double check and remove
 def update_or_create(measurement):
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
     create = True
