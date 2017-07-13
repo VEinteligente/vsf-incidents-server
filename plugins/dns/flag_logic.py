@@ -305,7 +305,11 @@ def dns_to_flag():
                 td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                 (str(dns.id), str(e)))
 
-        Flag.objects.bulk_create(new_flags)
+        td_logger.debug(
+            "Saliendo de la pagina %s, voy a crear %s flags."
+            %
+            (str(p), str(len(new_flags)))
+        )
         new_flags = list()
 
     td_logger.info("Terminando con dns_to_flag")
