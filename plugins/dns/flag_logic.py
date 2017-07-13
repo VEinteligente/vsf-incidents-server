@@ -1,5 +1,6 @@
 import logging
 from django.db.models.expressions import RawSQL
+from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
@@ -216,86 +217,97 @@ def dns_to_flag():
         dnss = DNS.objects.all()
 
     dnss = dnss.select_related('metric', 'flag')
+    new_flags = list()
+    i = 0
 
     td_logger.debug("Total de mediciones DNS a convertir a flags: %s" % str(dnss.count()))
 
-    for i, dns in enumerate(dnss):
-        try:
-            if dns.flag is None:
-                is_flag = False
-                if dns.metric.test_name == 'dns_consistency':
-                    if dns.control_resolver_failure is None:
-                        if not dns.answers and dns.control_resolver_answers:
-                            is_flag = True
-                        elif dns.answers:
+    dns_paginator = Paginator(dnss, 2000)
+    for p in dns_paginator.page_range:
+        page = dns_paginator.page(p)
+        for dns in page.object_list:
+            i += 1
+            try:
+                if dns.flag is None:
+                    is_flag = False
+                    if dns.metric.test_name == 'dns_consistency':
+                        if dns.control_resolver_failure is None:
+                            if not dns.answers and dns.control_resolver_answers:
+                                is_flag = True
+                            elif dns.answers:
+                                if dns.failure == "no_answer":
+                                    is_flag = True
+                                    # dead code - not happening at the moment
+                                    # this failure as no_awnser is not a dns error
+                                    # but an anwser in other part of the report/metric
+                                else:
+                                    if dns.failure is None:
+                                        if dns.control_resolver_answers and dns.answers:
+                                            try:
+                                                if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
+                                                    is_flag = True
+                                            except Exception:
+                                                same = dict_compare(
+                                                    dns.control_resolver_answers,
+                                                    dns.answers
+                                                )
+                                                if not same:
+                                                    is_flag = True
+                                            #     #if all elements are not the same
+
+                    if dns.metric.test_name == 'web_connectivity':
+                        if (dns.control_resolver_failure is None) and (
+                            dns.control_resolver_answers is not None
+                        ):
                             if dns.failure == "no_answer":
                                 is_flag = True
-                                # dead code - not happening at the moment
-                                # this failure as no_awnser is not a dns error
-                                # but an anwser in other part of the report/metric
                             else:
-                                if dns.failure is None:
-                                    if dns.control_resolver_answers and dns.answers:
-                                        try:
-                                            if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
-                                                is_flag = True
-                                        except Exception:
-                                            same = dict_compare(
-                                                dns.control_resolver_answers,
-                                                dns.answers
-                                            )
-                                            if not same:
-                                                is_flag = True
-                                        #     #if all elements are not the same
-
-
-                if dns.metric.test_name == 'web_connectivity':
-                    if (dns.control_resolver_failure is None) and (
-                        dns.control_resolver_answers is not None
-                    ):
-                        if dns.failure == "no_answer":
-                            is_flag = True
-                        else:
-                            if dns.failure is None and dns.answers is not None:
-                                try:
-                                    addr = dns.answers['ipv4']
-                                except Exception:
+                                if dns.failure is None and dns.answers is not None:
                                     try:
-                                        addr = dns.answers['ipv6']
+                                        addr = dns.answers['ipv4']
                                     except Exception:
-                                        addr = dns.answers['hostname']
-                                if addr not in dns.control_resolver_answers['addrs']:
-                                    is_flag = True
+                                        try:
+                                            addr = dns.answers['ipv6']
+                                        except Exception:
+                                            addr = dns.answers['hostname']
+                                    if addr not in dns.control_resolver_answers['addrs']:
+                                        is_flag = True
 
-                flag = Flag(
-                    metric_date=dns.metric.measurement_start_time,
-                    metric=dns.metric,
-                    target=dns.target,
-                    plugin_name=dns.__class__.__name__
-                )
+                    # If there is a true flag give 'soft' type
+                    if is_flag is True:
+                        f_aux = Flag.SOFT
+                        # Check if is a muted input
+                        muteds = MutedInput.objects.filter(
+                            type_med=MutedInput.DNS
+                        )
+                        muted = muteds.filter(
+                            url=dns.metric.input
+                        )
+                        if muted:
+                            f_aux = Flag.MUTED
+                    else:
+                        f_aux = Flag.NONE
 
-                # If there is a true flag give 'soft' type
-                if is_flag is True:
-                    flag.flag = Flag.SOFT
-                    # Check if is a muted input
-                    muteds = MutedInput.objects.filter(
-                        type_med=MutedInput.DNS
+                    flag = Flag(
+                        metric_date=dns.metric.measurement_start_time,
+                        metric=dns.metric,
+                        target=dns.target,
+                        dnss=dns,
+                        flag=f_aux,
+                        plugin_name=dns.__class__.__name__
                     )
-                    muted = muteds.filter(
-                        url=dns.metric.input
-                    )
-                    if muted:
-                        flag.flag = Flag.MUTED
-                flag.save()
-                dns.flag = flag
-                dns.save()
-                td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
-                               (str(i), str(dns.metric.id)))
-        except Exception as e:
-            SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
-                                     (str(dns.id), str(e)))
-            td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
-                            (str(dns.id), str(e)))
+                    new_flags.append(flag)
+                    td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
+                                    (str(i), str(dns.metric.id)))
+            except Exception as e:
+                SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                                         (str(dns.id), str(e)))
+                td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                                (str(dns.id), str(e)))
+
+        Flag.objects.bulk_create(new_flags)
+        new_flags = list()
+
     td_logger.info("Terminando con dns_to_flag")
 
 
