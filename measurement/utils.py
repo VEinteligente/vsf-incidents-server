@@ -6,7 +6,6 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-
 from event.models import Target, Event
 from event.utils import suggestedFlags
 from measurement.models import Metric, Flag, Probe, Measurement
@@ -27,7 +26,7 @@ def copy_from_measurements_to_metrics():
 
         measurements = Measurement.objects.filter(
             measurement_start_time__gte=SYNCHRONIZE_DATE
-        )
+        ).order_by('measurement_start_time')
 
         td_logger.info('Synchronize date: %s' % str(SYNCHRONIZE_DATE))
         td_logger.info('Total de metrics desde esa fecha %s' % str(measurements.count()))
@@ -37,7 +36,10 @@ def copy_from_measurements_to_metrics():
                                 datetime.datetime.now())
         td_logger.info("[%s] SYNCHRONIZE_DATE is None" %
                        datetime.datetime.now())
-        measurements = Measurement.objects.all()
+        measurements = Measurement.objects.all().order_by('measurement_start_time')
+
+
+# toto dead code
         # measurements_date = Measurement.objects.all().latest(
         #     'measurement_start_time').measurement_start_time
 
@@ -54,73 +56,148 @@ def copy_from_measurements_to_metrics():
     SYNCHRONIZE_logger.info("Start Creating/updating")
     td_logger.debug("Start Creating/updating")
 
-    metric_paginator = Paginator(measurements, 2000)
-    metric_id_paginator = Paginator(
-        measurements.values_list('id', flat=True), 2000)
+    measurement_paginator = Paginator(measurements, 2000)
+#     metric_id_paginator = Paginator(
+#         measurements.values_list('id', flat=True), 2000)
     new_metrics = list()
     i = 0
-
-    for p in metric_paginator.page_range:
-        page = metric_paginator.page(p)
-        ids = list(metric_id_paginator.page(p).object_list)
+    retry_measurements=list();
+    for p in measurement_paginator.page_range:
+        page = measurement_paginator.page(p)
+#         ids = list(metric_id_paginator.page(p).object_list)
+        id_list = list(measurement_paginator.page(p).object_list.values_list('id', flat=True))
 
         SYNCHRONIZE_logger.info(
-            "Page %s of %s" % (str(p), str(metric_paginator.page_range)))
+            "Page %s of %s" % (str(p), str(measurement_paginator.page_range)))
         td_logger.info(
-            "Page %s of %s" % (str(p), str(metric_paginator.page_range)))
+            "Page %s of %s" % (str(p), str(measurement_paginator.page_range)))
 
         collisions = Metric.objects.filter(
-            measurement__in=ids).values_list('measurement', flat=True)
-
+            measurement__in=id_list).values_list('measurement', flat=True)
+            
+            
+        td_logger.info('Page: %i - items: %i - id_list: %i items- collisions: %i' % (p, len(page), len(id_list), len(collisions)))
+        
         for measurement in page.object_list:
-            if measurement.id in collisions:
+            if i==0:
+                td_logger.debug('First iteration in page %i' % p)                
+            i += 1
+            td_logger.debug('current id %s (%s)' % (measurement.id, i))
+            page_copied=[]
+            if measurement.id not in id_list:
+                td_logger.error('!!! Measurement ID not checked for duplicates local database - page: %i, iteration: %i - ID: %s' % (p, i, measurement.id)) 
+                SYNCHRONIZE_logger.critical('Remote measurement ID, not checked for existance in local DB for copy. Dading to pile for future copy. ID: %s' % measurement.id)
+                retry_measurements.append(measurement)                
+                # it's unknown the reason behind this case being so prevalent. about 3/page of 20000 in our datasets. 
+
+            elif measurement.id in page_copied:
+                td_logger.error('!!! Duplicated measurement ID in page - page: %i, iteration: %i - ID: %s' % (p, i, measurement.id)) 
+#                 continue
+#                 td_logger.debug('not already copied in page')
+
+            elif unicode(str(measurement.id), "utf-8") in collisions: #uncetain if this complex casting is necesarry, but its working
                 # We don't want to update the metrics that already exists in
                 # the database.
-                collisions.remove(measurement.id)
-                continue
+#                 collisions.remove(measurement.id)
+                td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )                
 
-            i += 1
-            td_logger.debug('Metric %s' % i)
-            td_logger.debug('Se comenzo a copiar la metric %s' % measurement.id)
-
-            obj = Metric(
-                measurement=measurement.id,
-                input=measurement.input,
-                annotations=measurement.annotations,
-                report_id=measurement.report_id,
-                report_filename=measurement.report_filename,
-                options=measurement.options,
-                probe_cc=measurement.probe_cc,
-                probe_asn=measurement.probe_asn,
-                probe_ip=measurement.probe_ip,
-                data_format_version=measurement.data_format_version,
-                test_name=measurement.test_name,
-                test_start_time=make_aware(measurement.test_start_time),
-                measurement_start_time=make_aware(measurement.measurement_start_time),
-                test_runtime=measurement.test_runtime,
-                test_helpers=measurement.test_helpers,
-                test_keys=measurement.test_keys,
-                software_name=measurement.software_name,
-                software_version=measurement.software_version,
-                test_version=measurement.test_version,
-                bucket_date=measurement.bucket_date,
-            )
-
-            td_logger.debug('Se termino a copiar la metric %s' % measurement.id)
-            td_logger.debug('-------------------------------------------------------')
-
-            new_metrics.append(obj)
+            else:                    
+                td_logger.debug('Metric %s' % i)
+                page_copied.append(measurement.id)
+                td_logger.debug('not in DB or already copied in page')
+                
+                
+#                 td_logger.debug('Appending to bulk create (on retry) - ID: s' % measurement.id)
+    
+                obj = Metric(
+                    measurement=measurement.id,
+                    input=measurement.input,
+                    annotations=measurement.annotations,
+                    report_id=measurement.report_id,
+                    report_filename=measurement.report_filename,
+                    options=measurement.options,
+                    probe_cc=measurement.probe_cc,
+                    probe_asn=measurement.probe_asn,
+                    probe_ip=measurement.probe_ip,
+                    data_format_version=measurement.data_format_version,
+                    test_name=measurement.test_name,
+                    test_start_time=make_aware(measurement.test_start_time),
+                    measurement_start_time=make_aware(measurement.measurement_start_time),
+                    test_runtime=measurement.test_runtime,
+                    test_helpers=measurement.test_helpers,
+                    test_keys=measurement.test_keys,
+                    software_name=measurement.software_name,
+                    software_version=measurement.software_version,
+                    test_version=measurement.test_version,
+                    bucket_date=measurement.bucket_date,
+                )
+    
+                td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
+                td_logger.debug('-------------------------------------------------------')
+    
+                new_metrics.append(obj)
 
         td_logger.debug(
             "Saliendo de la pagina %s, voy a crear %s metricas."
             %
             (str(p), str(len(new_metrics)))
         )
-
         Metric.objects.bulk_create(new_metrics)
+        td_logger.info('%i metrics created in page %i -index reached: %i' % (len(new_metrics), p, i))
         new_metrics = list()
+        
+        # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
+        # !!! TO-DO: integrate to the same bulk_create for performace after testing
+        if retry_measurements:
+            td_logger.info('Retry: %i Metrics to re-evaluate and copy if needed (page %i)' % (len(retry_measurements), p))
+            for measurement in retry_measurements:
+                try: # Check if metric exists on local DB
+                    obj = Metric.objects.get(measurement=measurement.id)
+                except Metric.DoesNotExist:  # Copy if it doesn't
+                    td_logger.debug('Measurement will be copied on retry - ID: %s' % measurement.id )
+        
+                    obj = Metric(
+                        measurement=measurement.id,
+                        input=measurement.input,
+                        annotations=measurement.annotations,
+                        report_id=measurement.report_id,
+                        report_filename=measurement.report_filename,
+                        options=measurement.options,
+                        probe_cc=measurement.probe_cc,
+                        probe_asn=measurement.probe_asn,
+                        probe_ip=measurement.probe_ip,
+                        data_format_version=measurement.data_format_version,
+                        test_name=measurement.test_name,
+                        test_start_time=make_aware(measurement.test_start_time),
+                        measurement_start_time=make_aware(measurement.measurement_start_time),
+                        test_runtime=measurement.test_runtime,
+                        test_helpers=measurement.test_helpers,
+                        test_keys=measurement.test_keys,
+                        software_name=measurement.software_name,
+                        software_version=measurement.software_version,
+                        test_version=measurement.test_version,
+                        bucket_date=measurement.bucket_date,
+                    )
+        
+                    td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
+                    td_logger.debug('-------------------------------------------------------')
+        
+                    new_metrics.append(obj)
+                else:
+                    td_logger.debug('Measurement will NOT be copied, already existed locally- ID: %s' % measurement.id )
+            # After the untested measuremnts are verified for collisions with locsal DB, the measurements not existing locallys will be copied
+            td_logger.debug('On Retry: %i metrics will be created, out of %i that needed check)' % (len(new_metrics), len(retry_measurements)))
+            Metric.objects.bulk_create(new_metrics)
+            td_logger.info('On Retry: %i metrics created (in page %i -index reached: %i)' % (len(new_metrics), p, i))
+            SYNCHRONIZE_logger.info('On Retry copied: \n %s)' % str(new_metrics))
+            SYNCHRONIZE_logger.info('On Retry NOT copied: \n %s)' % str(set(retry_measurements) - set(new_metrics)))
+
+            new_metrics = list() # clean lists for next iteration
+            retry_measurements = list()
+
 
     if len(new_metrics) > 0:
+        td_logger.warning('%i metrics left over - creating now' % len(new_metrics))
         Metric.objects.bulk_create(new_metrics)
 
     # settings.SYNCHRONIZE_DATE = str(measurements_date)
