@@ -3,6 +3,9 @@
 {% block content %}
 <div class="row">
     <div class="col-xs-12">
+        <a  href="{% url 'events:event_front:create-site-category' %}" class="btn btn-default btn-flat" style="margin-bottom:20px;">
+            Create new Site Category
+        </a>
     </div>
 </div>
     {% if messages %} 
@@ -120,7 +123,7 @@
                 event.preventDefault();
                 /* Act on the event */
                 var delete_id = $(this).data('id')
-                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                var url = '/events/site-category/__ID__/delete/'.replace('__ID__', delete_id)
                 $('#site-category-delete-form').attr('action', url);
             });
          

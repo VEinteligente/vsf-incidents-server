@@ -15,7 +15,10 @@ from dashboard.mixins import PageTitleMixin
 from event.models import Event, Target, Site, SiteCategory
 from event.utils import suggestedFlags
 from measurement.models import Flag
-from .forms import EventForm, EventExtendForm, EventEvidenceForm, SelectSiteForm
+from .forms import (
+    EventForm, EventExtendForm, EventEvidenceForm,
+    SelectSiteForm, SiteCategoryForm
+)
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -617,7 +620,7 @@ class UpdateEventEvidenceView(
     generic.UpdateView
 ):
     """
-    UpdateEventEvidenceView: UpdateView for update 
+    UpdateEventEvidenceView: UpdateView for update
     Event with external evidence
     """
     model = Event
@@ -694,18 +697,46 @@ class ListSiteCategory(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     breadcrumb = ["Events", "Site Categories"]
 
 
-# class CreateSiteCategory(
-#     LoginRequiredMixin,
-#     PageTitleMixin,
-#     generic.CreateView
-# ):
-#     """
-#     CreateSiteCategory: CreateView for create
-#     SiteCategory
-#     """
-#     form_class = EventEvidenceForm
-#     page_header = "New Category Site"
-#     page_header_description = ""
-#     breadcrumb = ["Events", "New Category Site"]
-    # success_url = reverse_lazy('events:event_front:list-event')
-    # template_name = 'create_event_evidence.html'
+class CreateSiteCategory(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateSiteCategory: CreateView for create
+    SiteCategory
+    """
+    form_class = SiteCategoryForm
+    page_header = "New Category Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "New Category Site"]
+    success_url = reverse_lazy('events:event_front:site-category-list')
+    template_name = 'create_site_category.html'
+
+
+class UpdateSiteCategory(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateSiteCategory: UpdateView than
+    update an SiteCategory object
+    """
+    form_class = SiteCategoryForm
+    context_object_name = 'site_category'
+    page_header = "Update Category Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "Update Category Site"]
+    model = SiteCategory
+    success_url = reverse_lazy('events:event_front:site-category-list')
+    template_name = 'create_site_category.html'
+
+
+class DeleteSiteCategory(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteSiteCategory: Delete site category
+    """
+    model = SiteCategory
+    template_name = 'list_site_category.html'
+    success_url = reverse_lazy('events:event_front:site-category-list')

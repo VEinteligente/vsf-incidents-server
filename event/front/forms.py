@@ -1,7 +1,7 @@
 from django import forms
 from django.db.models.expressions import RawSQL
 from django.db.models import F, Count, Case, When, CharField, Q
-from event.models import Event, Site, ISP, Target
+from event.models import Event, Site, ISP, Target, SiteCategory
 from measurement.models import Flag
 
 
@@ -238,3 +238,9 @@ class SelectSiteForm(forms.ModelForm):
         fields = [
             'site',
         ]
+
+
+class SiteCategoryForm(forms.ModelForm):
+    class Meta:
+        model = SiteCategory
+        fields = ['name', 'description', 'abbreviation']

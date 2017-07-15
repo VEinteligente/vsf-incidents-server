@@ -84,8 +84,23 @@ urlpatterns = [
         name='targets-list-ajax'
     ),
     url(
-        r'^site-category-list/$',
+        r'^site-category/list/$',
         views.ListSiteCategory.as_view(),
         name='site-category-list'
+    ),
+    url(
+        r'^site-category/create/$',
+        views.CreateSiteCategory.as_view(),
+        name='create-site-category'
+    ),
+    url(
+        r'^site-category/(?P<pk>\w+)/update/$',
+        views.UpdateSiteCategory.as_view(),
+        name='update-site-category'
+    ),
+    url(
+        r'^site-category/(?P<pk>\w+)/delete/$',
+        views.DeleteSiteCategory.as_view(),
+        name='delete-site-category'
     ),
 ]
