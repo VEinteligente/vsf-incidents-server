@@ -3,6 +3,7 @@ import json
 from rest_framework import serializers
 from measurement.models import Metric, Flag, Probe, Plan
 from measurement.front.views import DNSTestKey
+from plugins.dns.serializer import DNSFlagSerializer
 
 
 class MeasurementSerializer(serializers.ModelSerializer):
@@ -189,9 +190,9 @@ class ProbeFlagSerializer(ProbeSerializer):
 class FlagSerializer(serializers.ModelSerializer):
     """FlagSerializer: ModelSerializer
     for serialize a flag object"""
-    probe = ProbeFlagSerializer(read_only=True)
-    target = serializers.StringRelatedField()
 
     class Meta:
         model = Flag
-        exclude = ('region', 'suggested_events')
+        exclude = ('id', 'event', 'suggested_events')
+
+

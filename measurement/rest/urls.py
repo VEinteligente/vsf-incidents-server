@@ -31,5 +31,10 @@ urlpatterns = [
         r'^muted-flags/$',
         views.MutedFlagListView.as_view(),
         name='muted_flag_list'
-    )
+    ),
+    url(
+        r'^flag/detail/(?P<flag_id>[0-9]+)/$',
+        views.DetailFlagRestView.as_view(),
+        name='detail-case-rest'
+    ),
 ]
