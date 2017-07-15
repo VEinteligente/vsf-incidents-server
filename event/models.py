@@ -5,7 +5,7 @@ from django.db import models
 
 
 class Country(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     abbreviation = models.CharField(max_length=50, null=True)
 
     class Meta:
@@ -26,6 +26,7 @@ class State(models.Model):
     class Meta:
         verbose_name = "State"
         verbose_name_plural = "States"
+        unique_together = (("name", "country"),)
 
     def __str__(self):
         return u'%s' % self.name
@@ -59,7 +60,7 @@ class MutedInput(models.Model):
 
 
 class ISP(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     def __unicode__(self):
         return u"%s" % self.name
@@ -82,7 +83,7 @@ class Plan(models.Model):
 
 class SiteCategory(models.Model):
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     description = models.TextField(null=True, blank=True)
     abbreviation = models.CharField(max_length=5, null=True, blank=True)
 
@@ -92,7 +93,7 @@ class SiteCategory(models.Model):
 
 class Site(models.Model):
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     category = models.ForeignKey(SiteCategory, null=True, blank=True)
 

@@ -28,5 +28,15 @@ urlpatterns = [
         views.ListSiteView.as_view(),
         name='sites-rest'
     ),
+    url(
+        r'^isp/$',
+        views.ListISPView.as_view(),
+        name='isp-rest'
+    ),
+    url(
+        r'^categories/$',
+        views.ListCategoriesView.as_view(),
+        name='categories-rest'
+    ),
 
 ]

@@ -11,11 +11,13 @@ from .serializers import (
     EventSerializer,
     EventGroupSerializer,
     EventGroupFilter,
-    BlockedSiteSerializer
+    BlockedSiteSerializer,
+    ISPSerializer,
+    CategorySerializer
 )
 from django_filters.rest_framework import DjangoFilterBackend
 
-from event.models import Event, Target, Site
+from event.models import Event, Target, Site, ISP, SiteCategory
 from datetime import datetime
 
 
@@ -90,3 +92,21 @@ class ListSiteView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Site.objects.all()
     serializer_class = SiteSerializer
+
+
+class ListISPView(generics.ListAPIView):
+    """ListSiteView: ListAPIView
+    for displaying a list of all isps"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = ISP.objects.all()
+    serializer_class = ISPSerializer
+
+
+class ListCategoriesView(generics.ListAPIView):
+    """ListSiteView: ListAPIView
+    for displaying a list of all categories"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = SiteCategory.objects.all()
+    serializer_class = CategorySerializer

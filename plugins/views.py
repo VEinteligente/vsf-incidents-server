@@ -114,8 +114,15 @@ class PluginCreateEventView(
                 except Exception:
                     flags_isp = None
 
-            self.object.target = flags.first().target
             self.object.isp = flags_isp
+
+            try:
+                region = flags.first().metric.probe.region
+            except Exception:
+                region = None
+
+            self.object.region = region
+            self.object.target = flags.first().target
 
             ###################################################
             # Get Start and End date (Considering open ended case)
