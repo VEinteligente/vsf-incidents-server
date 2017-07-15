@@ -3,8 +3,8 @@
 {% block content %}
 <div class="row">
     <div class="col-xs-12">
-        <a  href="{% url 'events:event_front:create-site-category' %}" class="btn btn-default btn-flat" style="margin-bottom:20px;">
-            Create new Site Category
+        <a  href="{% url 'events:event_front:create-site' %}" class="btn btn-default btn-flat" style="margin-bottom:20px;">
+            Create new Site
         </a>
     </div>
 </div>
@@ -34,18 +34,18 @@
 
 <div class="box">
     <div class="box-header with-border">
-        <h3 class="box-title">Site Category List</h3>
+        <h3 class="box-title">Site List</h3>
     </div>
     <!-- /.box-header -->
     <div class="box-body">
         <div class="table">
-            <table id="site-category-list" class="table table-bordered table-hover dataTable">
+            <table id="site-list" class="table table-bordered table-hover dataTable">
                 <thead>
                     <tr>
                         <th>Identification</th>
                         <th>Name</th>
                         <th>Description</th>
-                        <th>Abbreviation</th>
+                        <th>Category</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -54,16 +54,16 @@
                         <th>Identification</th>
                         <th>Name</th>
                         <th>Description</th>
-                        <th>Abbreviation</th>
+                        <th>Category</th>
                         <th>Actions</th>
                     </tr>
                 </tfoot>
-                {% for category in site_categories %}
+                {% for site in sites %}
                     <tr>
-                        <td>{{category.id}}</td>
-                        <td>{{category.name}}</td>
-                        <td>{{category.description}}</td>
-                        <td>{{category.abbreviation}}</td>
+                        <td>{{site.id}}</td>
+                        <td>{{site.name}}</td>
+                        <td>{{site.description}}</td>
+                        <td>{{site.category.name}}</td>
                         <td>
                             <div class="btn-group ">
                                 <button type="button" class="btn btn-primary btn-flat">Actions</button>
@@ -72,8 +72,8 @@
                                     <span class="sr-only">Toggle Dropdown</span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a href="{% url 'events:event_front:update-site-category' category.id %}">Edit</a></li>
-                                    <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{category.id}}">Delete</a></li>
+                                    <li><a href="{% url 'events:event_front:update-site' site.id %}">Edit</a></li>
+                                    <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{site.id}}">Delete</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -84,11 +84,11 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title">Delete Site Category</h4>
+                                <h4 class="modal-title">Delete Site</h4>
                             </div>
-                            <form id="site-category-delete-form" action="" method="post">{% csrf_token %}
+                            <form id="site-delete-form" action="" method="post">{% csrf_token %}
                                 <div class="modal-body">
-                                    <p>Are you sure of this action? It will delete all data asociated to this category</p>
+                                    <p>Are you sure of this action? It will delete all data asociated to this site</p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -111,7 +111,7 @@
 {% block extrajs %}
     <script>
         $(function() {
-            $('#site-category-list').DataTable({
+            $('#site-list').DataTable({
                 "aoColumnDefs": [
                     { "bSearchable": false, "aTargets": [ 4 ] },
                     { "asSorting": false, "aTargets": [ 2, 4 ] }
@@ -123,8 +123,8 @@
                 event.preventDefault();
                 /* Act on the event */
                 var delete_id = $(this).data('id')
-                var url = '/events/site-category/__ID__/delete/'.replace('__ID__', delete_id)
-                $('#site-category-delete-form').attr('action', url);
+                var url = '/events/site/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#site-delete-form').attr('action', url);
             });
          
         })

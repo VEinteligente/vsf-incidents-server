@@ -103,4 +103,24 @@ urlpatterns = [
         views.DeleteSiteCategory.as_view(),
         name='delete-site-category'
     ),
+    url(
+        r'^site/list/$',
+        views.ListSite.as_view(),
+        name='site-list'
+    ),
+    url(
+        r'^site/create/$',
+        views.CreateSite.as_view(),
+        name='create-site'
+    ),
+    url(
+        r'^site/(?P<pk>\w+)/update/$',
+        views.UpdateSite.as_view(),
+        name='update-site'
+    ),
+    url(
+        r'^site/(?P<pk>\w+)/delete/$',
+        views.DeleteSite.as_view(),
+        name='delete-site'
+    ),
 ]

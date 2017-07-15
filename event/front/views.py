@@ -17,7 +17,7 @@ from event.utils import suggestedFlags
 from measurement.models import Flag
 from .forms import (
     EventForm, EventExtendForm, EventEvidenceForm,
-    SelectSiteForm, SiteCategoryForm
+    SelectSiteForm, SiteCategoryForm, SiteForm
 )
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
@@ -740,3 +740,60 @@ class DeleteSiteCategory(LoginRequiredMixin, generic.DeleteView):
     model = SiteCategory
     template_name = 'list_site_category.html'
     success_url = reverse_lazy('events:event_front:site-category-list')
+
+
+# CRUD Site
+class ListSite(LoginRequiredMixin, PageTitleMixin, generic.ListView):
+    """ListSite: ListView than
+    display a list of all sites"""
+    model = Site
+    template_name = "list_site.html"
+    context_object_name = "sites"
+    page_header = "Sites"
+    page_header_description = "List of sites"
+    breadcrumb = ["Events", "Sites"]
+
+
+class CreateSite(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateSite: CreateView for create
+    Site
+    """
+    form_class = SiteForm
+    page_header = "New Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Sites", "New Site"]
+    success_url = reverse_lazy('events:event_front:site-list')
+    template_name = 'create_site.html'
+
+
+class UpdateSite(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateSite: UpdateView than
+    update an Site object
+    """
+    form_class = SiteForm
+    context_object_name = 'site'
+    page_header = "Update Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "Update Site"]
+    model = Site
+    success_url = reverse_lazy('events:event_front:site-list')
+    template_name = 'create_site.html'
+
+
+class DeleteSite(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteSite: Delete site
+    """
+    model = Site
+    template_name = 'list_site.html'
+    success_url = reverse_lazy('events:event_front:site-list')

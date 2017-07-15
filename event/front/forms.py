@@ -244,3 +244,9 @@ class SiteCategoryForm(forms.ModelForm):
     class Meta:
         model = SiteCategory
         fields = ['name', 'description', 'abbreviation']
+
+
+class SiteForm(forms.ModelForm):
+    class Meta:
+        model = Site
+        fields = ['name', 'description', 'category']
