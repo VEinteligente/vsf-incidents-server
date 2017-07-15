@@ -24,7 +24,7 @@
                         {% bootstrap_field form.identification %}
                         {% bootstrap_field form.type %}
                         <div class="row">
-                        <div class="col-xs-4">
+                            <div class="col-xs-4">
                                 {% bootstrap_field form.start_date %}
                             </div>
                             <div class="col-xs-4">
@@ -37,9 +37,17 @@
 						</div>
                         {% bootstrap_field form.isp %}
                         {% bootstrap_field form.target_site %}
-                        {% bootstrap_field form.target_url %}
-                        {% bootstrap_field form.target_ip %}
-
+                        <div class="row">
+                            <div class="col-xs-4">
+                                {% bootstrap_field form.target_type %}    
+                            </div>
+                            <div class="col-xs-8">
+                                {% bootstrap_field form.target_domain %}
+                                {% bootstrap_field form.target_url %}
+                                {% bootstrap_field form.target_ip %}
+                            </div>
+                        </div>
+                        
                         {% bootstrap_field form.public_evidence %}
                         {% bootstrap_field form.private_evidence %}
 

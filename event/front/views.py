@@ -551,8 +551,6 @@ class CreateEventMeasurementView(
 
 
 # Event with external evidence views
-# Deprecated - each pluggin have his own create event
-# (this include events with measurement)
 class CreateEventEvidenceView(
     LoginRequiredMixin,
     PageTitleMixin,
@@ -573,7 +571,9 @@ class CreateEventEvidenceView(
         """
         If the form is valid, save the associated model.
         """
-        if (form.cleaned_data['end_date'] is None) and (form.cleaned_data['open_ended'] is False):
+        if (form.cleaned_data['end_date'] is None) and (
+            form.cleaned_data['open_ended'] is False
+        ):
             form.add_error(
                 None,
                 'You must give an end date to this event or select open ended'
@@ -596,7 +596,9 @@ class CreateEventEvidenceView(
         target, created = Target.objects.get_or_create(
             site=form.cleaned_data['target_site'],
             url=form.cleaned_data['target_url'],
-            ip=form.cleaned_data['target_ip'])
+            ip=form.cleaned_data['target_ip'],
+            domain=form.cleaned_data['target_domain'],
+            type=form.cleaned_data['target_type'])
 
         self.object.target = target
 

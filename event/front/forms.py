@@ -106,6 +106,17 @@ class EventEvidenceForm(forms.ModelForm):
         empty_label="(Nothing)",
         label="Target Site",
         required=False)
+    target_domain = forms.CharField(
+        widget=forms.TextInput(),
+        required=False,
+        label="Target Domain"
+    )
+
+    target_type = forms.ChoiceField(
+        choices=Target.TYPE,
+        required=False,
+        label="Target Type"
+    )
 
     class Meta:
         model = Event
@@ -115,11 +126,34 @@ class EventEvidenceForm(forms.ModelForm):
             'plugin_name'
         ]
 
+    # def __init__(self, *args, **kwargs):
+    #     super(EventEvidenceForm, self).__init__(*args, **kwargs)
+    #     target_types = [(None, '----')]
+    #     for target_type in Target.TYPE:
+    #         target_types.append(target_type)
+    #     self.fields['target_type'].choices = target_types
+
     def clean(self):
         '''Data from EventForm'''
 
         form_data = self.cleaned_data
         print form_data
+
+        if form_data['target_type'] != "":
+            if form_data['target_type'] == Target.DOMAIN and (
+                form_data['target_domain'] == ""
+            ):
+                self.add_error('target_domain', 'Field Required')
+
+            elif form_data['target_type'] == Target.URL and (
+                form_data['target_url'] == ""
+            ):
+                self.add_error('target_url', 'Field Required')
+
+            elif form_data['target_type'] == Target.IP and (
+                form_data['target_ip'] == ""
+            ):
+                self.add_error('target_ip', 'Field Required')
 
         if form_data['flags'] == "":
             # Required fields when an event only with external evidence
