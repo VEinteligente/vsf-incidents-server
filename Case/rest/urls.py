@@ -23,6 +23,11 @@ urlpatterns = [
         name='detail-update-case-rest'
     ),
     url(
+        r'^detail_flag/(?P<case_id>[0-9]+)/$',
+        views.DetailFlagCaseRestView.as_view(),
+        name='detail-flag-case-rest'
+    ),
+    url(
         r'^region/$',
         views.ListRegionView.as_view(),
         name='region-rest'

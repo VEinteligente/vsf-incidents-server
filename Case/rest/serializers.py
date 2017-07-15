@@ -5,9 +5,10 @@ import calendar
 from django.db.models import Q
 from rest_framework import serializers
 from Case.models import Case, Update, Category
-from measurement.models import State, Probe
+from measurement.models import State, Flag
+from measurement.rest.serializers import FlagSerializer
 from event.rest.serializers import EventSerializer, UrlSerializer
-from event.models import Target, Site
+from event.models import Target, Event
 
 import django_filters
 
@@ -52,7 +53,10 @@ class CaseSerializer(serializers.ModelSerializer):
         region = []
         for event in obj.events.all():
             for flag in event.flags.all():
-                region.append(flag.region)
+                try:
+                    region.append(flag.metric.probe.region)
+                except AttributeError:
+                    pass
         return list(set(region))
 
     def get_domains(self, obj):
@@ -377,6 +381,18 @@ class ListCountEventsByRegionByCaseSerializer(CaseSerializer):
     class Meta(CaseSerializer):
         model = Case
         fields = ('regions',)
+
+
+class CaseFlagsSerializer(CaseSerializer):
+    flags = serializers.SerializerMethodField()
+
+    class Meta(CaseSerializer.Meta):
+        exclude = ('events', 'updates')
+
+    def get_flags(self, obj):
+        events = obj.events.values_list('id', flat=True)
+        flags = Flag.objects.filter(event__in=events)
+        return FlagSerializer(flags, many=True).data
 
 
 # Django Filter CaseFilter

@@ -78,3 +78,12 @@ class NDTMetrics(generics.ListAPIView):
 
     queryset = Flag.objects.filter(flag=None)
 
+
+class DetailFlagRestView(generics.RetrieveAPIView):
+    """DetailCaseRestView: RetrieveAPIView
+    for displaying a specific published case"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Flag.objects.all()
+    lookup_url_kwarg = 'flag_id'
+    serializer_class = FlagSerializer
