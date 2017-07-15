@@ -12,7 +12,7 @@ from django.views import generic
 from eztables.views import DatatablesView
 
 from dashboard.mixins import PageTitleMixin
-from event.models import Event, Target, Site
+from event.models import Event, Target, Site, SiteCategory
 from event.utils import suggestedFlags
 from measurement.models import Flag
 from .forms import EventForm, EventExtendForm, EventEvidenceForm, SelectSiteForm
@@ -680,3 +680,32 @@ class UpdateEventEvidenceView(
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+# CRUD Category Site
+class ListSiteCategory(LoginRequiredMixin, PageTitleMixin, generic.ListView):
+    """ListSiteCategory: ListView than
+    display a list of all site categories"""
+    model = SiteCategory
+    template_name = "list_site_category.html"
+    context_object_name = "site_categories"
+    page_header = "Site Categories"
+    page_header_description = "List of site categories"
+    breadcrumb = ["Events", "Site Categories"]
+
+
+# class CreateSiteCategory(
+#     LoginRequiredMixin,
+#     PageTitleMixin,
+#     generic.CreateView
+# ):
+#     """
+#     CreateSiteCategory: CreateView for create
+#     SiteCategory
+#     """
+#     form_class = EventEvidenceForm
+#     page_header = "New Category Site"
+#     page_header_description = ""
+#     breadcrumb = ["Events", "New Category Site"]
+    # success_url = reverse_lazy('events:event_front:list-event')
+    # template_name = 'create_event_evidence.html'

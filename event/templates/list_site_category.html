@@ -1,0 +1,136 @@
+{% extends 'dashboard/layout.html' %}
+{% load staticfiles %}
+{% block content %}
+<div class="row">
+    <div class="col-xs-12">
+    </div>
+</div>
+    {% if messages %} 
+    <div class="box">    
+
+        <div class="box-tools pull-right">
+            <button class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+        </div><!-- /.box-tools --> 
+
+        {% for message in messages %}
+            {% if message.level ==  40 %}
+                <div class="callout callout-danger">
+                    <p>{{ message }}</p>
+                </div>
+            {% else %}
+                  
+                {% if message.level ==  25 %}
+                    <div class="callout callout-success">
+                      <p>{{ message }}</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    </div> 
+    {% endif %}
+
+<div class="box">
+    <div class="box-header with-border">
+        <h3 class="box-title">Site Category List</h3>
+    </div>
+    <!-- /.box-header -->
+    <div class="box-body">
+        <div class="table">
+            <table id="site-category-list" class="table table-bordered table-hover dataTable">
+                <thead>
+                    <tr>
+                        <th>Identification</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Abbreviation</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>Identification</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Abbreviation</th>
+                        <th>Actions</th>
+                    </tr>
+                </tfoot>
+                {% for category in site_categories %}
+                    <tr>
+                        <td>{{category.id}}</td>
+                        <td>{{category.name}}</td>
+                        <td>{{category.description}}</td>
+                        <td>{{category.abbreviation}}</td>
+                        <td>
+                            <div class="btn-group ">
+                                <button type="button" class="btn btn-primary btn-flat">Actions</button>
+                                <button type="button" class="btn btn-primary btn-flat dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="">Edit</a></li>
+                                    <li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="{{category.id}}">Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                <div class="modal fade" id="modal_delete" role="dialog">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">Delete Site Category</h4>
+                            </div>
+                            <form id="site-category-delete-form" action="" method="post">{% csrf_token %}
+                                <div class="modal-body">
+                                    <p>Are you sure of this action? It will delete all data asociated to this event</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                    <input type="submit" class="btn btn-danger" value="Confirm" />
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <!-- /.box-body -->
+
+</div>
+{% endblock content %}
+
+{% block extrajs %}
+    <script>
+        $(function() {
+            $('#site-category-list').DataTable({
+                "aoColumnDefs": [
+                    { "bSearchable": false, "aTargets": [ 4 ] },
+                    { "asSorting": false, "aTargets": [ 2, 4 ] }
+                ],
+            }
+            );     
+
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#site-category-delete-form').attr('action', url);
+            });
+         
+        })
+    </script>
+    <script src={% static "plugins/datatables/jquery.dataTables.js" %}></script>
+    <script src={% static "plugins/datatables/dataTables.bootstrap.min.js" %}></script>
+{% endblock extrajs %}
+
+{% block extracss %}
+    <link rel="stylesheet" href={% static "plugins/datatables/dataTables.bootstrap.css" %}>
+    
+{% endblock extracss %}

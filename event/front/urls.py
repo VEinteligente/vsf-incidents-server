@@ -83,4 +83,9 @@ urlpatterns = [
         views.ListTargetsAjax.as_view(),
         name='targets-list-ajax'
     ),
+    url(
+        r'^site-category-list/$',
+        views.ListSiteCategory.as_view(),
+        name='site-category-list'
+    ),
 ]
