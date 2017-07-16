@@ -113,7 +113,9 @@ class Target(models.Model):
         (IP, 'Ip')
     )
 
-    site = models.ForeignKey(Site, null=True, blank=True)
+    site = models.ForeignKey(
+        Site, null=True, blank=True, related_name='targets'
+    )
     domain = models.CharField(max_length=100, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
