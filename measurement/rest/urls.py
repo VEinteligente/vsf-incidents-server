@@ -7,11 +7,11 @@ urlpatterns = [
         views.MeasurementRestView.as_view(),
         name='measurement_rest'
     ),
-    url(
-        r'^dns_rest/$',
-        views.DNSMeasurementRestView.as_view(),
-        name='dns_rest'
-    ),
+    # url(
+    #     r'^dns_rest/$',
+    #     views.DNSMeasurementRestView.as_view(),
+    #     name='dns_rest'
+    # ),
     url(
         r'^flags/$',
         views.FlagListView.as_view(),
@@ -33,7 +33,7 @@ urlpatterns = [
         name='muted_flag_list'
     ),
     url(
-        r'^flag/detail/(?P<flag_id>[0-9]+)/$',
+        r'^flag/detail/(?P<flag_id>[^\/]+)/$',
         views.DetailFlagRestView.as_view(),
         name='detail-case-rest'
     ),
