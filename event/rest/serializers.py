@@ -6,8 +6,22 @@ import django_filters
 from measurement.rest.serializers import FlagSerializer
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteCategory
+        fields = ('name', 'abbreviation')
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Site
+        fields = ('name', 'description', 'category')
+
+
 class UrlSerializer(serializers.ModelSerializer):
-    site = serializers.StringRelatedField()
+    site = SiteSerializer(read_only=True)
 
     class Meta:
         model = Target
@@ -23,7 +37,7 @@ class EventSerializer(serializers.ModelSerializer):
     """EventSerializer: ModelSerializer
     for serialize a list of events"""
 
-    target = UrlFlagSerializer(read_only=True)
+    target = UrlFlagSerializer()
     flags = FlagSerializer(read_only=True, many=True)
 
     class Meta:
@@ -31,12 +45,6 @@ class EventSerializer(serializers.ModelSerializer):
         fields = (
             'isp', 'start_date', 'end_date', 'target',
             'identification', 'type', 'flags', 'public_evidence')
-
-
-class SiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Site
-        fields = ('name',)
 
 
 class BlockedSiteSerializer(SiteSerializer):
@@ -103,12 +111,6 @@ class ISPSerializer(serializers.ModelSerializer):
     class Meta:
         model = ISP
         fields = ('name',)
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SiteCategory
-        fields = ('name', 'description', 'abbreviation')
 
 
 # Django Filter EventGroupFilter
