@@ -29,6 +29,11 @@ urlpatterns = [
         name='sites-rest'
     ),
     url(
+        r'^sites/detail/(?P<site_name>[\w\-]+)/$',
+        views.DetailSiteView.as_view(),
+        name='detail-site-rest'
+    ),
+    url(
         r'^isp/$',
         views.ListISPView.as_view(),
         name='isp-rest'

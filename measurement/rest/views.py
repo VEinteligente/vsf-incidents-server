@@ -81,8 +81,8 @@ class NDTMetrics(generics.ListAPIView):
 
 
 class DetailFlagRestView(generics.RetrieveAPIView):
-    """DetailCaseRestView: RetrieveAPIView
-    for displaying a specific published case"""
+    """DetailFlagRestView: RetrieveAPIView
+    for displaying a specific flag"""
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     queryset = Flag.objects.all()

@@ -119,3 +119,14 @@ class ListTargetsView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Target.objects.all()
     serializer_class = UrlSerializer
+
+
+class DetailSiteView(generics.RetrieveAPIView):
+    """DetailSiteView: RetrieveAPIView
+    for displaying a specific site"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Site.objects.all()
+    lookup_url_kwarg = 'site_name'
+    lookup_field = 'name'
+    serializer_class = SiteSerializer
