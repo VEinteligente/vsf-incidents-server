@@ -250,3 +250,9 @@ class SiteForm(forms.ModelForm):
     class Meta:
         model = Site
         fields = ['name', 'description', 'category']
+
+
+class TargetForm(forms.ModelForm):
+    class Meta:
+        model = Target
+        fields = ['type', 'site', 'domain', 'url', 'ip']

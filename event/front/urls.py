@@ -74,14 +74,29 @@ urlpatterns = [
         name='update-event-evidence'
     ),
     url(
-        r'^targets-list/$',
+        r'^target/list/$',
         views.ListTargets.as_view(),
         name='targets-list'
     ),
     url(
-        r'^targets-list/table-ajax/$',
+        r'^target/list/table-ajax/$',
         views.ListTargetsAjax.as_view(),
         name='targets-list-ajax'
+    ),
+    url(
+        r'^target/create/$',
+        views.CreateTarget.as_view(),
+        name='create-target'
+    ),
+    url(
+        r'^target/(?P<pk>\w+)/update/$',
+        views.UpdateTarget.as_view(),
+        name='update-target'
+    ),
+    url(
+        r'^target/(?P<pk>\w+)/delete/$',
+        views.DeleteTarget.as_view(),
+        name='delete-target'
     ),
     url(
         r'^site-category/list/$',

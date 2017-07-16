@@ -4,6 +4,14 @@
 {% load bootstrap3 %}
 
 {% block content %}
+<div class="row">
+    <div class="col-xs-12">
+        <a  href="{% url 'events:event_front:create-target' %}" class="btn btn-default btn-flat" style="margin-bottom:20px;">
+            Create new Target
+        </a>
+    </div>
+</div>
+
     {% if messages %} 
     <div class="box">    
 
@@ -39,6 +47,7 @@
                             <th>Domain</th>
                             <th>URL</th>
                             <th>IP Address</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -48,6 +57,7 @@
                             <th>Domain</th>
                             <th>URL</th>
                             <th>IP Address</th>
+                            <th>Actions</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -75,6 +85,26 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         <input type="submit" value="Save" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal_delete" role="dialog">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Target</h4>
+                </div>
+                <form id="target-delete-form" action="" method="post">{% csrf_token %}
+                    <div class="modal-body">
+                        <p>Are you sure of this action? It will delete all data asociated to this target</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <input type="submit" class="btn btn-danger" value="Confirm" />
                     </div>
                 </form>
             </div>
@@ -116,6 +146,15 @@
                     },
                     {
                         "mData": "IP_Address"
+                    },
+                    {
+                        "mData": "ID",
+                        "mRender": function ( data, type, full ) {
+                            var url_measurement = '<div class="btn-group "><button type="button" class="btn btn-primary btn-flat">Actions</button><button type="button" class="btn btn-primary btn-flat dropdown-toggle" data-toggle="dropdown" aria-expanded="true"><span class="caret"></span><span class="sr-only">Toggle Dropdown</span></button><ul class="dropdown-menu" role="menu">';
+                            url_measurement += '<li><a href="/events/target/'+ data +'/update/">Edit</a></li>';
+                            url_measurement += '<li> <a href="" class="delete-btn" data-toggle="modal" style="color: red;" data-target="#modal_delete" data-id="'+ data +'">Delete</a></li></ul></div>';
+                            return url_measurement;
+                        }
                     }
                 ]
             });
@@ -135,6 +174,14 @@
                     title.html('<b>' + self.attr('data-domain') + '</b>');
                 $("#id_target").val(self.attr('data-id'));
                 modal.show();
+            });
+
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault();
+                /* Act on the event */
+                var delete_id = $(this).data('id')
+                var url = '/events/target/__ID__/delete/'.replace('__ID__', delete_id)
+                $('#target-delete-form').attr('action', url);
             });
          
         });

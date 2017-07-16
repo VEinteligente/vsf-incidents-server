@@ -17,7 +17,7 @@ from event.utils import suggestedFlags
 from measurement.models import Flag
 from .forms import (
     EventForm, EventExtendForm, EventEvidenceForm,
-    SelectSiteForm, SiteCategoryForm, SiteForm
+    SelectSiteForm, SiteCategoryForm, SiteForm, TargetForm
 )
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
@@ -430,6 +430,7 @@ class ListEventSuggestedFlagsAjax(LoginRequiredMixin, DatatablesView):
         )
 
 
+# CRUD Target
 class ListTargets(LoginRequiredMixin, PageTitleMixin, generic.FormView):
     form_class = SelectSiteForm
     template_name = "list_targets.html"
@@ -472,6 +473,50 @@ class ListTargetsAjax(LoginRequiredMixin, DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
         )
+
+
+class CreateTarget(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateTarget: CreateView for create Target
+    """
+    form_class = TargetForm
+    page_header = "New Target"
+    page_header_description = ""
+    breadcrumb = ["Events", "Targets", "New Target"]
+    success_url = reverse_lazy('events:event_front:targets-list')
+    template_name = 'create_target.html'
+
+
+class UpdateTarget(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateTarget: UpdateView than
+    update an target object
+    """
+    form_class = TargetForm
+    context_object_name = 'target'
+    page_header = "Update Target"
+    page_header_description = ""
+    breadcrumb = ["Events", "Targets", "Update Target"]
+    model = Target
+    success_url = reverse_lazy('events:event_front:targets-list')
+    template_name = 'create_target.html'
+
+
+class DeleteTarget(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteTarget: Delete target
+    """
+    model = Target
+    template_name = 'list_targets.html'
+    success_url = reverse_lazy('events:event_front:targets-list')
 
 
 # Deprecated - each pluggin have his own create event
@@ -752,6 +797,28 @@ class ListSite(LoginRequiredMixin, PageTitleMixin, generic.ListView):
     page_header = "Sites"
     page_header_description = "List of sites"
     breadcrumb = ["Events", "Sites"]
+    queryset = Site.objects.all().prefetch_related(
+        'targets'
+    ).annotate(
+        num_domains=Count(
+            Case(
+                When(targets__type=Target.DOMAIN, then=1),
+                output_field=IntegerField()
+            )
+        ),
+        num_urls=Count(
+            Case(
+                When(targets__type=Target.URL, then=1),
+                output_field=IntegerField()
+            )
+        ),
+        num_ips=Count(
+            Case(
+                When(targets__type=Target.IP, then=1),
+                output_field=IntegerField()
+            )
+        ),
+    )
 
 
 class CreateSite(
