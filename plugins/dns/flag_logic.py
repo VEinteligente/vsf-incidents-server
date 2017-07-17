@@ -66,7 +66,8 @@ def web_connectivity_to_dns():
         except Exception:
             cr['answers'] = None
 
-        td_logger.debug('Total de queries para la metric %s: %s' % str(dns_metric.id), str(len(dns_metric['queries'])))
+        td_logger.debug('Total de queries para la metric %s: %s' %
+                        (str(dns_metric['id']), str(len(dns_metric['queries']))))
 
         for query in dns_metric['queries']:
             for answer in query['answers']:
@@ -92,7 +93,7 @@ def web_connectivity_to_dns():
                             target=target
                         )
                         dns.save()
-                        td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric.id))
+                        td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
                     SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
@@ -310,6 +311,7 @@ def dns_to_flag():
             %
             (str(p), str(len(new_flags)))
         )
+        Flag.objects.bulk_create(new_flags)
         new_flags = list()
 
     td_logger.info("Terminando con dns_to_flag")
