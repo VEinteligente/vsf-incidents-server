@@ -12,10 +12,13 @@ from django.views import generic
 from eztables.views import DatatablesView
 
 from dashboard.mixins import PageTitleMixin
-from event.models import Event, Target, Site
+from event.models import Event, Target, Site, SiteCategory
 from event.utils import suggestedFlags
 from measurement.models import Flag
-from .forms import EventForm, EventExtendForm, EventEvidenceForm, SelectSiteForm
+from .forms import (
+    EventForm, EventExtendForm, EventEvidenceForm,
+    SelectSiteForm, SiteCategoryForm, SiteForm, TargetForm
+)
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -427,6 +430,7 @@ class ListEventSuggestedFlagsAjax(LoginRequiredMixin, DatatablesView):
         )
 
 
+# CRUD Target
 class ListTargets(LoginRequiredMixin, PageTitleMixin, generic.FormView):
     form_class = SelectSiteForm
     template_name = "list_targets.html"
@@ -469,6 +473,50 @@ class ListTargetsAjax(LoginRequiredMixin, DatatablesView):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder),
         )
+
+
+class CreateTarget(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateTarget: CreateView for create Target
+    """
+    form_class = TargetForm
+    page_header = "New Target"
+    page_header_description = ""
+    breadcrumb = ["Events", "Targets", "New Target"]
+    success_url = reverse_lazy('events:event_front:targets-list')
+    template_name = 'create_target.html'
+
+
+class UpdateTarget(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateTarget: UpdateView than
+    update an target object
+    """
+    form_class = TargetForm
+    context_object_name = 'target'
+    page_header = "Update Target"
+    page_header_description = ""
+    breadcrumb = ["Events", "Targets", "Update Target"]
+    model = Target
+    success_url = reverse_lazy('events:event_front:targets-list')
+    template_name = 'create_target.html'
+
+
+class DeleteTarget(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteTarget: Delete target
+    """
+    model = Target
+    template_name = 'list_targets.html'
+    success_url = reverse_lazy('events:event_front:targets-list')
 
 
 # Deprecated - each pluggin have his own create event
@@ -551,8 +599,6 @@ class CreateEventMeasurementView(
 
 
 # Event with external evidence views
-# Deprecated - each pluggin have his own create event
-# (this include events with measurement)
 class CreateEventEvidenceView(
     LoginRequiredMixin,
     PageTitleMixin,
@@ -573,7 +619,9 @@ class CreateEventEvidenceView(
         """
         If the form is valid, save the associated model.
         """
-        if (form.cleaned_data['end_date'] is None) and (form.cleaned_data['open_ended'] is False):
+        if (form.cleaned_data['end_date'] is None) and (
+            form.cleaned_data['open_ended'] is False
+        ):
             form.add_error(
                 None,
                 'You must give an end date to this event or select open ended'
@@ -596,7 +644,9 @@ class CreateEventEvidenceView(
         target, created = Target.objects.get_or_create(
             site=form.cleaned_data['target_site'],
             url=form.cleaned_data['target_url'],
-            ip=form.cleaned_data['target_ip'])
+            ip=form.cleaned_data['target_ip'],
+            domain=form.cleaned_data['target_domain'],
+            type=form.cleaned_data['target_type'])
 
         self.object.target = target
 
@@ -615,7 +665,7 @@ class UpdateEventEvidenceView(
     generic.UpdateView
 ):
     """
-    UpdateEventEvidenceView: UpdateView for update 
+    UpdateEventEvidenceView: UpdateView for update
     Event with external evidence
     """
     model = Event
@@ -678,3 +728,139 @@ class UpdateEventEvidenceView(
         messages.success(self.request, msg)
 
         return HttpResponseRedirect(self.get_success_url())
+
+
+# CRUD Category Site
+class ListSiteCategory(LoginRequiredMixin, PageTitleMixin, generic.ListView):
+    """ListSiteCategory: ListView than
+    display a list of all site categories"""
+    model = SiteCategory
+    template_name = "list_site_category.html"
+    context_object_name = "site_categories"
+    page_header = "Site Categories"
+    page_header_description = "List of site categories"
+    breadcrumb = ["Events", "Site Categories"]
+
+
+class CreateSiteCategory(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateSiteCategory: CreateView for create
+    SiteCategory
+    """
+    form_class = SiteCategoryForm
+    page_header = "New Category Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "New Category Site"]
+    success_url = reverse_lazy('events:event_front:site-category-list')
+    template_name = 'create_site_category.html'
+
+
+class UpdateSiteCategory(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateSiteCategory: UpdateView than
+    update an SiteCategory object
+    """
+    form_class = SiteCategoryForm
+    context_object_name = 'site_category'
+    page_header = "Update Category Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "Update Category Site"]
+    model = SiteCategory
+    success_url = reverse_lazy('events:event_front:site-category-list')
+    template_name = 'create_site_category.html'
+
+
+class DeleteSiteCategory(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteSiteCategory: Delete site category
+    """
+    model = SiteCategory
+    template_name = 'list_site_category.html'
+    success_url = reverse_lazy('events:event_front:site-category-list')
+
+
+# CRUD Site
+class ListSite(LoginRequiredMixin, PageTitleMixin, generic.ListView):
+    """ListSite: ListView than
+    display a list of all sites"""
+    model = Site
+    template_name = "list_site.html"
+    context_object_name = "sites"
+    page_header = "Sites"
+    page_header_description = "List of sites"
+    breadcrumb = ["Events", "Sites"]
+    queryset = Site.objects.all().prefetch_related(
+        'targets'
+    ).annotate(
+        num_domains=Count(
+            Case(
+                When(targets__type=Target.DOMAIN, then=1),
+                output_field=IntegerField()
+            )
+        ),
+        num_urls=Count(
+            Case(
+                When(targets__type=Target.URL, then=1),
+                output_field=IntegerField()
+            )
+        ),
+        num_ips=Count(
+            Case(
+                When(targets__type=Target.IP, then=1),
+                output_field=IntegerField()
+            )
+        ),
+    )
+
+
+class CreateSite(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.CreateView
+):
+    """
+    CreateSite: CreateView for create
+    Site
+    """
+    form_class = SiteForm
+    page_header = "New Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Sites", "New Site"]
+    success_url = reverse_lazy('events:event_front:site-list')
+    template_name = 'create_site.html'
+
+
+class UpdateSite(
+    LoginRequiredMixin,
+    PageTitleMixin,
+    generic.UpdateView
+):
+    """
+    UpdateSite: UpdateView than
+    update an Site object
+    """
+    form_class = SiteForm
+    context_object_name = 'site'
+    page_header = "Update Site"
+    page_header_description = ""
+    breadcrumb = ["Events", "Site Categories", "Update Site"]
+    model = Site
+    success_url = reverse_lazy('events:event_front:site-list')
+    template_name = 'create_site.html'
+
+
+class DeleteSite(LoginRequiredMixin, generic.DeleteView):
+    """
+    DeleteSite: Delete site
+    """
+    model = Site
+    template_name = 'list_site.html'
+    success_url = reverse_lazy('events:event_front:site-list')

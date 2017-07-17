@@ -24,9 +24,14 @@ urlpatterns = [
         name='list-event-group'
     ),
     url(
-        r'^site/$',
+        r'^sites/$',
         views.ListSiteView.as_view(),
         name='sites-rest'
+    ),
+    url(
+        r'^sites/detail/(?P<site_name>[\w\-]+)/$',
+        views.DetailSiteView.as_view(),
+        name='detail-site-rest'
     ),
     url(
         r'^isp/$',
@@ -37,6 +42,11 @@ urlpatterns = [
         r'^categories/$',
         views.ListCategoriesView.as_view(),
         name='categories-rest'
+    ),
+    url(
+        r'^targets/$',
+        views.ListTargetsView.as_view(),
+        name='targets-rest'
     ),
 
 ]

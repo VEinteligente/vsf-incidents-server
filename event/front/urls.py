@@ -74,13 +74,68 @@ urlpatterns = [
         name='update-event-evidence'
     ),
     url(
-        r'^targets-list/$',
+        r'^target/list/$',
         views.ListTargets.as_view(),
         name='targets-list'
     ),
     url(
-        r'^targets-list/table-ajax/$',
+        r'^target/list/table-ajax/$',
         views.ListTargetsAjax.as_view(),
         name='targets-list-ajax'
+    ),
+    url(
+        r'^target/create/$',
+        views.CreateTarget.as_view(),
+        name='create-target'
+    ),
+    url(
+        r'^target/(?P<pk>\w+)/update/$',
+        views.UpdateTarget.as_view(),
+        name='update-target'
+    ),
+    url(
+        r'^target/(?P<pk>\w+)/delete/$',
+        views.DeleteTarget.as_view(),
+        name='delete-target'
+    ),
+    url(
+        r'^site-category/list/$',
+        views.ListSiteCategory.as_view(),
+        name='site-category-list'
+    ),
+    url(
+        r'^site-category/create/$',
+        views.CreateSiteCategory.as_view(),
+        name='create-site-category'
+    ),
+    url(
+        r'^site-category/(?P<pk>\w+)/update/$',
+        views.UpdateSiteCategory.as_view(),
+        name='update-site-category'
+    ),
+    url(
+        r'^site-category/(?P<pk>\w+)/delete/$',
+        views.DeleteSiteCategory.as_view(),
+        name='delete-site-category'
+    ),
+    url(
+        r'^site/list/$',
+        views.ListSite.as_view(),
+        name='site-list'
+    ),
+    url(
+        r'^site/create/$',
+        views.CreateSite.as_view(),
+        name='create-site'
+    ),
+    url(
+        r'^site/(?P<pk>\w+)/update/$',
+        views.UpdateSite.as_view(),
+        name='update-site'
+    ),
+    url(
+        r'^site/(?P<pk>\w+)/delete/$',
+        views.DeleteSite.as_view(),
+        name='delete-site'
     ),
 ]

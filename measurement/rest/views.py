@@ -8,7 +8,7 @@ from measurement.rest.serializers import FlagSerializer
 
 from serializers import (
     MeasurementSerializer,
-    DNSMeasurementSerializer
+    # DNSMeasurementSerializer
 )
 
 
@@ -22,14 +22,14 @@ class MeasurementRestView(generics.ListAPIView):
     serializer_class = MeasurementSerializer
 
 
-class DNSMeasurementRestView(generics.ListAPIView):
-    """DNSMeasurementRestView: MeasurementRestView
-    for displaying a list of DNS measurements"""
-    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated,)
+# class DNSMeasurementRestView(generics.ListAPIView):
+#     """DNSMeasurementRestView: MeasurementRestView
+#     for displaying a list of DNS measurements"""
+#     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+#     permission_classes = (IsAuthenticated,)
 
-    queryset = Metric.objects.filter(test_name='dns_consistency')
-    serializer_class = DNSMeasurementSerializer
+#     queryset = Metric.objects.filter(test_name='dns_consistency')
+#     serializer_class = DNSMeasurementSerializer
 
 
 class FlagListView(generics.ListAPIView):
@@ -48,7 +48,7 @@ class SoftFlagListView(FlagListView):
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Flag.objects.filter(flag=False)
+    queryset = Flag.objects.filter(flag=Flag.SOFT)
 
 
 class HardFlagListView(FlagListView):
@@ -57,7 +57,7 @@ class HardFlagListView(FlagListView):
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Flag.objects.filter(flag=True)
+    queryset = Flag.objects.filter(flag=Flag.HARD)
 
 
 class MutedFlagListView(FlagListView):
@@ -66,9 +66,10 @@ class MutedFlagListView(FlagListView):
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Flag.objects.filter(flag=None)
+    queryset = Flag.objects.filter(flag=Flag.MUTED)
 
 
+# No tiene url
 class NDTMetrics(generics.ListAPIView):
     """
 
@@ -76,5 +77,15 @@ class NDTMetrics(generics.ListAPIView):
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
-    queryset = Flag.objects.filter(flag=None)
+    queryset = Flag.objects.filter(flag=Flag.NONE, plugin_name='ndt')
 
+
+class DetailFlagRestView(generics.RetrieveAPIView):
+    """DetailFlagRestView: RetrieveAPIView
+    for displaying a specific flag"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Flag.objects.all()
+    lookup_url_kwarg = 'flag_id'
+    lookup_field = 'uuid'
+    serializer_class = FlagSerializer

@@ -110,3 +110,23 @@ class ListCategoriesView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = SiteCategory.objects.all()
     serializer_class = CategorySerializer
+
+
+class ListTargetsView(generics.ListAPIView):
+    """ListSiteView: ListAPIView
+    for displaying a list of all categories"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Target.objects.all()
+    serializer_class = UrlSerializer
+
+
+class DetailSiteView(generics.RetrieveAPIView):
+    """DetailSiteView: RetrieveAPIView
+    for displaying a specific site"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Site.objects.all()
+    lookup_url_kwarg = 'site_name'
+    lookup_field = 'name'
+    serializer_class = SiteSerializer

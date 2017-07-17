@@ -16,7 +16,8 @@ from serializers import (
     ISPSerializer,
     GanttChartSerializer,
     EventsByMonthSerializer,
-    ListCountEventsByRegionByCaseSerializer
+    ListCountEventsByRegionByCaseSerializer,
+    CaseFlagsSerializer
 )
 from event.models import Event
 from Case.models import Case, Category
@@ -53,6 +54,16 @@ class DetailUpdateCaseRestView(generics.RetrieveAPIView):
     queryset = Case.objects.filter(draft=False)
     lookup_url_kwarg = 'case_id'
     serializer_class = DetailUpdateCaseSerializer
+
+
+class DetailFlagCaseRestView(generics.RetrieveAPIView):
+    """DetailFlagCaseRestView: RetrieveAPIView
+    for displaying a list of updates of specific published case"""
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+    queryset = Case.objects.filter(draft=False)
+    lookup_url_kwarg = 'case_id'
+    serializer_class = CaseFlagsSerializer
 
 
 class ListCaseView(generics.ListAPIView):
