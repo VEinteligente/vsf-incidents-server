@@ -54,7 +54,8 @@ def web_connectivity_to_dns():
         'dnss'
     )
 
-    for dns_metric in web_connectivity_metrics:
+    new_dns = list()
+    for i, dns_metric in web_connectivity_metrics:
         cr = {}
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
@@ -92,13 +93,21 @@ def web_connectivity_to_dns():
                             answers=answer,
                             target=target
                         )
-                        dns.save()
+                        new_dns.append(dns)
                         td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
                     SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
                     td_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                     "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+        if i % 1000 == 0:
+            # No necesariamente hay 1000 DNSs nuevos
+            DNS.objects.bulk_create(new_dns)
+            new_dns = list()
+            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
+            td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+    if new_dns:
+        DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con web_connectivity en DNS")
 
 
@@ -155,6 +164,7 @@ def dns_consistency_to_dns():
 
     # for each dns metric get control resolver and other fields
 
+    new_dns = list()
     for i, dns_metric in enumerate(dns_consistency_metrics):
         # Get control_resolver ip address
         cr_ip = dns_metric['control_resolver'].split(':')[0]
@@ -190,7 +200,7 @@ def dns_consistency_to_dns():
                             resolver_hostname=query['resolver_hostname'],
                             target=target
                         )
-                        dns.save()
+                        new_dns.append(dns)
                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
@@ -200,8 +210,13 @@ def dns_consistency_to_dns():
                                 "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
         if i % 1000 == 0:
+            # No necesariamente hay 1000 DNSs nuevos
+            DNS.objects.bulk_create(new_dns)
+            new_dns = list()
             SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
             td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+    if new_dns:
+        DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con dns_consistency")
 
 
