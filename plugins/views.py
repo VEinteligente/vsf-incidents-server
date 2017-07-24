@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
-from datetime import datetime
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 from eztables.views import DatatablesView as EditableDatatablesView
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -17,6 +18,8 @@ from event.front.forms import EventEvidenceForm
 from event.models import Event, Target, ISP, Site
 from event.utils import suggestedFlags
 from measurement.models import Flag
+
+from .forms import DataTableRangePicker
 
 # from django.utils.module_loading import import_string
 # app_label = "demo"
@@ -49,6 +52,17 @@ class PluginTableView(
         context['aoColumns_json'] = aux_json
         if self.url_ajax is not None:
             context['url_ajax'] = self.url_ajax
+
+        if self.request.method == 'GET':
+            today = date.today()
+            month_ago = date.today() + relativedelta(months=-1)
+
+            context['datepicker_form'] = DataTableRangePicker(
+                initial={
+                    'date_from': month_ago,
+                    'date_to': today
+                }
+            )
         return context
 
 
