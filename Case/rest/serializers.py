@@ -64,9 +64,13 @@ class CaseSerializer(serializers.ModelSerializer):
         return UrlSerializer(dm, many=True).data
 
 
-class GanttChartSerializer(CaseSerializer):
+class GanttChartSerializer(serializers.ModelSerializer):
 
     events = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Case
+        fields = ('events',)
 
     def get_events(self, obj):
         events = obj.events.order_by(
@@ -75,9 +79,6 @@ class GanttChartSerializer(CaseSerializer):
             'start_date'
         )
         return EventSerializer(events, many=True).data
-
-    class Meta(CaseSerializer.Meta):
-        fields = ('events',)
 
 
 class EventsByMonthSerializer(CaseSerializer):
