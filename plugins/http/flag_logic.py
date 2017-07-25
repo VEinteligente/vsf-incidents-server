@@ -1,4 +1,5 @@
 import logging
+from urlparse import urlparse
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -92,7 +93,12 @@ def web_connectivity_to_http():
                 try:
                     target = Target.objects.get(url=url, type=Target.URL)
                 except Target.DoesNotExist:
-                    target = Target(url=url, type=Target.URL)
+                    parsed_uri = urlparse(url)
+                    target = Target(
+                        url=url,
+                        type=Target.URL,
+                        domain=parsed_uri.netloc
+                    )
                     target.save()
                 except Target.MultipleObjectsReturned:
                     target = Target.objects.filter(url=url, type=Target.URL).first()
