@@ -147,7 +147,7 @@ def copy_from_measurements_to_metrics():
         new_metrics = list()
         
         # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
-        # !!! TO-DO: integrate to the same bulk_create for performace after testing
+        # TODO !!! integrate to the same bulk_create for performace after testing
         if retry_measurements:
             td_logger.info('Retry: %i Metrics to re-evaluate and copy if needed (page %i)' % (len(retry_measurements), p))
             for measurement in retry_measurements:
@@ -204,7 +204,7 @@ def copy_from_measurements_to_metrics():
     # SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
     # td_logger.debug("Last SYNCHRONIZE date: '%s'" % settings.SYNCHRONIZE_DATE)
 
-# is this necesary? TO-DO double check and remove
+# TODO: is function this necesary? TO-DO double check and remove
 def update_or_create(measurement):
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
     create = True
@@ -321,12 +321,14 @@ def change_to_manual_flag_and_create_event(metrics_sql, type_med):
                 probe = Probe.objects.filter(identification=probe_id).first()
                 region = probe.region.name
             except Exception:
-                region = 'CCS'
+                region = 'CCS' 
+            # TODO important check best way to create metric with missiing region, wich region
             # Create Manual Flag
             flag = Flag.objects.create(
                 manual_flag=True,
                 date=metric_sql['measurement_start_time'],
                 target=url,
+                 # TODO !!! check if target is correct here
                 region=region,
                 medicion=metric_sql['id'],
                 type_med=type_med)
