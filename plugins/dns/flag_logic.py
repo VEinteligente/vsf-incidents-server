@@ -233,7 +233,6 @@ def dns_to_flag():
         dnss = DNS.objects.all()
 
     dnss = dnss.select_related('metric', 'flag')
-    new_flags = list()
     i = 0
 
     td_logger.debug("Total de mediciones DNS a convertir a flags: %s" % str(dnss.count()))
@@ -308,11 +307,12 @@ def dns_to_flag():
                         metric_date=dns.metric.measurement_start_time,
                         metric=dns.metric,
                         target=dns.target,
-                        dnss=dns,
                         flag=f_aux,
                         plugin_name=dns.__class__.__name__
                     )
-                    new_flags.append(flag)
+                    flag.save()
+                    dns.flag = flag
+                    dns.save()
                     td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
                                     (str(i), str(dns.metric.id)))
             except Exception as e:
@@ -322,12 +322,10 @@ def dns_to_flag():
                                 (str(dns.id), str(e)))
 
         td_logger.debug(
-            "Saliendo de la pagina %s, voy a crear %s flags."
+            "Saliendo de la pagina %s"
             %
-            (str(p), str(len(new_flags)))
+            str(p)
         )
-        Flag.objects.bulk_create(new_flags)
-        new_flags = list()
 
     td_logger.info("Terminando con dns_to_flag")
 

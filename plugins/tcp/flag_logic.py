@@ -1,4 +1,5 @@
 import logging
+from urlparse import urlparse
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -43,7 +44,8 @@ def web_connectivity_to_tcp():
     ).values(
         'id',
         'tcp_connect',
-        'tcps'
+        'tcps',
+        'input'
     )
 
     web_connectivity_paginator = Paginator(web_connectivity_metrics, 1000)
@@ -58,13 +60,26 @@ def web_connectivity_to_tcp():
                         tcp_connect['status']['blocked'] is not None) and (
                         tcp_connect['status']['success'] is not None
                     ):
+                        parsed_uri = urlparse(tcp_metric['input'])
                         try:
-                            target = Target.objects.get(ip=tcp_connect['ip'], type=Target.IP)
+                            target = Target.objects.get(
+                                ip=tcp_connect['ip'],
+                                type=Target.IP,
+                                domain=parsed_uri.netloc
+                            )
                         except Target.DoesNotExist:
-                            target = Target(ip=tcp_connect['ip'], type=Target.IP)
+                            target = Target(
+                                ip=tcp_connect['ip'],
+                                type=Target.IP,
+                                domain=parsed_uri.netloc
+                            )
                             target.save()
                         except Target.MultipleObjectsReturned:
-                            target = Target.objects.filter(ip=tcp_connect['ip'], type=Target.IP).first()
+                            target = Target.objects.filter(
+                                ip=tcp_connect['ip'],
+                                type=Target.IP,
+                                domain=parsed_uri.netloc
+                            ).first()
                         tcp = TCP(
                             metric_id=tcp_metric['id'],
                             status_blocked=tcp_connect['status']['blocked'],
