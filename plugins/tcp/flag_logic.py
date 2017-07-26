@@ -61,6 +61,7 @@ def web_connectivity_to_tcp():
                         tcp_connect['status']['success'] is not None
                     ):
                         parsed_uri = urlparse(tcp_metric['input'])
+# TODO clean up code
                         try:
                             target = Target.objects.get(
                                 ip=tcp_connect['ip'],
@@ -80,6 +81,12 @@ def web_connectivity_to_tcp():
                                 type=Target.IP,
                                 domain=parsed_uri.netloc
                             ).first()
+                            
+                        #  for logging only
+                        if !domain:
+                            td_logger.info("IP Target %s created without domain" % (ip))                            
+                            SYNCHRONIZE_logger.info("IP Target %s created without domain" % (ip))                            
+                            
                         tcp = TCP(
                             metric_id=tcp_metric['id'],
                             status_blocked=tcp_connect['status']['blocked'],

@@ -103,6 +103,13 @@ def web_connectivity_to_http():
                 except Target.MultipleObjectsReturned:
                     target = Target.objects.filter(url=url, type=Target.URL).first()
 
+
+                #  for logging only
+                if !domain:
+                    td_logger.error("URL Target %s created without domain" % (url))                            
+                    SYNCHRONIZE_logger.error("URL Target %s created without domain" % (url))                            
+
+
                 http = HTTP(
                     metric_id=http_metric['id'],
                     status_code_match=http_metric['status_code_match'],
