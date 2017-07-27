@@ -113,7 +113,7 @@ def web_connectivity_to_tcp():
                         tcp.save()
                 except Exception as e:
                     SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
-                                             "siguiente mensaje: %s" % (str(tcp_metric['measurement']), str(e)))
+                                             "siguiente mensaje: %s" % (str(tcp_metric['id']), str(e)))
 
 
 def tcp_to_flag():
