@@ -499,7 +499,7 @@ def luigiUpdateFlagTask():
         copy_from_measurements_to_metrics()
     except Exception as e:
         SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
-        SYNCHRONIZE_logger.error(sys.exc_info())
+        SYNCHRONIZE_logger.error(str(sys.exc_info()))
         td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
     # ----------------------------------------------
     for module in settings.FLAG_TESTS:
@@ -512,7 +512,7 @@ def luigiUpdateFlagTask():
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
                                          (module['module_name'], str(function), str(e)))
-                SYNCHRONIZE_logger.error(sys.exc_info())
+                SYNCHRONIZE_logger.error(str(sys.exc_info()))
                 td_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
                                 (module['module_name'], str(function), str(e)))
                 
