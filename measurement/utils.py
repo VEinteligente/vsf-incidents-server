@@ -97,9 +97,9 @@ def copy_from_measurements_to_metrics():
             elif unicode(str(measurement.id), "utf-8") in collisions: #uncetain if this complex casting is necesarry, but its working
                 # We don't want to update the metrics that already exists in
                 # the database.
-                collisions.remove(measurement.id)
 #                 td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )
-
+                pass
+                # TODO re-format code to avoid epmty if
             else:                    
                 page_copied.append(measurement.id)
                 
