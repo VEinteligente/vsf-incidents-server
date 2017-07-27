@@ -55,8 +55,10 @@ def web_connectivity_to_dns():
     )
 
     new_dns = list()
-    for i, dns_metric in web_connectivity_metrics:
-    
+    i=0
+    for dns_metric in web_connectivity_metrics:
+
+        
         cr = {}
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
@@ -105,6 +107,7 @@ def web_connectivity_to_dns():
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
                     td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                     "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+        i += 1
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
