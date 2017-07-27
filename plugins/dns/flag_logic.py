@@ -207,7 +207,7 @@ def dns_consistency_to_dns():
                         )
                         new_dns.append(dns)
 #                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
-                                       ' perteneciente a la metric %s' % str(dns_metric['id']))
+#                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
                 SYNCHRONIZE_logger.exception("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
