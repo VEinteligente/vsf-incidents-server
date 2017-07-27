@@ -504,6 +504,7 @@ def luigiUpdateFlagTask():
 
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
+        SYNCHRONIZE_logger.info("Attempting to start %s:" % module['module_name'])
             try:
                 method_to_call = getattr(m, function)
                 result = method_to_call()
@@ -513,8 +514,7 @@ def luigiUpdateFlagTask():
                 td_logger.exception("Fallo en %s.%s con el siguiente mensaje: %s" %
                                 (module['module_name'], str(function), str(e)))
                 
-        SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
-        td_logger.info("termino con %s" % module['module_name'])
+        SYNCHRONIZE_logger.info("Finished: %s" % module['module_name'])
     # Set SYNCRONIZE_DATE
     if settings.SYNCHRONIZE_DATE is not None:
         measurements_date = Measurement.objects.filter(
