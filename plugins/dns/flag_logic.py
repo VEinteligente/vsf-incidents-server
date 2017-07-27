@@ -101,9 +101,9 @@ def web_connectivity_to_dns():
                         new_dns.append(dns)
                         td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
-                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                    SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                    td_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                    td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                     "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
@@ -209,9 +209,9 @@ def dns_consistency_to_dns():
 #                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                SYNCHRONIZE_logger.exception("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                td_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                td_logger.exception("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                 "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
         if i % 1000 == 0:
@@ -321,9 +321,9 @@ def dns_to_flag():
                     td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
                                     (str(i), str(dns.metric.id)))
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                SYNCHRONIZE_logger.exception("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                          (str(dns.id), str(e)))
-                td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                td_logger.exception("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                 (str(dns.id), str(e)))
 
         td_logger.debug(

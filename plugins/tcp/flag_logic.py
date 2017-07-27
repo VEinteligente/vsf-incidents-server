@@ -97,7 +97,7 @@ def web_connectivity_to_tcp():
                         )
                         tcp.save()
                 except Exception as e:
-                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
+                    SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(tcp_metric['measurement']), str(e)))
 
 
@@ -138,7 +138,7 @@ def tcp_to_flag():
                 tcp_obj.flag = flag
                 tcp_obj.save()
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en tcp_to_flag, en el TCP '%s' con el "
+                SYNCHRONIZE_logger.exception("Fallo en tcp_to_flag, en el TCP '%s' con el "
                                          "siguiente mensaje: %s" % (str(tcp_obj.id), str(e)))
 
 
