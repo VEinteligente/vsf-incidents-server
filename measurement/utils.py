@@ -97,8 +97,8 @@ def copy_from_measurements_to_metrics():
             elif unicode(str(measurement.id), "utf-8") in collisions: #uncetain if this complex casting is necesarry, but its working
                 # We don't want to update the metrics that already exists in
                 # the database.
-#                 collisions.remove(measurement.id)
-#                 td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )                
+                collisions.remove(measurement.id)
+#                 td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )
 
             else:                    
                 page_copied.append(measurement.id)
@@ -129,12 +129,13 @@ def copy_from_measurements_to_metrics():
                     bucket_date=measurement.bucket_date,
                 )
     
-#                 td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
+                td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
+                td_logger.debug('-------------------------------------------------------')
     
                 new_metrics.append(obj)
 
         td_logger.debug(
-            "Exiting page %s, bulk create: %s metrics."
+            "Exiting page %s, bulk create: %s metrics." 
             %
             (str(p), str(len(new_metrics)))
         )
