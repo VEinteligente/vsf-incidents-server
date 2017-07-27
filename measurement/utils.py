@@ -82,10 +82,10 @@ def copy_from_measurements_to_metrics():
             if i==0:
                 td_logger.debug('First iteration in page %i' % p)                
             i += 1
-            td_logger.debug('current id %s (%s)' % (measurement.id, i))
+#             td_logger.debug('current id %s (%s)' % (measurement.id, i))
             page_copied=[]
             if measurement.id not in id_list:
-                td_logger.error('Remote measurement ID, not checked for existance in local DB for copy. Dading to pile for future copy. ID: %s' % measurement.id)
+                td_logger.error('Remote measurement ID, not checked for existance in local DB for copy. Adding to pile for future copy. ID: %s' % measurement.id)
                 retry_measurements.append(measurement)                
                 # it's unknown the reason behind this case being so prevalent. about 3/page of 20000 in our datasets. 
 
@@ -97,7 +97,6 @@ def copy_from_measurements_to_metrics():
             elif unicode(str(measurement.id), "utf-8") in collisions: #uncetain if this complex casting is necesarry, but its working
                 # We don't want to update the metrics that already exists in
                 # the database.
-#                 td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )
                 pass
                 # TODO re-format code to avoid epmty if
             else:                    
@@ -129,8 +128,7 @@ def copy_from_measurements_to_metrics():
                     bucket_date=measurement.bucket_date,
                 )
     
-                td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
-                td_logger.debug('-------------------------------------------------------')
+#                 td_logger.debug('Obj created for bulk create - ID %s' % measurement.id)
     
                 new_metrics.append(obj)
 
@@ -177,7 +175,6 @@ def copy_from_measurements_to_metrics():
                     )
         
                     td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
-                    td_logger.debug('-------------------------------------------------------')
         
                     new_metrics.append(obj)
                 else:
@@ -186,8 +183,8 @@ def copy_from_measurements_to_metrics():
             td_logger.debug('On Retry: %i metrics will be created, out of %i that needed check)' % (len(new_metrics), len(retry_measurements)))
             Metric.objects.bulk_create(new_metrics)
             td_logger.info('On Retry: %i metrics created (in page %i -index reached: %i)' % (len(new_metrics), p, i))
-            SYNCHRONIZE_logger.info('On Retry copied: \n %s)' % str(new_metrics))
-            SYNCHRONIZE_logger.info('On Retry NOT copied: \n %s)' % str(set(retry_measurements) - set(new_metrics)))
+            SYNCHRONIZE_logger.info('On Retry copied: %i \n %s)' % (len(new_metrics), str(new_metrics)))
+            SYNCHRONIZE_logger.info('On Retry NOT copied: %i \n %s)' % (len(str(set(retry_measurements) - set(new_metrics))), str(set(retry_measurements) - set(new_metrics))))
 
             new_metrics = list() # clean lists for next iteration
             retry_measurements = list()
