@@ -105,7 +105,9 @@ def web_connectivity_to_http():
 
 
                 #  for logging only
-                if !domain:
+                try: 
+                    domain
+                except NameError:
                     td_logger.error("URL Target %s created without domain" % (url))                            
                     SYNCHRONIZE_logger.error("URL Target %s created without domain" % (url))                            
 

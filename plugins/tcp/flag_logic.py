@@ -84,7 +84,9 @@ def web_connectivity_to_tcp():
                             ).first()
                             
                         #  for logging only
-                        if !domain:
+                        try: 
+                            domain
+                        except NameError:
                             td_logger.info("IP Target %s created without domain" % (ip))                            
                             SYNCHRONIZE_logger.info("IP Target %s created without domain" % (ip))                            
                             
