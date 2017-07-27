@@ -526,7 +526,6 @@ def luigiUpdateFlagTask():
 
     SYNCHRONIZE_DATE = str(measurements_date)
     SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
-    try:
     td_logger.debug("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
 
 
