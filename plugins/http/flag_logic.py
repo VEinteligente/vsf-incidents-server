@@ -13,8 +13,8 @@ from plugins.http.models import HTTP
 from event.utils import suggestedEvents
 
 
-td_logger = logging.getLogger('TRUE_DEBUG_logger')
-
+    td_logger = logging.getLogger('TRUE_DEBUG_logger')
+    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 def web_connectivity_to_http():
     # Get all metrics with test_name web_connectivity
@@ -101,16 +101,7 @@ def web_connectivity_to_http():
                     )
                     target.save()
                 except Target.MultipleObjectsReturned:
-                    target = Target.objects.filter(url=url, type=Target.URL).first()
-
-
-                #  for logging only
-                try: 
-                    domain
-                except NameError:
-                    td_logger.error("URL Target %s created without domain" % (url))                            
-                    SYNCHRONIZE_logger.error("URL Target %s created without domain" % (url))                            
-
+                    target = Target.objects.filter(url=url, type=Target.URL).first()                        
 
                 http = HTTP(
                     metric_id=http_metric['id'],

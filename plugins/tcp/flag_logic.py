@@ -12,8 +12,8 @@ from event.models import MutedInput, Target
 from plugins.tcp.models import TCP
 from event.utils import suggestedEvents
 
-SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
-
+    td_logger = logging.getLogger('TRUE_DEBUG_logger')
+    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 def web_connectivity_to_tcp():
     # Get all metrics with test_name web_connectivity
@@ -62,34 +62,47 @@ def web_connectivity_to_tcp():
                         tcp_connect['status']['success'] is not None
                     ):
                         parsed_uri = urlparse(tcp_metric['input'])
+                        current_domain=parsed_uri.netloc
+                        try: 
+                            current_domain
+                        except NameError:
+                            td_logger.error("HTTP to be processed with IP Target %s  without domain" % (ip))     
 # TODO clean up code
                         try:
                             target = Target.objects.get(
                                 ip=tcp_connect['ip'],
                                 type=Target.IP,
-                                domain=parsed_uri.netloc
+                                domain=current_domain
                             )
                         except Target.DoesNotExist:
-                            target = Target(
-                                ip=tcp_connect['ip'],
-                                type=Target.IP,
-                                domain=parsed_uri.netloc
-                            )
-                            target.save()
+                            try: 
+                                target = Target(
+                                    ip=tcp_connect['ip'],
+                                    type=Target.IP,
+                                    domain=current_domain
+                                )
+                                td_logger.debug("IP Target created %s - domain %s" % (ip, current_domain))                            
+                                target.save()
+                                
+                            except NameError:
+                                target.save()
+                                target = Target(
+                                    ip=tcp_connect['ip'],
+                                    type=Target.IP,
+                                    domain=current_domain
+                                )
+                                td_logger.error("IP Target created %s - without domain" % (ip))                            
+                                target.save()
+                                
                         except Target.MultipleObjectsReturned:
                             target = Target.objects.filter(
                                 ip=tcp_connect['ip'],
                                 type=Target.IP,
-                                domain=parsed_uri.netloc
+                                domain=current_domain
                             ).first()
                             
-                        #  for logging only
-                        try: 
-                            domain
-                        except NameError:
-                            td_logger.info("IP Target %s created without domain" % (ip))                            
-                            SYNCHRONIZE_logger.info("IP Target %s created without domain" % (ip))                            
-                            
+                        #  for logging only                       
+                                                        
                         tcp = TCP(
                             metric_id=tcp_metric['id'],
                             status_blocked=tcp_connect['status']['blocked'],
