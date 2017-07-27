@@ -504,7 +504,7 @@ def luigiUpdateFlagTask():
 
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
-        SYNCHRONIZE_logger.info("Attempting to start %s:" % module['module_name'])
+            SYNCHRONIZE_logger.info("Attempting to start %s:" % module['module_name'])
             try:
                 method_to_call = getattr(m, function)
                 result = method_to_call()
@@ -526,6 +526,7 @@ def luigiUpdateFlagTask():
 
     SYNCHRONIZE_DATE = str(measurements_date)
     SYNCHRONIZE_logger.info("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
+    try:
     td_logger.debug("Last SYNCHRONIZE date: '%s'" % SYNCHRONIZE_DATE)
 
 
