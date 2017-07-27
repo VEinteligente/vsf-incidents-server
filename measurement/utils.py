@@ -85,8 +85,7 @@ def copy_from_measurements_to_metrics():
             td_logger.debug('current id %s (%s)' % (measurement.id, i))
             page_copied=[]
             if measurement.id not in id_list:
-                td_logger.error('!!! Measurement ID not checked for duplicates local database - page: %i, iteration: %i - ID: %s' % (p, i, measurement.id)) 
-                SYNCHRONIZE_logger.critical('Remote measurement ID, not checked for existance in local DB for copy. Dading to pile for future copy. ID: %s' % measurement.id)
+                td_logger.error('Remote measurement ID, not checked for existance in local DB for copy. Dading to pile for future copy. ID: %s' % measurement.id)
                 retry_measurements.append(measurement)                
                 # it's unknown the reason behind this case being so prevalent. about 3/page of 20000 in our datasets. 
 
@@ -99,12 +98,10 @@ def copy_from_measurements_to_metrics():
                 # We don't want to update the metrics that already exists in
                 # the database.
 #                 collisions.remove(measurement.id)
-                td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )                
+#                 td_logger.debug('! Colition found and averted for measurement %s - index on page %i, iteration %i' % (measurement.id, p, i) )                
 
             else:                    
-                td_logger.debug('Metric %s' % i)
                 page_copied.append(measurement.id)
-                td_logger.debug('not in DB or already copied in page')
                 
                 
 #                 td_logger.debug('Appending to bulk create (on retry) - ID: s' % measurement.id)
@@ -132,13 +129,12 @@ def copy_from_measurements_to_metrics():
                     bucket_date=measurement.bucket_date,
                 )
     
-                td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
-                td_logger.debug('-------------------------------------------------------')
+#                 td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
     
                 new_metrics.append(obj)
 
         td_logger.debug(
-            "Saliendo de la pagina %s, voy a crear %s metricas."
+            "Exiting page %s, bulk create: %s metrics."
             %
             (str(p), str(len(new_metrics)))
         )

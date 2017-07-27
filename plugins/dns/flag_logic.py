@@ -109,7 +109,7 @@ def web_connectivity_to_dns():
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
-            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.debug("Hemos pasado ya %s metrics!" % str(i))
             td_logger.info("Hemos pasado ya %s metrics!" % str(i))
     if new_dns:
         DNS.objects.bulk_create(new_dns)
@@ -206,7 +206,7 @@ def dns_consistency_to_dns():
                             target=target
                         )
                         new_dns.append(dns)
-                        td_logger.debug('DNS consistency guardo exitosamente medicion logica'
+#                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
                 SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
@@ -218,8 +218,8 @@ def dns_consistency_to_dns():
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
-            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
-            td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            td_logger.info("Hemos pasado ya %s metrics!" % str(i))
     if new_dns:
         DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con dns_consistency")
