@@ -63,11 +63,7 @@ def web_connectivity_to_tcp():
                     ):
                         parsed_uri = urlparse(tcp_metric['input'])
                         current_domain=parsed_uri.netloc
-                        try: 
-                            current_domain
-                        except NameError:
-                            td_logger.error("HTTP to be processed with IP Target %s  without domain" % (ip))     
-# TODO clean up code
+
                         try:
                             target = Target.objects.get(
                                 ip=tcp_connect['ip'],
@@ -76,22 +72,22 @@ def web_connectivity_to_tcp():
                             )
                         except Target.DoesNotExist:
                             try: 
+                                current_domain
+                            except NameError:
+                                target.save()
+                                target = Target(
+                                    ip=tcp_connect['ip'],
+                                    type=Target.IP,
+                                )
+                                td_logger.error("IP Target created %s - without domain" % (ip))                            
+                                target.save()
+                            else:
                                 target = Target(
                                     ip=tcp_connect['ip'],
                                     type=Target.IP,
                                     domain=current_domain
                                 )
                                 td_logger.debug("IP Target created %s - domain %s" % (ip, current_domain))                            
-                                target.save()
-                                
-                            except NameError:
-                                target.save()
-                                target = Target(
-                                    ip=tcp_connect['ip'],
-                                    type=Target.IP,
-                                    domain=current_domain
-                                )
-                                td_logger.error("IP Target created %s - without domain" % (ip))                            
                                 target.save()
                                 
                         except Target.MultipleObjectsReturned:
