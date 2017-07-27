@@ -52,7 +52,8 @@ def web_connectivity_to_tcp():
 
     for p in web_connectivity_paginator.page_range:
         page = web_connectivity_paginator.page(p)
-
+        SYNCHRONIZE_logger.info(
+            "Page %i of %s" % (p, str(web_connectivity_paginator.page_range)))
         for tcp_metric in page.object_list:
             for tcp_connect in tcp_metric['tcp_connect']:
                 try:
@@ -113,6 +114,8 @@ def tcp_to_flag():
     for p in tcp_paginator.page_range:
         print tcp_paginator.count
         page = tcp_paginator.page(p)
+        SYNCHRONIZE_logger.info(
+            "Page %i of %s" % (p, str(tcp_paginator.page_range)))
 
         for tcp_obj in page.object_list:
             try:

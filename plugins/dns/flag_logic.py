@@ -56,6 +56,7 @@ def web_connectivity_to_dns():
 
     new_dns = list()
     for i, dns_metric in web_connectivity_metrics:
+    
         cr = {}
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
@@ -76,11 +77,13 @@ def web_connectivity_to_dns():
                     if dns_metric['dnss'] is None:
                         if 'hostname' in query:
                             domain = query['hostname']
+                            td_logger.debug("%i - trabajando en metrica %s - dominio %s" % (i, dns_metric['id'], domain))
                             try:
                                 target = Target.objects.get(domain=domain, type=Target.DOMAIN)
                             except Target.DoesNotExist:
                                 target = Target(domain=domain, type=Target.DOMAIN)
                                 target.save()
+                                td_logger.debug("Creado target dominio %s" % domain)
                             except Target.MultipleObjectsReturned:
                                 target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
                         else:
@@ -93,6 +96,8 @@ def web_connectivity_to_dns():
                             answers=answer,
                             target=target
                         )
+                        td_logger.debug("DNS a crear %s" % dns)
+                        
                         new_dns.append(dns)
                         td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
@@ -105,7 +110,7 @@ def web_connectivity_to_dns():
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
             SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
-            td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            td_logger.info("Hemos pasado ya %s metrics!" % str(i))
     if new_dns:
         DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con web_connectivity en DNS")
