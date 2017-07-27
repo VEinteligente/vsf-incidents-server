@@ -221,8 +221,8 @@ def dns_consistency_to_dns():
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
-            SYNCHRONIZE_logger.debug("Hemos pasado ya %s metrics!" % str(i))
-            td_logger.info("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.debug("Saved %i dns logic measurements" % i)
+            td_logger.info("Saved %i dns logic measurements" % i)
     if new_dns:
         DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con dns_consistency")
@@ -321,7 +321,7 @@ def dns_to_flag():
                     flag.save()
                     dns.flag = flag
                     dns.save()
-                    td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
+#                     td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
                                     (str(i), str(dns.metric.id)))
             except Exception as e:
                 SYNCHRONIZE_logger.exception("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
