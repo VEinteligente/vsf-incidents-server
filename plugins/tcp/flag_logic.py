@@ -1,4 +1,5 @@
 import logging
+from urlparse import urlparse
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -11,8 +12,8 @@ from event.models import MutedInput, Target
 from plugins.tcp.models import TCP
 from event.utils import suggestedEvents
 
+td_logger = logging.getLogger('TRUE_DEBUG_logger')
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
-
 
 def web_connectivity_to_tcp():
     # Get all metrics with test_name web_connectivity
@@ -43,14 +44,16 @@ def web_connectivity_to_tcp():
     ).values(
         'id',
         'tcp_connect',
-        'tcps'
+        'tcps',
+        'input'
     )
 
     web_connectivity_paginator = Paginator(web_connectivity_metrics, 1000)
 
     for p in web_connectivity_paginator.page_range:
         page = web_connectivity_paginator.page(p)
-
+        SYNCHRONIZE_logger.info(
+            "Page %i of %s" % (p, str(web_connectivity_paginator.page_range)))
         for tcp_metric in page.object_list:
             for tcp_connect in tcp_metric['tcp_connect']:
                 try:
@@ -58,13 +61,44 @@ def web_connectivity_to_tcp():
                         tcp_connect['status']['blocked'] is not None) and (
                         tcp_connect['status']['success'] is not None
                     ):
+                        parsed_uri = urlparse(tcp_metric['input'])
+                        current_domain=parsed_uri.netloc
+
                         try:
-                            target = Target.objects.get(ip=tcp_connect['ip'], type=Target.IP)
+                            target = Target.objects.get(
+                                ip=tcp_connect['ip'],
+                                type=Target.IP,
+                                domain=current_domain
+                            )
                         except Target.DoesNotExist:
-                            target = Target(ip=tcp_connect['ip'], type=Target.IP)
-                            target.save()
+                            try: 
+                                current_domain
+                            except NameError:
+                                target.save()
+                                target = Target(
+                                    ip=tcp_connect['ip'],
+                                    type=Target.IP,
+                                )
+                                td_logger.error("IP Target created %s - without domain" % (ip))                            
+                                target.save()
+                            else:
+                                target = Target(
+                                    ip=tcp_connect['ip'],
+                                    type=Target.IP,
+                                    domain=current_domain
+                                )
+                                td_logger.debug("IP Target created %s - domain %s" % (ip, current_domain))                            
+                                target.save()
+                                
                         except Target.MultipleObjectsReturned:
-                            target = Target.objects.filter(ip=tcp_connect['ip'], type=Target.IP).first()
+                            target = Target.objects.filter(
+                                ip=tcp_connect['ip'],
+                                type=Target.IP,
+                                domain=current_domain
+                            ).first()
+                            
+                        #  for logging only                       
+                                                        
                         tcp = TCP(
                             metric_id=tcp_metric['id'],
                             status_blocked=tcp_connect['status']['blocked'],
@@ -74,8 +108,8 @@ def web_connectivity_to_tcp():
                         )
                         tcp.save()
                 except Exception as e:
-                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
-                                             "siguiente mensaje: %s" % (str(tcp_metric['measurement']), str(e)))
+                    SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_tcp, en la metric '%s' con el "
+                                             "siguiente mensaje: %s" % (str(tcp_metric['id']), str(e)))
 
 
 def tcp_to_flag():
@@ -91,6 +125,8 @@ def tcp_to_flag():
     for p in tcp_paginator.page_range:
         print tcp_paginator.count
         page = tcp_paginator.page(p)
+        SYNCHRONIZE_logger.info(
+            "Page %i of %s" % (p, str(tcp_paginator.page_range)))
 
         for tcp_obj in page.object_list:
             try:
@@ -113,7 +149,7 @@ def tcp_to_flag():
                 tcp_obj.flag = flag
                 tcp_obj.save()
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en tcp_to_flag, en el TCP '%s' con el "
+                SYNCHRONIZE_logger.exception("Fallo en tcp_to_flag, en el TCP '%s' con el "
                                          "siguiente mensaje: %s" % (str(tcp_obj.id), str(e)))
 
 

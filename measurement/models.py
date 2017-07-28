@@ -11,11 +11,11 @@ class Probe(models.Model):
     identification = models.CharField(
         max_length=50, unique=True, verbose_name='Probe Identification')
     region = models.ForeignKey(
-        State, related_name='probes', default=3479,
+        State, related_name='probes', default=3718, #currently fixed N/A 
         null=True, blank=True
     )
     country = models.ForeignKey(
-        Country, related_name='probes', default=231,
+        Country, related_name='probes', default=231, #currently fixed to Venezuela
         null=True, blank=True
     )
     city = models.CharField(max_length=100, null=True, blank=True)

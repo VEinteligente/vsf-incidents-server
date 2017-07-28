@@ -1,4 +1,5 @@
 import logging
+from urlparse import urlparse
 from django.db.models.expressions import RawSQL
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -13,7 +14,7 @@ from event.utils import suggestedEvents
 
 
 td_logger = logging.getLogger('TRUE_DEBUG_logger')
-
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 def web_connectivity_to_http():
     # Get all metrics with test_name web_connectivity
@@ -92,10 +93,15 @@ def web_connectivity_to_http():
                 try:
                     target = Target.objects.get(url=url, type=Target.URL)
                 except Target.DoesNotExist:
-                    target = Target(url=url, type=Target.URL)
+                    parsed_uri = urlparse(url)
+                    target = Target(
+                        url=url,
+                        type=Target.URL,
+                        domain=parsed_uri.netloc
+                    )
                     target.save()
                 except Target.MultipleObjectsReturned:
-                    target = Target.objects.filter(url=url, type=Target.URL).first()
+                    target = Target.objects.filter(url=url, type=Target.URL).first()                        
 
                 http = HTTP(
                     metric_id=http_metric['id'],

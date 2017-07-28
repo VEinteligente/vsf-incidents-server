@@ -497,23 +497,24 @@ def luigiUpdateFlagTask():
     try:
         copy_from_measurements_to_metrics()
     except Exception as e:
-        SYNCHRONIZE_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
-        td_logger.error("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
+        SYNCHRONIZE_logger.exception("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
+        td_logger.exception("Fallo creando metrics con el siguiente mensaje: %s" % str(e))
     # ----------------------------------------------
     for module in settings.FLAG_TESTS:
 
         m = import_module("plugins.%s.flag_logic" % module['module_name'])
         for function in module['functions']:
+            SYNCHRONIZE_logger.info("Attempting to start %s:" % module['module_name'])
             try:
                 method_to_call = getattr(m, function)
                 result = method_to_call()
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
+                SYNCHRONIZE_logger.exception("Fallo en %s.%s con el siguiente mensaje: %s" %
                                          (module['module_name'], str(function), str(e)))
-                td_logger.error("Fallo en %s.%s con el siguiente mensaje: %s" %
+                td_logger.exception("Fallo en %s.%s con el siguiente mensaje: %s" %
                                 (module['module_name'], str(function), str(e)))
-        SYNCHRONIZE_logger.info("termino con %s" % module['module_name'])
-        td_logger.info("termino con %s" % module['module_name'])
+                
+        SYNCHRONIZE_logger.info("Finished: %s" % module['module_name'])
     # Set SYNCRONIZE_DATE
     if settings.SYNCHRONIZE_DATE is not None:
         measurements_date = Measurement.objects.filter(

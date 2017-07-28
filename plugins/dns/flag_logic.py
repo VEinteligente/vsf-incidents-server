@@ -55,7 +55,10 @@ def web_connectivity_to_dns():
     )
 
     new_dns = list()
-    for i, dns_metric in web_connectivity_metrics:
+    i=0
+    for dns_metric in web_connectivity_metrics:
+
+        
         cr = {}
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
@@ -76,11 +79,13 @@ def web_connectivity_to_dns():
                     if dns_metric['dnss'] is None:
                         if 'hostname' in query:
                             domain = query['hostname']
+                            td_logger.debug("%i - trabajando en metrica %s - dominio %s" % (i, dns_metric['id'], domain))
                             try:
                                 target = Target.objects.get(domain=domain, type=Target.DOMAIN)
                             except Target.DoesNotExist:
                                 target = Target(domain=domain, type=Target.DOMAIN)
                                 target.save()
+                                td_logger.debug("Creado target dominio %s" % domain)
                             except Target.MultipleObjectsReturned:
                                 target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
                         else:
@@ -93,19 +98,22 @@ def web_connectivity_to_dns():
                             answers=answer,
                             target=target
                         )
+                        td_logger.debug("DNS a crear %s" % dns)
+                        
                         new_dns.append(dns)
                         td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
                 except Exception as e:
-                    SYNCHRONIZE_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                    SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                              "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                    td_logger.error("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                    td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
                                     "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+        i += 1
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
-            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
-            td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            td_logger.info("Hemos pasado ya %s metrics!" % str(i))
     if new_dns:
         DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con web_connectivity en DNS")
@@ -201,20 +209,20 @@ def dns_consistency_to_dns():
                             target=target
                         )
                         new_dns.append(dns)
-                        td_logger.debug('DNS consistency guardo exitosamente medicion logica'
-                                       ' perteneciente a la metric %s' % str(dns_metric['id']))
+#                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
+#                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                SYNCHRONIZE_logger.exception("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                          "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                td_logger.error("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
+                td_logger.exception("Fallo en dns_consistency_to_dns, en la metric '%s' con el "
                                 "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
 
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
             DNS.objects.bulk_create(new_dns)
             new_dns = list()
-            SYNCHRONIZE_logger.info("Hemos pasado ya %s metrics!" % str(i))
-            td_logger.debug("Hemos pasado ya %s metrics!" % str(i))
+            SYNCHRONIZE_logger.debug("Saved %i dns logic measurements" % i)
+            td_logger.info("Saved %i dns logic measurements" % i)
     if new_dns:
         DNS.objects.bulk_create(new_dns)
     td_logger.info("Terminando con dns_consistency")
@@ -233,7 +241,6 @@ def dns_to_flag():
         dnss = DNS.objects.all()
 
     dnss = dnss.select_related('metric', 'flag')
-    new_flags = list()
     i = 0
 
     td_logger.debug("Total de mediciones DNS a convertir a flags: %s" % str(dnss.count()))
@@ -251,26 +258,66 @@ def dns_to_flag():
                             if not dns.answers and dns.control_resolver_answers:
                                 is_flag = True
                             elif dns.answers:
-                                if dns.failure == "no_answer":
-                                    is_flag = True
-                                    # dead code - not happening at the moment
-                                    # this failure as no_awnser is not a dns error
-                                    # but an anwser in other part of the report/metric
-                                else:
+                                try:
+                                    dns.metric.test_keys['errors'][dns.resolver_hostname]
+                                except KeyError:
                                     if dns.failure is None:
                                         if dns.control_resolver_answers and dns.answers:
                                             try:
                                                 if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
                                                     is_flag = True
+    
                                             except Exception:
                                                 same = dict_compare(
                                                     dns.control_resolver_answers,
                                                     dns.answers
                                                 )
+                                                
+                                                td_logger.debug('%s Manually comparing flag=%s, same=%s' %
+                                                            (str(i), str(dns.metric.id), str(same), str(dns.metric.measurement)))
+                                                try:
+                                                    dns.metric.test_keys['queries']
+                                                except:
+                                                    td_logger.debug('%s Manually comparing flag=%s, same=%s \n %s' %
+                                                            (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys)))
+                                                else:
+                                                    td_logger.debug('%s Manually comparing flag=%s, same=%s \n %s' %
+                                                            (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
                                                 if not same:
                                                     is_flag = True
                                             #     #if all elements are not the same
-
+                                    
+                                else:
+                                    if dns.metric.test_keys['errors'][dns.resolver_hostname] == "no_answer":
+                                        is_flag = True
+                                        
+                                    else:
+                                        if dns.failure is None:
+                                            if dns.control_resolver_answers and dns.answers:
+                                                try:
+                                                    if dns.resolver_hostname in dns.metric.test_keys['inconsistent']:
+                                                        is_flag = True
+        
+                                                except Exception:
+                                                    same = dict_compare(
+                                                        dns.control_resolver_answers,
+                                                        dns.answers
+                                                    )
+                                                    
+                                                    td_logger.debug('%s Manually comparing flag=%s, same=%s' %
+                                                                (str(i), str(dns.metric.id), str(same), str(dns.metric.measurement)))
+                                                    try:
+                                                        dns.metric.test_keys['queries']
+                                                    except:
+                                                        td_logger.debug('%s Manually comparing flag=%s, same=%s \n %s' %
+                                                                (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys)))
+                                                    else:
+                                                        td_logger.debug('%s Manually comparing flag=%s, same=%s \n %s' %
+                                                                (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
+                                                    if not same:
+                                                        is_flag = True
+                                                #     #if all elements are not the same
+    
                     if dns.metric.test_name == 'web_connectivity':
                         if (dns.control_resolver_failure is None) and (
                             dns.control_resolver_answers is not None
@@ -308,26 +355,25 @@ def dns_to_flag():
                         metric_date=dns.metric.measurement_start_time,
                         metric=dns.metric,
                         target=dns.target,
-                        dnss=dns,
                         flag=f_aux,
                         plugin_name=dns.__class__.__name__
                     )
-                    new_flags.append(flag)
-                    td_logger.debug('%s dns convertido a flag, perteneciente a la metric %s' %
-                                    (str(i), str(dns.metric.id)))
+                    flag.save()
+                    dns.flag = flag
+                    dns.save()
+#                     td_logger.debug('%s dns convertido a flag=%s, perteneciente a la metric %s' %
+#                                    (str(i), str(f_aux), str(dns.metric.id)))
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                SYNCHRONIZE_logger.exception("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                          (str(dns.id), str(e)))
-                td_logger.error("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
+                td_logger.exception("Fallo en dns_to_flag, en el DNS '%s' con el siguiente mensaje: %s" %
                                 (str(dns.id), str(e)))
 
         td_logger.debug(
-            "Saliendo de la pagina %s, voy a crear %s flags."
+            "Saliendo de la pagina %s"
             %
-            (str(p), str(len(new_flags)))
+            str(p)
         )
-        Flag.objects.bulk_create(new_flags)
-        new_flags = list()
 
     td_logger.info("Terminando con dns_to_flag")
 
