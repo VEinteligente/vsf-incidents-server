@@ -103,8 +103,30 @@ def copy_from_measurements_to_metrics():
                 page_copied.append(measurement.id)
                 
                 
-#                 td_logger.debug('Appending to bulk create (on retry) - ID: s' % measurement.id)
-    
+                
+                # Add probe relation to object for batch-create
+                try: 
+                    probe_id = measurement.annotations['probe']  # check if probe field is in annotation dict
+                except Exception: # if not asign no_ip probe
+                    try:
+                        probe = Probe.objects.get(identification='no_id')
+                    except Probe.DoesNotExist:
+                        probe = Probe(identification='no_id')
+                        probe.save()
+                else:
+                    if probe_id: # check if probe_id is not empty
+                        try:
+                            probe = Probe.objects.get(identification=probe_id)
+                        except Probe.DoesNotExist:
+                            probe = Probe(identification=probe_id)
+                            probe.save()
+                            td_logger.info('%i Created probe id:%s' % (i, probe.identification))
+                    else:  # if empty asign no_ip probe
+                        try:
+                            probe = Probe.objects.get(identification='no_id')
+                        except Probe.DoesNotExist:
+                            probe = Probe(identification='no_id')
+                            probe.save()
                 obj = Metric(
                     measurement=measurement.id,
                     input=measurement.input,
@@ -126,6 +148,7 @@ def copy_from_measurements_to_metrics():
                     software_version=measurement.software_version,
                     test_version=measurement.test_version,
                     bucket_date=measurement.bucket_date,
+                    probe = probe,
                 )
     
 #                 td_logger.debug('Obj created for bulk create - ID %s' % measurement.id)
@@ -133,13 +156,11 @@ def copy_from_measurements_to_metrics():
                 new_metrics.append(obj)
 
         td_logger.debug(
-            "Exiting page %s, bulk create: %s metrics." 
+            "Exiting standard loop, page %s, bulk create: %s metrics." 
             %
             (str(p), str(len(new_metrics)))
         )
-        Metric.objects.bulk_create(new_metrics)
-        td_logger.info('%i metrics created in page %i -index reached: %i' % (len(new_metrics), p, i))
-        new_metrics = list()
+        standard_loop_objects=len(new_metrics)
         
         # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
         # TODO !!! integrate to the same bulk_create for performace after testing
@@ -150,7 +171,31 @@ def copy_from_measurements_to_metrics():
                     obj = Metric.objects.get(measurement=measurement.id)
                 except Metric.DoesNotExist:  # Copy if it doesn't
                     td_logger.debug('Measurement will be copied on retry - ID: %s' % measurement.id )
-        
+                
+    
+                    # Add probe relation to object for batch-create
+                    try: 
+                        probe_id = measurement.annotations['probe']  # check if probe field is in annotation dict
+                    except Exception: # if not asign no_ip probe
+                        try:
+                            probe = Probe.objects.get(identification='no_id')
+                        except Probe.DoesNotExist:
+                            probe = Probe(identification='no_id')
+                            probe.save()
+                    else:
+                        if probe_id: # check if probe_id is not empty
+                            try:
+                                probe = Probe.objects.get(identification=probe_id)
+                            except Probe.DoesNotExist:
+                                probe = Probe(identification=probe_id)
+                                probe.save()
+                                td_logger.info('%i Created probe id:%s' % (i, probe.identification))
+                        else:  # if empty asign no_ip probe
+                            try:
+                                probe = Probe.objects.get(identification='no_id')
+                            except Probe.DoesNotExist:
+                                probe = Probe(identification='no_id')
+                                probe.save()
                     obj = Metric(
                         measurement=measurement.id,
                         input=measurement.input,
@@ -172,22 +217,29 @@ def copy_from_measurements_to_metrics():
                         software_version=measurement.software_version,
                         test_version=measurement.test_version,
                         bucket_date=measurement.bucket_date,
+                        probe = probe,
                     )
-        
+                                
                     td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
         
                     new_metrics.append(obj)
                 else:
                     td_logger.debug('Measurement will NOT be copied, already existed locally- ID: %s' % measurement.id )
             # After the untested measuremnts are verified for collisions with locsal DB, the measurements not existing locallys will be copied
-            td_logger.debug('On Retry: %i metrics will be created, out of %i that needed check)' % (len(new_metrics), len(retry_measurements)))
-            Metric.objects.bulk_create(new_metrics)
-            td_logger.info('On Retry: %i metrics created (in page %i -index reached: %i)' % (len(new_metrics), p, i))
-            SYNCHRONIZE_logger.info('On Retry copied: %i \n %s)' % (len(new_metrics), str(new_metrics)))
-            SYNCHRONIZE_logger.info('On Retry NOT copied: %i \n %s)' % (len(str(set(retry_measurements) - set(new_metrics))), str(set(retry_measurements) - set(new_metrics))))
-
-            new_metrics = list() # clean lists for next iteration
-            retry_measurements = list()
+            td_logger.debug('On Retry: %i metrics will be created, out of %i that needed to be checked)' % ((len(new_metrics) - standard_loop_objects), len(retry_measurements)))
+            
+            
+            td_logger.debug('On Retry: %i metrics created (in page %i -index reached: %i)' % ((len(new_metrics) - standard_loop_objects), p, i))
+            td_logger.debug('On Retry copied: %i \n %s)' % (len(new_metrics), str(new_metrics)))
+            td_logger.debug('On Retry NOT copied: %i \n %s)' % (len(str(set(retry_measurements) - set(new_metrics))), str(set(retry_measurements) - set(new_metrics))))
+        
+        
+        #at the end of loop, after the standard loop (those whose IDs were checked agianst collitions) and those checked individually on retry
+        Metric.objects.bulk_create(new_metrics)
+        td_logger.info('%i metrics created in page %i, %i from std loop -index reached: %i' % (len(new_metrics), standard_loop_objects, p, i))
+        new_metrics = list() # clean lists for next iteration
+        retry_measurements = list()
+            
 
     # is this necesary? TO-DO double check and remove
     if len(new_metrics) > 0:
