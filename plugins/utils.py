@@ -13,7 +13,7 @@ def dict_compare(d1, d2):
             return False
 
     return True
-
+#  TODO need to optimize thiscomparison
 
 def give_probes_to_metrics():
     metrics = Metric.objects.all()
