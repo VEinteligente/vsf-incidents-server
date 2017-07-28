@@ -165,6 +165,7 @@ def copy_from_measurements_to_metrics():
         # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
         # TODO !!! integrate to the same bulk_create for performace after testing
         if retry_measurements:
+            retry_copied_count = 0
             td_logger.info('Retry: %i Metrics to re-evaluate and copy if needed (page %i)' % (len(retry_measurements), p))
             for measurement in retry_measurements:
                 try: # Check if metric exists on local DB
@@ -221,17 +222,14 @@ def copy_from_measurements_to_metrics():
                     )
                                 
                     td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
-        
                     new_metrics.append(obj)
+                    retry_copied_count += 1 
                 else:
                     td_logger.debug('Measurement will NOT be copied, already existed locally- ID: %s' % measurement.id )
             # After the untested measuremnts are verified for collisions with locsal DB, the measurements not existing locallys will be copied
-            td_logger.debug('On Retry: %i metrics will be created, out of %i that needed to be checked)' % ((len(new_metrics) - standard_loop_objects), len(retry_measurements)))
+            td_logger.debug('Page%i, on retry %i metrics will be created, out of %i that needed to be checked)' % (p, (len(new_metrics) - standard_loop_objects), len(retry_measurements)))
             
-            
-            td_logger.debug('On Retry: %i metrics created (in page %i -index reached: %i)' % ((len(new_metrics) - standard_loop_objects), p, i))
-            td_logger.debug('On Retry copied: %i \n %s)' % (len(new_metrics), str(new_metrics)))
-            td_logger.debug('On Retry NOT copied: %i \n %s)' % (len(str(set(retry_measurements) - set(new_metrics))), str(set(retry_measurements) - set(new_metrics))))
+            #             td_logger.debug('Objects that needed revision on this page: %i \n %s)' % (len(retry_measurements), str(retry_measurements)))
         
         
         #at the end of loop, after the standard loop (those whose IDs were checked agianst collitions) and those checked individually on retry
