@@ -1,5 +1,5 @@
-from plugins.views import PluginUpdateEventView, PluginCreateEventView
-from eztables.views import DatatablesView
+from plugins.views import PluginUpdateEventView, PluginCreateEventView, DatatablesView
+# from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 

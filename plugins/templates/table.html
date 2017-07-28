@@ -15,6 +15,38 @@
 {% endblock %}
 
 {% block content %}
+    <div class="box box-primary" style="margin-top:30px;">
+        <div class="box-header with-border">
+            <h3 class="box-title"> Search by dates:</h3>
+        </div>
+        <form id="date-form" action="" method="post">
+            {% csrf_token %}
+            <div class="box-body">
+
+                {% if datepicker_form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
+                            &times;
+                        </button>
+                        {% for non_field_error in datepicker_form.non_field_errors %}
+                            {{ non_field_error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-xs-5">
+                        {% bootstrap_field datepicker_form.date_from %}
+                    </div>
+                    <div class="col-xs-5">
+                        {% bootstrap_field datepicker_form.date_to %}
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer text-right">
+                <input id="date-search-button" class="btn btn-flat btn-primary" type="submit" value="Search">
+            </div> 
+        </form>
+    </div>
     <div class="table-responsive">
         <table id="principal-table">
             <thead>
@@ -324,12 +356,19 @@
             }
         }
 
+
+        var date_from = null;
+        var date_to = null;
         //Principal Datatable
 
         var principal_table = $('#principal-table').DataTable({
             "bProcessing": true,
             "bServerSide": true,
             "sAjaxSource": url_datatable,
+            "fnServerParams": function ( aoData ) {
+                aoData.push( { "name": "date_from", "value": date_from } );
+                aoData.push( { "name": "date_to", "value": date_to } );
+            },
             "aoColumns": list,
             "fnDrawCallback": function( oSettings ) {
                 fill_rows_tables();
@@ -337,6 +376,15 @@
                     html: true
                 });
             }
+        });
+
+        $('#date-form').submit(function(event) {
+            event.preventDefault();
+            /* Act on the event */
+            date_from = $('#id_date_from').val();
+            date_to = $('#id_date_to').val();
+            principal_table.clear();
+            principal_table.ajax.reload();
         });
 
         // Setup - add a text input to each footer cell
@@ -370,6 +418,13 @@
         $('#id_start_date').datepicker({
         });
         $('#id_end_date').datepicker({
+        });
+
+        $('#id_date_from').datepicker({
+            format: 'yyyy-mm-dd'
+        });
+        $('#id_date_to').datepicker({
+            format: 'yyyy-mm-dd'
         });
 
         // Test key button click action
@@ -687,6 +742,7 @@
                 });
             }
         });
+
     })
 
 </script>
