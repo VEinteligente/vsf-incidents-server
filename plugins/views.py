@@ -1,7 +1,6 @@
 from django.shortcuts import render
 
 from datetime import datetime, date
-from dateutil.relativedelta import relativedelta
 from eztables.views import DatatablesView as EditableDatatablesView
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -53,16 +52,15 @@ class PluginTableView(
         if self.url_ajax is not None:
             context['url_ajax'] = self.url_ajax
 
-        if self.request.method == 'GET':
-            today = date.today()
-            month_ago = date.today() + relativedelta(months=-1)
+        date_from = self.request.GET.get('date_from', date.today())
+        date_to = self.request.GET.get('date_to', date.today())
 
-            context['datepicker_form'] = DataTableRangePicker(
-                initial={
-                    'date_from': month_ago,
-                    'date_to': today
-                }
-            )
+        context['datepicker_form'] = DataTableRangePicker(
+            initial={
+                'date_from': date_from,
+                'date_to': date_to
+            }
+        )
         return context
 
 
@@ -317,6 +315,25 @@ class SuggestedEventsAjax(LoginRequiredMixin, generic.View):
 
 
 class DatatablesView(EditableDatatablesView):
+
+    def get_queryset(self):
+        """
+        Model in queryset must have a field named metric. This field must be
+        a reference to Metric Model.
+        """
+        queryset = super(DatatablesView, self).get_queryset()
+
+        date_from = self.request.GET.get('date_from', None)
+        date_to = self.request.GET.get('date_to', None)
+        if date_from:
+            queryset = queryset.filter(
+                metric__measurement_start_time__gte=date_from
+            )
+        if date_to:
+            queryset = queryset.filter(
+                metric__measurement_start_time__lte=date_to
+            )
+        return queryset
 
     def json_response(self, data):
         return HttpResponse(
