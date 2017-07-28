@@ -13,8 +13,8 @@ from plugins.http.models import HTTP
 from event.utils import suggestedEvents
 
 
-    td_logger = logging.getLogger('TRUE_DEBUG_logger')
-    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+td_logger = logging.getLogger('TRUE_DEBUG_logger')
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 def web_connectivity_to_http():
     # Get all metrics with test_name web_connectivity

@@ -12,8 +12,8 @@ from event.models import MutedInput, Target
 from plugins.tcp.models import TCP
 from event.utils import suggestedEvents
 
-    td_logger = logging.getLogger('TRUE_DEBUG_logger')
-    SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
+td_logger = logging.getLogger('TRUE_DEBUG_logger')
+SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
 def web_connectivity_to_tcp():
     # Get all metrics with test_name web_connectivity
