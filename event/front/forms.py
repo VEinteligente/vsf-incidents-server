@@ -202,9 +202,33 @@ class EventEvidenceForm(forms.ModelForm):
                 # If not all flags are the same target, isp and type then
                 # show an error.
 
-                if not all(
+
+                if  not all(
                     map(
-                        lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp and f.region == bd_flags[0].region,
+                        lambda f: f.target == bd_flags[0].target,
+                        bd_flags[1:]
+                    )
+                ):
+
+                    self.add_error(
+                        None,
+                        'Selected flags must have the same target ' #TODO improve text
+                    )
+                elif  not all(
+                    map(
+                        lambda f:  f.isp == bd_flags[0].isp,
+                        bd_flags[1:]
+                    )
+                ):
+                    self.add_error(
+                        None,
+                        'Selected flags must have the same ISP' #TODO improve text
+                    )
+
+                elif not all(
+                    map(
+#                         lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp and f.region == bd_flags[0].region, #testing wothoutt region requirement
+                        lambda f: f.target == bd_flags[0].target and f.isp == bd_flags[0].isp,
                         bd_flags[1:]
                     )
                 ):

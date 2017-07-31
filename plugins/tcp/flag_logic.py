@@ -79,16 +79,18 @@ def web_connectivity_to_tcp():
                                     ip=tcp_connect['ip'],
                                     type=Target.IP,
                                 )
-                                td_logger.error("IP Target created %s - without domain" % (ip))                            
-                                target.save()
+                                    target.save()
+                                td_logger.error("IP Target created %s - without domain" % (tcp_connect['ip']))                            
+#                                 td_logger.error("IP Target created  - without domain")                            
                             else:
                                 target = Target(
                                     ip=tcp_connect['ip'],
                                     type=Target.IP,
                                     domain=current_domain
                                 )
-                                td_logger.debug("IP Target created %s - domain %s" % (ip, current_domain))                            
                                 target.save()
+#                                 td_logger.debug("IP Target created  - domain %s" % ( current_domain))                            
+                                td_logger.debug("IP Target created %s - domain %s" % (tcp_connect['ip'], current_domain))                            
                                 
                         except Target.MultipleObjectsReturned:
                             target = Target.objects.filter(
