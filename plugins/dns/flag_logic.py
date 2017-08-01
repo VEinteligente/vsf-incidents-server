@@ -258,34 +258,34 @@ def dns_to_flag():
 
                         if dns.control_resolver_failure in [None, '']:
                             if dns.failure in [None, '']: # if no failures in measurement
-                                try:
-                                    if dns.metric.test_keys['errors'][dns.resolver_hostname] == "no_answer": # Check for case were the DNS server gave no awnser
-                                        is_flag = True
-                                        td_logger.debug('%s Found no_awnser flag DNS - metric=%s %s' %
-                                            (str(i), str(dns.metric.id), str(dns.target)))
-                                        
-                                except KeyError:
-                                    is_flag = False
-                                
+                                if dns.control_resolver_answers:
                                     try:
-                                        if dns.resolver_hostname in dns.metric.test_keys['inconsistent']: #check for alreadt evaluated logic by ooniprobe
+                                        if dns.metric.test_keys['errors'][dns.resolver_hostname] == "no_answer": # Check for case were the DNS server gave no awnser
                                             is_flag = True
-                                            td_logger.debug('%s Found inconsistent DNS - metric=%s %s' %
+                                            td_logger.debug('%s Found no_awnser flag DNS - metric=%s %s' %
                                                 (str(i), str(dns.metric.id), str(dns.target)))
-
-
-                                    except Exception: # if for some reason this fails, lets compare both awnsers (usually a list of dicts, ocacionally it's just a dict)
-                                        same = dict_compare(
-                                            dns.control_resolver_answers,
-                                            dns.answers
-                                        )
-                                        td_logger.debug('%s Manually comparing metric=%s, same=%s \n %s' %
-                                            (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
-                                        if not same:   #if all elements are not the same
-
-                                            is_flag = True
-
-
+                                            
+                                         # if [dns.resolver_hostname] == "no_answer" no flag
+                                    except KeyError:
+                                        is_flag = False
+                                    
+                                        try:
+                                            if dns.resolver_hostname in dns.metric.test_keys['inconsistent']: #check for alreadt evaluated logic by ooniprobe
+                                                is_flag = True
+                                                td_logger.debug('%s Found inconsistent DNS - metric=%s %s' %
+                                                    (str(i), str(dns.metric.id), str(dns.target)))
+    
+    
+                                        except Exception: # if for some reason this fails, lets compare both awnsers (usually a list of dicts, ocacionally it's just a dict)
+                                            same = dict_compare(
+                                                dns.control_resolver_answers,
+                                                dns.answers
+                                            )
+                                            td_logger.debug('%s Manually comparing metric=%s, same=%s \n %s' %
+                                                (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
+                                            if not same:   #if all elements are not the same
+                                                is_flag = True
+                                                
     
                     if dns.metric.test_name == 'web_connectivity':
                         if (dns.control_resolver_failure is None) and (
