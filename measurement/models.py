@@ -28,7 +28,7 @@ class Probe(models.Model):
         return u"%s - %s" % (self.identification, self.region)
 
 
-class DNS(models.Model):
+class DNSServer(models.Model):
 
     isp = models.ForeignKey(ISP, verbose_name='Operadora')
     verbose = models.CharField(max_length=50)
@@ -159,6 +159,7 @@ class Flag(models.Model):
     metric = models.ForeignKey(Metric, null=True)
     metric_date = models.DateTimeField()
     target = models.ForeignKey(Target, null=True, blank=True)
+    isp = models.ForeignKey(ISP, null=True, blank=True)
     plugin_name = models.CharField(max_length=100, null=True, blank=True)
 
     # ---------------------------------------------------

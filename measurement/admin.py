@@ -1,6 +1,6 @@
 from django.contrib import admin
 from models import (
-    DNS, Flag, Probe, State, Country, Plan, ISP, Metric,
+    DNSServer, Flag, Probe, State, Country, Plan, ISP, Metric,
 )
 
 
@@ -15,7 +15,7 @@ class FlagAdmin(admin.ModelAdmin):
     search_fields = ('metric__measurement', 'metric__input')
 
 
-admin.site.register(DNS)
+admin.site.register(DNSServer)
 admin.site.register(Flag, FlagAdmin)
 admin.site.register(Probe)
 admin.site.register(State)

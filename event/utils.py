@@ -1,5 +1,5 @@
 from event.models import Event, Target
-from measurement.models import Flag, DNS
+from measurement.models import Flag, DNSServer
 from django.db.models import Q
 
 
@@ -17,9 +17,9 @@ def suggestedEvents(flag):
 
     plugin_name = flag.plugin_name
     try:
-        dns_server = DNS.objects.get(ip=flag.dnss.resolver_hostname)
+        dns_server = DNSServer.objects.get(ip=flag.dnss.resolver_hostname)
         isp = dns_server.isp
-    except (Flag.dnss.RelatedObjectDoesNotExist, DNS.DoesNotExist) as e:
+    except (Flag.dnss.RelatedObjectDoesNotExist, DNSServer.DoesNotExist) as e:
         isp = flag.metric.probe.isp
 
     try:

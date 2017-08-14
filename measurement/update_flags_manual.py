@@ -17,7 +17,7 @@ from event.utils import (
 from measurement.front.views import DBconnection, DNSTestKey
 from measurement.models import (
     Flag,
-    DNS,
+    DNSServer,
     Metric,
     Probe
 )
@@ -43,7 +43,7 @@ def update_dns_flags(rows):
 
         # dns_isp = 'cantv' # POR AHORA
         public_dns = [dns.ip
-                      for dns in DNS.objects.filter(public=True)]
+                      for dns in DNSServer.objects.filter(public=True)]
 
         date = row['measurement_start_time']
 
@@ -72,8 +72,8 @@ def update_dns_flags(rows):
                     dns_name = query['resolver_hostname']
 
                     # If dns_name is in DNS table, find its isp #
-                    if DNS.objects.filter(ip=dns_name).exists():
-                        dns_isp = DNS.objects\
+                    if DNSServer.objects.filter(ip=dns_name).exists():
+                        dns_isp = DNSServer.objects\
                                      .get(ip=dns_name).isp
 
                     # If query doesn't has failure, then find dns result #
