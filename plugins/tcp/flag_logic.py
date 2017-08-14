@@ -79,7 +79,7 @@ def web_connectivity_to_tcp():
                                     ip=tcp_connect['ip'],
                                     type=Target.IP,
                                 )
-                                    target.save()
+                                target.save()
                                 td_logger.error("IP Target created %s - without domain" % (tcp_connect['ip']))                            
 #                                 td_logger.error("IP Target created  - without domain")                            
                             else:
@@ -136,6 +136,7 @@ def tcp_to_flag():
                     metric_date=tcp_obj.metric.measurement_start_time,
                     metric=tcp_obj.metric,
                     target=tcp_obj.target,
+                    isp=tcp_obj.metric.probe.isp,
                     plugin_name=tcp_obj.__class__.__name__
                 )
                 # If there is a true flag give 'soft' type

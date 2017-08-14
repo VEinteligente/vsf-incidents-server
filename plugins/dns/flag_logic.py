@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 from vsf import conf
 from django.db.models import F, Count, Case, When, CharField, Q
 from event.models import MutedInput, Target
-from measurement.models import Metric, Flag
+from measurement.models import Metric, Flag, DNSServer
 from plugins.dns.models import DNS
 from event.utils import suggestedEvents
 from plugins.utils import dict_compare
@@ -251,10 +251,16 @@ def dns_to_flag():
         for dns in page.object_list:
             i += 1
             try:
-#                 if dns.flag == dns.flag: # !!! just for test
                 if dns.flag is None: 
                     is_flag = False
+                    isp = None
                     if dns.metric.test_name == 'dns_consistency':
+
+                        try:
+                            dns_server = DNSServer.objects.get(ip=dns.resolver_hostname)
+                            isp = dns_server.isp
+                        except (DNSServer.DoesNotExist, KeyError) as e:
+                            isp = None
 
                         if dns.control_resolver_failure in [None, '']:
                             if dns.failure in [None, '']: # if no failures in measurement
@@ -284,10 +290,11 @@ def dns_to_flag():
                                         if not same:   #if all elements are not the same
 
                                             is_flag = True
-
-
     
                     if dns.metric.test_name == 'web_connectivity':
+
+                        isp = dns.metric.probe.isp
+
                         if (dns.control_resolver_failure is None) and (
                             dns.control_resolver_answers is not None
                         ):
@@ -325,6 +332,7 @@ def dns_to_flag():
                         metric=dns.metric,
                         target=dns.target,
                         flag=f_aux,
+                        isp=isp,
                         plugin_name=dns.__class__.__name__
                     )
                     flag.save()

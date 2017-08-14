@@ -155,6 +155,7 @@ def http_to_flag():
                 metric_date=http.metric.measurement_start_time,
                 metric=http.metric,
                 target=http.target,
+                isp=http.metric.probe.isp,
                 plugin_name=http.__class__.__name__
             )
 
