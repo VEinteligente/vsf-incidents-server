@@ -29,7 +29,7 @@ def web_connectivity_to_dns():
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
 
         web_connectivity_metrics = web_connectivity_metrics.filter(
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            bucket_date__gte=SYNCHRONIZE_DATE
         )
 
     SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
@@ -132,7 +132,7 @@ def dns_consistency_to_dns():
 
         dns_consistency_metrics = Metric.objects.filter(
             test_name='dns_consistency',
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            bucket_date__gte=SYNCHRONIZE_DATE
         ).annotate(
             queries=RawSQL(
                 "test_keys->'queries'", ()
@@ -235,7 +235,7 @@ def dns_to_flag():
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         dnss = DNS.objects.filter(
-            metric__measurement_start_time__gte=SYNCHRONIZE_DATE
+            metric__bucket_date__gte=SYNCHRONIZE_DATE
         )
     else:
         dnss = DNS.objects.all()
@@ -340,7 +340,7 @@ def dns_to_flag():
                         f_aux = Flag.NONE
 
                     flag = Flag(
-                        metric_date=dns.metric.measurement_start_time,
+                        metric_date=dns.metric.bucket_date,
                         metric=dns.metric,
                         target=dns.target,
                         flag=f_aux,

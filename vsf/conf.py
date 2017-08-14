@@ -6,8 +6,8 @@ from vsf import settings
 # same target and same type (DNS, TCP, HTTP..) 
 # in the last Y1 reports
 
-SOFT_FLAG_REPEATED_X1 = 2
-LAST_REPORTS_Y1 = 50
+SOFT_FLAG_REPEATED_X1 = 3
+LAST_REPORTS_Y1 = 10
 
 # Variables for formula: 
 
@@ -16,4 +16,4 @@ LAST_REPORTS_Y1 = 50
 # and same region in the last Y2 reports
 
 SOFT_FLAG_REPEATED_X2 = 2
-LAST_REPORTS_Y2 = 50
+LAST_REPORTS_Y2 = 10

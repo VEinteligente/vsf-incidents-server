@@ -16,6 +16,7 @@ from event.utils import suggestedEvents
 td_logger = logging.getLogger('TRUE_DEBUG_logger')
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
+
 def web_connectivity_to_http():
     # Get all metrics with test_name web_connectivity
     # but only values id, measurement, test_keys->'status_code_match',
@@ -29,7 +30,7 @@ def web_connectivity_to_http():
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         web_connectivity_metrics = Metric.objects.filter(
             test_name='web_connectivity',
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            bucket_date__gte=SYNCHRONIZE_DATE
         ).annotate(
             status_code_match=RawSQL(
                 "test_keys->'status_code_match'", ()
@@ -123,7 +124,7 @@ def http_to_flag():
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         https = HTTP.objects.filter(
-            metric__measurement_start_time__gte=SYNCHRONIZE_DATE,
+            metric__bucket_date__gte=SYNCHRONIZE_DATE,
             flag=None
         )
     else:
@@ -152,7 +153,7 @@ def http_to_flag():
                 is_flag = True
 
             flag = Flag(
-                metric_date=http.metric.measurement_start_time,
+                metric_date=http.metric.bucket_date,
                 metric=http.metric,
                 target=http.target,
                 isp=http.metric.probe.isp,

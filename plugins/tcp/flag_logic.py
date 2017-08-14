@@ -24,7 +24,7 @@ def web_connectivity_to_tcp():
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
         web_connectivity_metrics = Metric.objects.filter(
             test_name='web_connectivity',
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            bucket_date__gte=SYNCHRONIZE_DATE
         ).annotate(
             tcp_connect=RawSQL(
                 "test_keys->'tcp_connect'", ()
@@ -133,7 +133,7 @@ def tcp_to_flag():
         for tcp_obj in page.object_list:
             try:
                 flag = Flag(
-                    metric_date=tcp_obj.metric.measurement_start_time,
+                    metric_date=tcp_obj.metric.bucket_date,
                     metric=tcp_obj.metric,
                     target=tcp_obj.target,
                     isp=tcp_obj.metric.probe.isp,

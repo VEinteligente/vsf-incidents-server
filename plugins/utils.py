@@ -1,5 +1,10 @@
 from event.models import State, Country, ISP, Plan
-from measurement.models import Metric, Probe
+from measurement.models import Metric, Probe, Flag
+from vsf import conf
+
+
+def soft_to_hard_flags():
+    new_flags = Flag.objects.filter(since=since).order_by('-id')[:conf.LAST_REPORTS_Y1]
 
 
 def dict_compare(d1, d2):
@@ -14,6 +19,7 @@ def dict_compare(d1, d2):
 
     return True
 #  TODO need to optimize thiscomparison
+
 
 def give_probes_to_metrics():
     metrics = Metric.objects.all()

@@ -39,7 +39,7 @@ def metric_to_ndt():
         ndt_metrics = Metric.objects.filter(
             test_name='ndt',
             ndts=None,
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            bucket_date__gte=SYNCHRONIZE_DATE
         )
     else:
         ndt_metrics = Metric.objects.filter(
@@ -86,7 +86,7 @@ def metric_to_ndt():
                     isp = ndt_metric.probe.isp
                 flag = Flag(
                     metric=ndt_metric,
-                    metric_date=ndt_metric.measurement_start_time,
+                    metric_date=ndt_metric.bucket_date,
                     flag=Flag.NONE,
                     manual_flag=False,
                     plugin_name=ndt_metric.__class__.__name__
@@ -96,7 +96,7 @@ def metric_to_ndt():
                     flag=flag,
                     metric=ndt_metric,
                     isp=isp,
-                    date=ndt_metric.measurement_start_time,
+                    date=ndt_metric.bucket_date,
                     upload_speed=ndt_metric.download,
                     download_speed=ndt_metric.upload,
                     ping=ndt_metric.ping,
