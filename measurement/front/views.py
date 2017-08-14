@@ -10,7 +10,7 @@ from django.db import connections
 from django.db.models import Q, Prefetch
 from eztables.views import DatatablesView
 from measurement.models import (
-    DNS,
+    DNSServer,
     Flag,
     Metric,
     Probe
@@ -163,12 +163,12 @@ class DNSTestKey(object):
             if sonda_isp:
                 ips_required = [dns.ip
                                 for dns in
-                                DNS.objects.filter(Q(isp=sonda_isp) |
-                                                   Q(isp='digitel'))]
+                                DNSServer.objects.filter(Q(isp=sonda_isp) |
+                                                         Q(isp='digitel'))]
             else:
                 ips_required = [dns.ip
                                 for dns in
-                                DNS.objects.filter(Q(isp='digitel'))]
+                                DNSServer.objects.filter(Q(isp='digitel'))]
 
             if list_public_dns:
 
@@ -572,10 +572,10 @@ class DNSTableView(
 
         context = super(DNSTableView, self).get_context_data(**kwargs)
 
-        context['dns'] = json.dumps(list(DNS.objects.values('isp',
+        context['dns'] = json.dumps(list(DNSServer.objects.values('isp',
                                                             'ip',
                                                             'verbose')))
-        context['dns_public'] = json.dumps(list(DNS.objects.values_list('ip', flat=True).filter(public=True)))
+        context['dns_public'] = json.dumps(list(DNSServer.objects.values_list('ip', flat=True).filter(public=True)))
         context['probes'] = json.dumps(list(Probe.objects.values('identification','isp')))
 
         return context
@@ -697,8 +697,8 @@ class DNSTableAjax(DatatablesView):
                         match = True
 
                     # If dns_name is in DNS, find its name #
-                    if DNS.objects.filter(ip=dns_name).exists():
-                        dns_table_name = DNS.objects\
+                    if DNSServer.objects.filter(ip=dns_name).exists():
+                        dns_table_name = DNSServer.objects\
                                             .get(ip=dns_name).verbose
                     else:
                         dns_table_name = dns_name
@@ -766,7 +766,7 @@ class DNSTableAjax(DatatablesView):
         return page_rows
 
     def clean_queries_field(self, json_queries):
-        public_dns = [dns.ip for dns in DNS.objects.filter(public=True)]
+        public_dns = [dns.ip for dns in DNSServer.objects.filter(public=True)]
 
         queries = json_queries
         if queries:

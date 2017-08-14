@@ -28,7 +28,7 @@ from measurement.utils import copy_from_measurements_to_metrics
 from measurement.models import (
     Measurement,
     Flag,
-    DNS,
+    DNSServer,
     Metric,
     Probe
 )
@@ -186,7 +186,7 @@ class UpdateFlagView(generic.UpdateView):
 
             # dns_isp = 'cantv' # POR AHORA
             public_dns = [dns.ip
-                          for dns in DNS.objects.filter(public=True)]
+                          for dns in DNSServer.objects.filter(public=True)]
 
             date = row['measurement_start_time']
 
@@ -215,8 +215,8 @@ class UpdateFlagView(generic.UpdateView):
                         dns_name = query['resolver_hostname']
 
                         # If dns_name is in DNS table, find its isp #
-                        if DNS.objects.filter(ip=dns_name).exists():
-                            dns_isp = DNS.objects\
+                        if DNSServer.objects.filter(ip=dns_name).exists():
+                            dns_isp = DNSServer.objects\
                                          .get(ip=dns_name).isp
 
                         # If query doesn't has failure, then find dns result #
