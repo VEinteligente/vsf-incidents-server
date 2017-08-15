@@ -673,12 +673,3 @@ def metric_to_dns():
     print "End Evaluate DNS Flags"
     SYNCHRONIZE_logger.info("End Evaluate DNS Flags")
     td_logger.debug("End Evaluate DNS Flags")
-    print "Start HARD DNS Flags"
-    SYNCHRONIZE_logger.info("Start HARD DNS Flags")
-    td_logger.debug("Start HARD DNS Flags")
-
-    soft_to_hard_flags()
-
-    print "End HARD DNS Flags"
-    SYNCHRONIZE_logger.info("End HARD DNS Flags")
-    td_logger.debug("End HARD DNS Flags")

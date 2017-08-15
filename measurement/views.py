@@ -25,6 +25,7 @@ from event.utils import (
 )
 from measurement.front.views import DBconnection, DNSTestKey
 from measurement.utils import copy_from_measurements_to_metrics
+from plugins.utils import soft_to_hard_flags
 from measurement.models import (
     Measurement,
     Flag,
@@ -515,6 +516,9 @@ def luigiUpdateFlagTask():
                                 (module['module_name'], str(function), str(e)))
                 
         SYNCHRONIZE_logger.info("Finished: %s" % module['module_name'])
+
+    soft_to_hard_flags()
+
     # Set SYNCRONIZE_DATE
     if settings.SYNCHRONIZE_DATE is not None:
         measurements_date = Measurement.objects.filter(

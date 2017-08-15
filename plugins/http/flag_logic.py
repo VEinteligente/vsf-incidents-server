@@ -330,6 +330,3 @@ def metric_to_http():
     print "Start HTTP to Flag"
     http_to_flag()
     print "End HTTP to Flag"
-    print "Start HARD HTTP Flags"
-    soft_to_hard_flags()
-    print "End HARD HTTP Flags"

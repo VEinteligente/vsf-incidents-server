@@ -15,6 +15,7 @@ from event.utils import suggestedEvents
 td_logger = logging.getLogger('TRUE_DEBUG_logger')
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 
+
 def web_connectivity_to_tcp():
     # Get all metrics with test_name web_connectivity
     # but only values id, measurement, test_keys->'status_code_match',
@@ -310,9 +311,6 @@ def metric_to_tcp():
     print "Start TCP to Flag"
     tcp_to_flag()
     print "End TCP to Flag"
-    print "Start HARD TCP Flags"
-    soft_to_hard_flags()
-    print "End HARD TCP Flags"
 
 
 def test():

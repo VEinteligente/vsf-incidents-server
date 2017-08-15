@@ -1,10 +1,38 @@
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import make_aware
+from django.db.models import Q
 from event.models import State, Country, ISP, Plan
 from measurement.models import Metric, Probe, Flag
-from vsf import conf
+from vsf import conf, settings
 
 
 def soft_to_hard_flags():
-    new_flags = Flag.objects.filter(since=since).order_by('-id')[:conf.LAST_REPORTS_Y1]
+
+    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
+    if SYNCHRONIZE_DATE is not None:
+        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+
+        new_flags = Flag.objects.filter(
+            Q(flag=Flag.SOFT,
+              metric_date__gte=SYNCHRONIZE_DATE) |
+            Q(flag=Flag.HARD,
+              metric_date__gte=SYNCHRONIZE_DATE)
+        )
+    else:
+        new_flags = Flag.objects.filter(Q(flag=Flag.SOFT) | Q(flag=Flag.HARD))
+
+    for flag in new_flags:
+
+        all_flags = Flag.objects.filter(
+            plugin_name=flag.plugin_name,
+            target=flag.target,
+            isp=flag.isp
+        ).order_by('metric_date')[:conf.LAST_REPORTS_Y1]
+
+        if all_flags.filter(Q(flag=Flag.SOFT) | Q(flag=Flag.HARD)).count() >= conf.SOFT_FLAG_REPEATED_X1:
+            all_flags.update(flag=Flag.HARD)
+            flag.flag = Flag.HARD
+            flag.save()
 
 
 def dict_compare(d1, d2):
