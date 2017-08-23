@@ -134,6 +134,9 @@ class SpeedTestAjax(DatatablesView):
 
         return page_rows
 
+
+# --------------------------------------------------------
+
 # --------------------------------------------------------
 
 
@@ -142,26 +145,6 @@ class PuraPrueba(generic.TemplateView):
     template_name = 'table.html'
 
     def get(self, request, *args, **kwargs):
-
-        # ----------- Create 200 random probes!
-
-        # isp = ['Cantv', 'Digitel', 'Movistar', 'Inter']
-        # country = Country.objects.get(name='Venezuela')
-        # for i in range(1000, 1200):
-        #     state = State.objects.filter(country=country).order_by('?').first()
-        #     p = Probe(
-        #         identification=i,
-        #         region=state,
-        #         country=country,
-        #         city='Generic City',
-        #         isp=random.choice(isp)
-        #     )
-        #     try:
-        #         p.save()
-        #     finally:
-        #         print(i)
-
-        # -------------------------------------
 
         metric = Metric.objects.filter(test_name='ndt').order_by('test_start_time').first()
         print(metric.test_start_time)

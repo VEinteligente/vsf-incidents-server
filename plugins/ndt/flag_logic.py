@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 from django.db.models import Avg
 
-from measurement.models import Metric, Flag, ISP, Probe
+from measurement.models import Metric, Flag, ISP, Plan, State
 from models import NDT, DailyTest
 
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
@@ -126,37 +126,75 @@ def ndt_to_daily_test():
     for date in date_range(start_date, datetime.today().date()):
 
         isps = NDT.objects.filter(date=date).distinct('isp').values('isp')
+        plans = NDT.objects.filter(
+            date=date
+        ).annotate(
+            plan='flag__metric__probe__plan'
+        ).distinct(
+            'plan'
+        ).values(
+            'plan'
+        )
+        regions = NDT.objects.filter(
+            date=date
+        ).annotate(
+            region='flag__metric__probe__region'
+        ).distinct(
+            'region'
+        ).values(
+            'region'
+        )
 
         for isp in isps:
-            ndt_m = NDT.objects.filter(date=date, isp=isp['isp'])
-            averages = ndt_m.aggregate(
-                av_upload_speed=Avg('upload_speed'),
-                av_download_speed=Avg('download_speed'),
-                av_ping=Avg('ping'),
-                av_max_ping=Avg('max_ping'),
-                av_min_ping=Avg('min_ping'),
-                av_timeout=Avg('timeout'),
-                av_package_loss=Avg('package_loss'),
-            )
+            for region in regions:
+                for plan in plans:
 
-            try:
-                daily_test = DailyTest.objects.get(date=date, isp=isp['isp'])
-            except DailyTest.DoesNotExist:
-                isp_obj = ISP.objects.get(id=isp['isp'])
-                daily_test = DailyTest(
-                    isp=isp_obj,
-                    date=date
-                )
-                daily_test.save()
+                    ndt_m = NDT.objects.annotate(
+                        plan='flag__metric__probe__plan',
+                        region='flag__metric__probe__region'
+                    ).filter(
+                        date=date,
+                        isp=isp['isp'],
+                        plan=plan['plan'],
+                        region=region['region']
+                    )
+                    averages = ndt_m.aggregate(
+                        av_upload_speed=Avg('upload_speed'),
+                        av_download_speed=Avg('download_speed'),
+                        av_ping=Avg('ping'),
+                        av_max_ping=Avg('max_ping'),
+                        av_min_ping=Avg('min_ping'),
+                        av_timeout=Avg('timeout'),
+                        av_package_loss=Avg('package_loss'),
+                    )
 
-            daily_test.av_upload_speed = averages['av_upload_speed']
-            daily_test.av_download_speed = averages['av_download_speed']
-            daily_test.av_ping = averages['av_ping']
-            daily_test.av_max_ping = averages['av_max_ping']
-            daily_test.av_min_ping = averages['av_min_ping']
-            daily_test.av_timeout = averages['av_timeout']
-            daily_test.av_package_loss = averages['av_package_loss']
+                    try:
+                        daily_test = DailyTest.objects.get(
+                            date=date,
+                            isp=isp['isp'],
+                            plan=plan['plan'],
+                            region=region['region']
+                        )
+                    except DailyTest.DoesNotExist:
+                        isp_obj = ISP.objects.get(id=isp['isp'])
+                        plan_obj = Plan.objects.get(id=plan['plan'])
+                        region_obj = State.objects.get(id=region['region'])
+                        daily_test = DailyTest(
+                            isp=isp_obj,
+                            plan=plan_obj,
+                            region=region_obj,
+                            date=date
+                        )
+                        daily_test.save()
 
-            daily_test.ndt_measurement_count = ndt_m.count()
+                    daily_test.av_upload_speed = averages['av_upload_speed']
+                    daily_test.av_download_speed = averages['av_download_speed']
+                    daily_test.av_ping = averages['av_ping']
+                    daily_test.av_max_ping = averages['av_max_ping']
+                    daily_test.av_min_ping = averages['av_min_ping']
+                    daily_test.av_timeout = averages['av_timeout']
+                    daily_test.av_package_loss = averages['av_package_loss']
 
-            daily_test.save()
+                    daily_test.ndt_measurement_count = ndt_m.count()
+
+                    daily_test.save()

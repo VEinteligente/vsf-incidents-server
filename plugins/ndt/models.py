@@ -2,12 +2,14 @@ from __future__ import unicode_literals
 
 from datetime import datetime, timedelta
 from django.db import models
-from measurement.models import Probe, Metric, ISP, Flag
+from measurement.models import Metric, ISP, Flag, Plan, State
 
 
 class DailyTest(models.Model):
 
+    region = models.ForeignKey(State)
     isp = models.ForeignKey(ISP)
+    plan = models.ForeignKey(Plan)
     date = models.DateField()
 
     ndt_measurement_count = models.PositiveIntegerField(default=0)

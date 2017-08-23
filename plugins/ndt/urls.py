@@ -1,4 +1,5 @@
 from django.conf.urls import include, url
+from .rest.views import ListNDT, ListDailyTest
 import views
 
 urlpatterns = [
@@ -20,6 +21,16 @@ urlpatterns = [
     url(
         r'^speed-test-ajax/$',
         views.SpeedTestAjax.as_view(),
+        name='measurements-ndt'
+    ),
+    url(
+        r'^api/measurements-ndt/$',
+        ListNDT.as_view(),
         name='speed-test-ajax'
+    ),
+    url(
+        r'^api/daily-test/$',
+        ListDailyTest.as_view(),
+        name='measurements-ndt'
     ),
 ]
