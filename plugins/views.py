@@ -78,7 +78,7 @@ class PluginCreateEventView(
         if self.enable_event is False:
             context['form'] = None
         else:
-            form = context['form']
+            form = self.get_form(self.get_form_class())
             # create identification for the event (must be unique)
             num_events = Event.objects.count()
             identification = "event_" + str(num_events)

@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-from django.db.models import Avg
+from django.db.models import Avg, F
 
 from measurement.models import Metric, Flag, ISP, Plan, State
 from models import NDT, DailyTest
@@ -119,7 +119,7 @@ def ndt_to_daily_test():
     """
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
-        start_date = make_aware(parse_datetime(SYNCHRONIZE_DATE).date())
+        start_date = parse_datetime(SYNCHRONIZE_DATE).date()
     else:
         start_date = NDT.objects.all().order_by('date').first().date
 
@@ -129,7 +129,7 @@ def ndt_to_daily_test():
         plans = NDT.objects.filter(
             date=date
         ).annotate(
-            plan='flag__metric__probe__plan'
+            plan=F('flag__metric__probe__plan')
         ).distinct(
             'plan'
         ).values(
@@ -138,7 +138,7 @@ def ndt_to_daily_test():
         regions = NDT.objects.filter(
             date=date
         ).annotate(
-            region='flag__metric__probe__region'
+            region=F('flag__metric__probe__region')
         ).distinct(
             'region'
         ).values(
@@ -150,8 +150,8 @@ def ndt_to_daily_test():
                 for plan in plans:
 
                     ndt_m = NDT.objects.annotate(
-                        plan='flag__metric__probe__plan',
-                        region='flag__metric__probe__region'
+                        plan=F('flag__metric__probe__plan'),
+                        region=F('flag__metric__probe__region')
                     ).filter(
                         date=date,
                         isp=isp['isp'],
@@ -167,34 +167,37 @@ def ndt_to_daily_test():
                         av_timeout=Avg('timeout'),
                         av_package_loss=Avg('package_loss'),
                     )
-
                     try:
-                        daily_test = DailyTest.objects.get(
-                            date=date,
-                            isp=isp['isp'],
-                            plan=plan['plan'],
-                            region=region['region']
-                        )
-                    except DailyTest.DoesNotExist:
-                        isp_obj = ISP.objects.get(id=isp['isp'])
-                        plan_obj = Plan.objects.get(id=plan['plan'])
-                        region_obj = State.objects.get(id=region['region'])
-                        daily_test = DailyTest(
-                            isp=isp_obj,
-                            plan=plan_obj,
-                            region=region_obj,
-                            date=date
-                        )
+
+                        try:
+                            daily_test = DailyTest.objects.get(
+                                date=date,
+                                isp=isp['isp'],
+                                plan=plan['plan'],
+                                region=region['region']
+                            )
+                        except DailyTest.DoesNotExist:
+                            isp_obj = ISP.objects.get(id=isp['isp'])
+                            plan_obj = Plan.objects.get(id=plan['plan'])
+                            region_obj = State.objects.get(id=region['region'])
+                            daily_test = DailyTest(
+                                isp=isp_obj,
+                                plan=plan_obj,
+                                region=region_obj,
+                                date=date
+                            )
+                            daily_test.save()
+
+                        daily_test.av_upload_speed = averages['av_upload_speed']
+                        daily_test.av_download_speed = averages['av_download_speed']
+                        daily_test.av_ping = averages['av_ping']
+                        daily_test.av_max_ping = averages['av_max_ping']
+                        daily_test.av_min_ping = averages['av_min_ping']
+                        daily_test.av_timeout = averages['av_timeout']
+                        daily_test.av_package_loss = averages['av_package_loss']
+
+                        daily_test.ndt_measurement_count = ndt_m.count()
+
                         daily_test.save()
-
-                    daily_test.av_upload_speed = averages['av_upload_speed']
-                    daily_test.av_download_speed = averages['av_download_speed']
-                    daily_test.av_ping = averages['av_ping']
-                    daily_test.av_max_ping = averages['av_max_ping']
-                    daily_test.av_min_ping = averages['av_min_ping']
-                    daily_test.av_timeout = averages['av_timeout']
-                    daily_test.av_package_loss = averages['av_package_loss']
-
-                    daily_test.ndt_measurement_count = ndt_m.count()
-
-                    daily_test.save()
+                    except:
+                        pass

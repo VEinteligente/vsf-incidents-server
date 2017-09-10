@@ -198,12 +198,6 @@ def soft_to_hard_flags():
         https__metric__in=ids_cond_1
     ).prefetch_related(
         'https__metric__probe__isp'
-    ).annotate(
-        isp=Case(
-            default=F('https__metric__probe__isp__name'),
-            output_field=CharField()
-        )
-
     )
 
     # Dict than determinate which target/isp has
@@ -261,10 +255,6 @@ def soft_to_hard_flags():
         ).prefetch_related(
             'https__metric__probe__region'
         ).annotate(
-            isp=Case(
-                default=F('https__metric__probe__isp__name'),
-                output_field=CharField()
-            ),
             region=Case(
                 default=F('https__metric__probe__region__name'),
                 output_field=CharField()

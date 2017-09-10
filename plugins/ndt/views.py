@@ -137,8 +137,6 @@ class SpeedTestAjax(DatatablesView):
 
 # --------------------------------------------------------
 
-# --------------------------------------------------------
-
 
 class PuraPrueba(generic.TemplateView):
 

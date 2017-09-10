@@ -277,11 +277,11 @@
 
                         var test_key_content = JSON.stringify(data, null, 2);
 
-                        return '<input type="hidden" class="form-control test-key-area" metric-id="'
+                        return '<div style="display: none;" class="test-key-area" metric-id="'
                             +
                             full.checkbox
                             +
-                            "\" value='" + test_key_content + "'/> " +
+                            "\">" + test_key_content + "</div> " +
                             '<button type="button" class="btn btn-xs btn-info test_key-button" metric-id="'
                             +
                             full.checkbox
@@ -430,13 +430,11 @@
         // Test key button click action
         $(document).on("click", ".test_key-button", function () {
             var metric_id = $(this).attr('metric-id');
-            var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').val();
+            var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').html();
             $('#modal-textarea').val(test_keys);
-            // alert($('#modal-textarea').val());
 
-            var json = test_keys;
             var data;
-            try{ data = JSON.parse(test_keys); }
+            try{ data = JSON.parse(test_keys.toString()); }
             catch(e){
                 alert('not valid JSON');
                 return;
@@ -449,7 +447,6 @@
             });
 
             $('#test_key-modal').modal('show');
-            // alert('hola mundo');
         });
 
         // Selected Table's remove button click action
