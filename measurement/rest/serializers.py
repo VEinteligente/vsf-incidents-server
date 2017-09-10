@@ -1,9 +1,6 @@
-import json
 
 from rest_framework import serializers
-from measurement.models import Metric, Flag, Probe, Plan
-from measurement.front.views import DNSTestKey
-from plugins.dns.serializer import DNSFlagSerializer
+from measurement.models import Metric, Flag, Probe, Plan, Target, ISP
 
 
 class MeasurementSerializer(serializers.ModelSerializer):
@@ -14,7 +11,7 @@ class MeasurementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Metric
-        exclude = ['id', ]
+        exclude = ['id', 'annotations', 'probe', 'test_helpers']
 
     def get_flag(self, obj):
         """
@@ -30,9 +27,23 @@ class MeasurementSerializer(serializers.ModelSerializer):
         flags = Flag.objects.filter(metric=obj.id).values('metric', 'flag')
         flag_value = None
         for flag in flags:
-            if (str(flag['metric']) == str(obj.id)):
+            if str(flag['metric']) == str(obj.id):
                 flag_value = flag['flag']
         return flag_value
+
+
+class TargetSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Target
+        exclude = ('id',)
+
+
+class ISPSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ISP
+        exclude = ('id',)
 
 
 # class DNSMeasurementSerializer(MeasurementSerializer):
@@ -192,13 +203,12 @@ class ProbeFlagSerializer(ProbeSerializer):
 class FlagSerializer(serializers.ModelSerializer):
     """FlagSerializer: ModelSerializer
     for serialize a flag object"""
-    metric = serializers.SerializerMethodField()
+    metric = MeasurementSerializer()
+    isp = ISPSerializer()
+    target = TargetSerializer()
 
     class Meta:
         model = Flag
         exclude = ('id', 'suggested_events')
-
-    def get_metric(self, obj):
-        return obj.metric.measurement
 
 
