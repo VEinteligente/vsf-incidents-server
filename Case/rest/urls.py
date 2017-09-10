@@ -72,4 +72,9 @@ urlpatterns = [
         views.EventsByMonth.as_view(),
         name='events-month'
     ),
+    url(
+        r'^flags-datatable/(?P<case_id>[0-9]+)/$',
+        views.FrontCaseAjaxView.as_view(),
+        name='flags-by-case'
+    ),
 ]

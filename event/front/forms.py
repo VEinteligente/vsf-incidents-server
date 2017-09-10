@@ -187,10 +187,6 @@ class EventEvidenceForm(forms.ModelForm):
                     'metric__probe__isp',
                     'metric__probe__region'
                 ).annotate(
-                    isp=Case(
-                        default=F('metric__probe__isp__name'),
-                        output_field=CharField()
-                    ),
                     region=Case(
                         default=F('metric__probe__region__name'),
                         output_field=CharField()
@@ -202,8 +198,7 @@ class EventEvidenceForm(forms.ModelForm):
                 # If not all flags are the same target, isp and type then
                 # show an error.
 
-
-                if  not all(
+                if not all(
                     map(
                         lambda f: f.target == bd_flags[0].target,
                         bd_flags[1:]
@@ -214,7 +209,7 @@ class EventEvidenceForm(forms.ModelForm):
                         None,
                         'Selected flags must have the same target ' #TODO improve text
                     )
-                elif  not all(
+                elif not all(
                     map(
                         lambda f:  f.isp == bd_flags[0].isp,
                         bd_flags[1:]

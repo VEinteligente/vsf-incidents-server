@@ -20,6 +20,7 @@ class DNSTableView(PluginCreateEventView):
         'flag',
         'manual flag',
         'measurement',
+        'isp',
         'input',
         'site',
         'category',
@@ -53,6 +54,7 @@ class DNSUpdateEventView(PluginUpdateEventView):
         'flag',
         'manual flag',
         'measurement',
+        'isp'
         'input',
         'site',
         'category',
@@ -88,6 +90,7 @@ class DNSAjaxView(DatatablesView):
         'flag': 'flag__flag',  # Customized
         'manual flag': 'flag__manual_flag',
         'test name': 'metric__test_name',
+        'isp': 'flag__isp__name',
         'control resolver failure': 'control_resolver_failure',
         'control resolver answers': 'control_resolver_answers',  # Customized
         'control resolver hostname': 'control_resolver_resolver_hostname',

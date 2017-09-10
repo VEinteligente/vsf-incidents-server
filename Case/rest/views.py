@@ -2,11 +2,9 @@ from rest_framework import generics
 from rest_framework.authentication import BasicAuthentication
 from vsf.vsf_authentication import VSFTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Count
 from serializers import (
     DetailEventCaseSerializer,
     CaseSerializer,
-    RegionCaseSerializer,
     CaseFilter,
     DetailUpdateCaseSerializer,
     CategoryCaseSerializer,
@@ -21,7 +19,9 @@ from serializers import (
 )
 from event.models import Event
 from Case.models import Case, Category
-from measurement.models import State
+from measurement.models import State, Flag, ISP
+
+from plugins.views import DatatablesView
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -136,8 +136,9 @@ class ListISPView(generics.ListAPIView):
     for displaying a list of ISP """
     authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
-    queryset = Event.objects.filter(
-        draft=False).values('isp').order_by('isp').distinct()
+    # queryset = Event.objects.filter(
+    #     draft=False).values('isp').order_by('isp').distinct()
+    queryset = ISP.objects.all()
     serializer_class = ISPSerializer
 
 
@@ -174,3 +175,42 @@ class GanttChart(generics.RetrieveAPIView):
 
 class EventsByMonth(GanttChart):
     serializer_class = EventsByMonthSerializer
+
+
+class FrontCaseAjaxView(DatatablesView):
+    """
+    FrontCaseAjaxView: DatatablesView for fill Case metrics table.
+    Field checkbox is required to do functions over the table and must be
+    the id to identify which metric is selected.
+    Field measurement_id is required if measurement field is present
+    Field checkbox, flag, test_keys, measurement, report_id are customized by
+    table.html
+    """
+    authentication_classes = (VSFTokenAuthentication, BasicAuthentication)
+    permission_classes = (IsAuthenticated,)
+
+    pk_url_kwarg = 'case_id'
+    fields = {
+        'checkbox': 'uuid',
+        'Flag': 'flag',
+        'manual_flag': 'manual_flag',
+        'flag_id': 'uuid',
+        'probe_isp': 'metric__probe__isp__name',
+        'input': 'metric__input',
+        'report_id': 'metric__report_id',
+        'test_name': 'metric__test_name',
+        'test_start_time': 'metric__test_start_time',
+        'measurement_start_time': 'metric__measurement_start_time'
+    }
+    queryset = Flag.objects.all()
+
+    def get_queryset(self):
+        """
+        Apply Datatables sort and search criterion to QuerySet
+        :return: queryset
+        """
+        case_pk = self.kwargs.get(self.pk_url_kwarg)
+        case = Case.objects.get(id=case_pk)
+        events = Event.objects.filter(cases=case).values_list('id')
+        self.queryset = self.queryset.filter(event__id__in=events)
+        return super(FrontCaseAjaxView, self).get_queryset()

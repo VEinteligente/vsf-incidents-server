@@ -358,28 +358,7 @@ class MeasurementAjaxView(DatatablesView):
         'test_start_time': 'metric__test_start_time',
         'measurement_start_time': 'metric__measurement_start_time'
     }
-    queryset = Flag.objects.all().prefetch_related(
-        Prefetch(
-            'dnss',
-            queryset=DNS_METRIC.objects.select_related('metric'),
-            to_attr='dns_metrics'
-        ),
-        Prefetch(
-            'https',
-            queryset=HTTP.objects.select_related('metric'),
-            to_attr='http_metrics'
-        ),
-        Prefetch(
-            'tcps',
-            queryset=TCP.objects.select_related('metric'),
-            to_attr='tcp_metrics'
-        ),
-        Prefetch(
-            'ndts',
-            queryset=NDT.objects.select_related('metric'),
-            to_attr='ndt_metrics'
-        ),
-    )
+    queryset = Flag.objects.all()
 
     def json_response(self, data):
         return HttpResponse(
