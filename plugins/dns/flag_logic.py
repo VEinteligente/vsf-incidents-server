@@ -90,13 +90,20 @@ def web_connectivity_to_dns():
                     else:
                         target = None
 
+                    inconsistent=None
+                    if dns_metric['dns_consistency'] == 'consistent'
+                        inconsistent = False
+                    elif dns_metric['dns_consistency'] == 'inconsistent'
+                        constent = True
                     dns = DNS(
                         metric_id=dns_metric['id'],
                         control_resolver_failure=cr['failure'],
                         control_resolver_answers=cr['answers'],
                         failure=dns_metric['dns_experiment_failure'],
                         answers=dns_metric['answers'],
-                        target=target
+                        target=target,
+                        dns_consistency=dns_metric['dns_consistency'],
+                        inconsistent=inconsistent
                     )
                     td_logger.debug("DNS a crear %s" % dns)
 
