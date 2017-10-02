@@ -27,6 +27,7 @@ class DNS(models.Model):
     consistent = models.NullBooleanField()
     target = models.ForeignKey(Target, null=True, blank=True)
 
+    experiment_failure = models.CharField(max_length=50, null=True, blank=True)
     def __unicode__(self):
         return u"%s - %s" % (
             self.metric.input, self.metric.measurement)
