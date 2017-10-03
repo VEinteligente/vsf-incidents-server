@@ -205,6 +205,16 @@ def dns_consistency_to_dns():
                             target.save()
                         except Target.MultipleObjectsReturned:
                             target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                        inconsistent=None
+                        try:
+                            if dns_metric['inconsistent'][query['resolver_hostname']]:
+                                inconsistent= True;
+                                dns_consistency= 'inconsistent'
+                        try:
+                            if dns_metric['errors'][query['resolver_hostname']]:
+                                dns_consistency= 'Resolver: '+dns_metric['errors'][query['resolver_hostname']]
+
+
                         dns = DNS(
                             metric_id=dns_metric['id'],
                             control_resolver_failure=cr['failure'],
@@ -213,7 +223,9 @@ def dns_consistency_to_dns():
                             failure=query['failure'],
                             answers=query['answers'],
                             resolver_hostname=query['resolver_hostname'],
-                            target=target
+                            target=target,
+                            inconsistent=inconsistent,
+                            dns_consistency=dns_consistency
                         )
                         new_dns.append(dns)
 #                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
