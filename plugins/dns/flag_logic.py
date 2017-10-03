@@ -91,9 +91,9 @@ def web_connectivity_to_dns():
                         target = None
 
                     inconsistent=None
-                    if dns_metric['dns_consistency'] == 'consistent'
+                    if dns_metric['dns_consistency'] == 'consistent':
                         inconsistent = False
-                    elif dns_metric['dns_consistency'] == 'inconsistent'
+                    elif dns_metric['dns_consistency'] == 'inconsistent':
                         constent = True
                     dns = DNS(
                         metric_id=dns_metric['id'],
