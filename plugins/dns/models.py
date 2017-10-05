@@ -24,6 +24,9 @@ class DNS(models.Model):
     answers = JSONField(null=True)
     resolver_hostname = models.GenericIPAddressField(
         null=True, blank=True)  # servidor DNS que se esta evaluando, (target)
+
+    inconsistent = models.NullBooleanField()
+    dns_consistency  = models.CharField(max_length=50, null=True, blank=True)
     target = models.ForeignKey(Target, null=True, blank=True)
 
     def __unicode__(self):

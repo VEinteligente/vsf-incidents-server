@@ -58,8 +58,8 @@ def web_connectivity_to_dns():
     i=0
     for dns_metric in web_connectivity_metrics:
 
-        
-        cr = {}
+
+        cr = {} # Control Resolver information
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
         except Exception:
@@ -74,39 +74,46 @@ def web_connectivity_to_dns():
                         (str(dns_metric['id']), str(len(dns_metric['queries']))))
 
         for query in dns_metric['queries']:
-            for answer in query['answers']:
-                try:
-                    if dns_metric['dnss'] is None:
-                        if 'hostname' in query:
-                            domain = query['hostname']
-                            td_logger.debug("%i - trabajando en metrica %s - dominio %s" % (i, dns_metric['id'], domain))
-                            try:
-                                target = Target.objects.get(domain=domain, type=Target.DOMAIN)
-                            except Target.DoesNotExist:
-                                target = Target(domain=domain, type=Target.DOMAIN)
-                                target.save()
-                                td_logger.debug("Creado target dominio %s" % domain)
-                            except Target.MultipleObjectsReturned:
-                                target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
-                        else:
-                            target = None
-                        dns = DNS(
-                            metric_id=dns_metric['id'],
-                            control_resolver_failure=cr['failure'],
-                            control_resolver_answers=cr['answers'],
-                            failure=query['failure'],
-                            answers=answer,
-                            target=target
-                        )
-                        td_logger.debug("DNS a crear %s" % dns)
-                        
-                        new_dns.append(dns)
-                        td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
-                except Exception as e:
-                    SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
-                                             "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                    td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
-                                    "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+            try:
+                if dns_metric['dnss'] is None:
+                    if 'hostname' in query:
+                        domain = query['hostname']
+                        td_logger.debug("%i - trabajando en metrica %s - dominio %s" % (i, dns_metric['id'], domain))
+                        try:
+                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                        except Target.DoesNotExist:
+                            target = Target(domain=domain, type=Target.DOMAIN)
+                            target.save()
+                            td_logger.info("Creado target dominio %s" % domain)
+                        except Target.MultipleObjectsReturned:
+                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                    else:
+                        target = None
+
+                    inconsistent=None
+                    if dns_metric['dns_consistency'] == 'consistent':
+                        inconsistent = False
+                    elif dns_metric['dns_consistency'] == 'inconsistent':
+                        constent = True
+                    dns = DNS(
+                        metric_id=dns_metric['id'],
+                        control_resolver_failure=cr['failure'],
+                        control_resolver_answers=cr['answers'],
+                        failure=dns_metric['dns_experiment_failure'],
+                        answers=dns_metric['answers'],
+                        target=target,
+                        dns_consistency=dns_metric['dns_consistency'],
+                        inconsistent=inconsistent
+                    )
+                    td_logger.debug("DNS a crear %s" % dns)
+
+                    new_dns.append(dns)
+                    td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
+            except Exception as e:
+                SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                                         "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+                td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
+                                "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
         i += 1
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
@@ -137,6 +144,15 @@ def dns_consistency_to_dns():
             queries=RawSQL(
                 "test_keys->'queries'", ()
             ),
+            inconsistent=RawSQL(
+                "test_keys->'inconsistent'", ()
+            ),
+            errors=RawSQL(
+                "test_keys->'errors'", ()
+            ),
+            failures=RawSQL(
+                "test_keys->'failures'", ()
+            ),
             control_resolver=RawSQL(
                 "test_keys->'control_resolver'", ()
             )
@@ -147,6 +163,15 @@ def dns_consistency_to_dns():
         ).annotate(
             queries=RawSQL(
                 "test_keys->'queries'", ()
+            ),
+            inconsistent=RawSQL(
+                "test_keys->'inconsistent'", ()
+            ),
+            errors=RawSQL(
+                "test_keys->'errors'", ()
+            ),
+            failures=RawSQL(
+                "test_keys->'failures'", ()
             ),
             control_resolver=RawSQL(
                 "test_keys->'control_resolver'", ()
@@ -167,7 +192,10 @@ def dns_consistency_to_dns():
         'queries',
         'control_resolver',
         'dnss',
-        'input'
+        'input',
+        'inconsistent',
+        'errors',
+        'failures',
     )
 
     # for each dns metric get control resolver and other fields
@@ -188,7 +216,7 @@ def dns_consistency_to_dns():
 
         for query in dns_metric['queries']:
             try:
-                if query['resolver_hostname'] != cr_ip:
+                if (query['resolver_hostname'] != cr_ip) and (query['query_type'] == 'A'):
                     if dns_metric['dnss'] is None:
                         domain = dns_metric['input']
                         try:
@@ -198,16 +226,95 @@ def dns_consistency_to_dns():
                             target.save()
                         except Target.MultipleObjectsReturned:
                             target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
-                        dns = DNS(
-                            metric_id=dns_metric['id'],
-                            control_resolver_failure=cr['failure'],
-                            control_resolver_answers=cr['answers'],
-                            control_resolver_resolver_hostname=cr['resolver_hostname'],
-                            failure=query['failure'],
-                            answers=query['answers'],
-                            resolver_hostname=query['resolver_hostname'],
-                            target=target
-                        )
+
+                        inconsistent=None
+                        dns_consistency=''
+                        if query['resolver_hostname'] in dns_metric['inconsistent']:
+                            inconsistent= True;
+                            dns_consistency= 'inconsistent responses'
+
+                        else:
+                            try:
+                                if (
+                                    (dns_metric['errors'][query['resolver_hostname']] == 'no_answer')
+                                    and
+                                    not(
+                                        (dns_metric['control_resolver'] in dns_metric['errors'])
+                                        or cr['failure']
+                                        or dns_metric['control_resolver'] in dns_metric['failures']
+                                    )
+                                ):
+                                    inconsistent= True;
+                                    dns_consistency = 'no_answer'
+                                elif (
+                                    dns_metric['errors'][query['resolver_hostname']] == 'reverse_match'
+                                    and
+                                    not(
+                                        (dns_metric['control_resolver'] in dns_metric['errors'])
+                                        or cr['failure']
+                                        or dns_metric['control_resolver'] in dns_metric['failures']
+                                    )
+                                ):
+                                    inconsistent=False
+                                    dns_consistency = 'reverse_match'
+
+                                else:
+                                    dns_consistency = 'consitent if exists'
+                                    inconsistent=False
+                                    try:
+                                        dns_consistency = dns_metric['errors'][query['resolver_hostname']] + '(Resolver)'
+                                    except:
+                                        pass
+                            except (resolver_hostname, KeyError) as e:
+                                inconsistent=False
+
+                        #TODO: remove old deprecated code, here for reference still testing
+                        # try:
+                        #     # if dns_metric['inconsistent'][resolver_hostname]:
+                        #     #     inconsistent= True;
+                        #     #     dns_consistency= 'inconsistent responses'
+                        # except KeyError:
+                        #     try:
+                        #         dns_consistency = dns_metric['errors'][resolver_hostname] + '(Resolver)'
+                        #         if (dns_metric['errors'][resolver_hostname] == 'no_answer'):
+                        #             if:
+                        #                 inconsistent= True;
+                        #         elif (dns_metric['errors'][resolver_hostname] == 'reverse_match'):
+                        #             inconsistent= False;
+                        #         else:
+                        #             inconsistent= False;
+                        #
+                        #     except KeyError:
+                        #         inconsistent= False;
+                        #         dns_consistency= 'consistent responses if exists'
+
+                        if dns_consistency:
+                            dns = DNS(
+                                metric_id=dns_metric['id'],
+                                control_resolver_failure=cr['failure'],
+                                control_resolver_answers=cr['answers'],
+                                control_resolver_resolver_hostname=cr['resolver_hostname'],
+                                failure=query['failure'],
+                                answers=query['answers'],
+                                resolver_hostname=query['resolver_hostname'],
+                                target=target,
+                                dns_consistency=dns_consistency,
+                                inconsistent=inconsistent
+                            )
+
+                        else:
+                            dns = DNS(
+                                metric_id=dns_metric['id'],
+                                control_resolver_failure=cr['failure'],
+                                control_resolver_answers=cr['answers'],
+                                control_resolver_resolver_hostname=cr['resolver_hostname'],
+                                failure=query['failure'],
+                                answers=query['answers'],
+                                resolver_hostname=query['resolver_hostname'],
+                                target=target,
+                                dns_consistency=dns_consistency
+                            )
+
                         new_dns.append(dns)
 #                         td_logger.debug('DNS consistency guardo exitosamente medicion logica'
 #                                        ' perteneciente a la metric %s' % str(dns_metric['id']))
@@ -251,7 +358,7 @@ def dns_to_flag():
         for dns in page.object_list:
             i += 1
             try:
-                if dns.flag is None: 
+                if dns.flag is None:
                     is_flag = False
                     isp = None
                     if dns.metric.test_name == 'dns_consistency':
@@ -262,7 +369,14 @@ def dns_to_flag():
                         except (DNSServer.DoesNotExist, KeyError) as e:
                             isp = None
 
-                        if dns.control_resolver_failure in [None, '']:
+                        if dns.inconsistent:
+                            is_flag = True
+                            td_logger.debug('%d Found inconsistent DNS (%s) - plugin id: %d - metric=%s %s' %
+                                (i, str(dns.dns_consistency), dns.id, str(dns.metric.id), str(dns.target)))
+                        # elif (dns.inconsistent==False):
+                            # td_logger.debug('%s Found consistent DNS - metric=%s %s' %
+                            #     (str(i), str(dns.metric.id), str(dns.target)))
+                        elif dns.control_resolver_failure in [None, '']:
                             if dns.failure in [None, '']: # if no failures in measurement
                                 if dns.control_resolver_answers:
                                     try:
@@ -271,6 +385,26 @@ def dns_to_flag():
                                             td_logger.debug('%s Found no_awnser flag DNS - metric=%s %s' %
                                                 (str(i), str(dns.metric.id), str(dns.target)))
 
+                                    except KeyError:
+                                        is_flag = False
+                                    '''
+                                    #TODO: remove deprecated code
+                                        try:
+                                            if dns.resolver_hostname in dns.metric.test_keys['inconsistent']: #check for alreadt evaluated logic by ooniprobe
+                                            is_flag = True
+                                            td_logger.debug('%s Found inconsistent DNS - metric=%s %s' %
+                                            (str(i), str(dns.metric.id), str(dns.target)))
+
+
+                                        except Exception: # if for some reason this fails, lets compare both awnsers (usually a list of dicts, ocacionally it's just a dict)
+                                            same = dict_compare(
+                                            dns.control_resolver_answers,
+                                            dns.answers
+                                            )
+                                            td_logger.debug('%s Manually comparing metric=%s, same=%s \n %s' %
+                                            (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
+                                            if not same:   #if all elements are not the same
+                                            is_flag = True
                                     except Exception: # if for some reason this fails, lets compare both awnsers (usually a list of dicts, ocacionally it's just a dict)
                                         same = dict_compare(
                                             dns.control_resolver_answers,
@@ -283,33 +417,22 @@ def dns_to_flag():
                                             is_flag = True
 
                                          # if [dns.resolver_hostname] == "no_answer" no flag
-                                    except KeyError:
-                                        is_flag = False
-                                    
-                                        try:
-                                            if dns.resolver_hostname in dns.metric.test_keys['inconsistent']: #check for alreadt evaluated logic by ooniprobe
-                                                is_flag = True
-                                                td_logger.debug('%s Found inconsistent DNS - metric=%s %s' %
-                                                    (str(i), str(dns.metric.id), str(dns.target)))
-    
-    
-                                        except Exception: # if for some reason this fails, lets compare both awnsers (usually a list of dicts, ocacionally it's just a dict)
-                                            same = dict_compare(
-                                                dns.control_resolver_answers,
-                                                dns.answers
-                                            )
-                                            td_logger.debug('%s Manually comparing metric=%s, same=%s \n %s' %
-                                                (str(i), str(dns.metric.id), str(same), str(dns.metric.test_keys['queries'])))
-                                            if not same:   #if all elements are not the same
-                                                is_flag = True
-    
+                                    '''
+
                     if dns.metric.test_name == 'web_connectivity':
 
                         isp = dns.metric.probe.isp
-
+                        '''
+                        # TODO: Clean this,
                         if (dns.control_resolver_failure is None) and (
                             dns.control_resolver_answers is not None
                         ):
+                        '''
+                        if dns.inconsistent:
+                            is_flag = True
+
+                        elif (dns.inconsistent == False):
+                            # TODO: Double check (or ask ooni team) formal definition of consistent to maybe drop this case, or part of it
                             if dns.failure == "no_answer":
                                 is_flag = True
                             else:
