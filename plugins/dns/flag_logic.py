@@ -43,6 +43,9 @@ def web_connectivity_to_dns():
         ),
         control_resolver=RawSQL(
             "test_keys->'control'", ()
+        ),
+        dns_consistency=RawSQL(
+            "test_keys->'dns_consistency'", ()
         )
     ).prefetch_related(
         'dnss'
