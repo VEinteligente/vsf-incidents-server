@@ -43,6 +43,9 @@ def web_connectivity_to_dns():
         ),
         control_resolver=RawSQL(
             "test_keys->'control'", ()
+        ),
+        dns_consistency=RawSQL(
+            "test_keys->'dns_consistency'", ()
         )
     ).prefetch_related(
         'dnss'
@@ -265,8 +268,12 @@ def dns_consistency_to_dns():
                                         dns_consistency = dns_metric['errors'][query['resolver_hostname']] + '(Resolver)'
                                     except:
                                         pass
-                            except (resolver_hostname, KeyError) as e:
+                            except (query['resolver_hostname'], KeyError) as e:
                                 inconsistent=False
+                                td_logger.info("no resolver hostname in %s: %s" % (str(dns_metric['measurement']), str(e))
+                            except Exception as e:
+                                    SYNCHRONIZE_logger.exception("Unknown exceptionin %s: %s" % (str(dns_metric['measurement']), str(e))
+
 
                         #TODO: remove old deprecated code, here for reference still testing
                         # try:
