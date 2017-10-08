@@ -63,8 +63,6 @@ def copy_from_measurements_to_metrics():
     i = 0
     retry_measurements=list();
     for p in measurement_paginator.page_range:
-        #test only !!! delete me
-        break
         page = measurement_paginator.page(p)
 #         ids = list(metric_id_paginator.page(p).object_list)
         id_list = list(measurement_paginator.page(p).object_list.values_list('id', flat=True))
@@ -76,23 +74,23 @@ def copy_from_measurements_to_metrics():
 
         collisions = Metric.objects.filter(
             measurement__in=id_list).values_list('measurement', flat=True)
-
-
+            
+            
         td_logger.info('Page: %i - items: %i - id_list: %i items- collisions: %i' % (p, len(page), len(id_list), len(collisions)))
-
+        
         for measurement in page.object_list:
             if i==0:
-                td_logger.debug('First iteration in page %i' % p)
+                td_logger.debug('First iteration in page %i' % p)                
             i += 1
 #             td_logger.debug('current id %s (%s)' % (measurement.id, i))
             page_copied=[]
             if measurement.id not in id_list:
                 td_logger.error('Remote measurement ID, not checked for existance in local DB for copy. Adding to pile for future copy. ID: %s' % measurement.id)
-                retry_measurements.append(measurement)
-                # it's unknown the reason behind this case being so prevalent. about 3/page of 20000 in our datasets.
+                retry_measurements.append(measurement)                
+                # it's unknown the reason behind this case being so prevalent. about 3/page of 20000 in our datasets. 
 
             elif measurement.id in page_copied:
-                td_logger.error('!!! Duplicated measurement ID in page - page: %i, iteration: %i - ID: %s' % (p, i, measurement.id))
+                td_logger.error('!!! Duplicated measurement ID in page - page: %i, iteration: %i - ID: %s' % (p, i, measurement.id)) 
 #                 continue
 #                 td_logger.debug('not already copied in page')
 
@@ -101,13 +99,13 @@ def copy_from_measurements_to_metrics():
                 # the database.
                 pass
                 # TODO re-format code to avoid epmty if
-            else:
+            else:                    
                 page_copied.append(measurement.id)
-
-
-
+                
+                
+                
                 # Add probe relation to object for batch-create
-                try:
+                try: 
                     probe_id = measurement.annotations['probe']  # check if probe field is in annotation dict
                 except Exception: # if not asign no_ip probe
                     try:
@@ -152,18 +150,18 @@ def copy_from_measurements_to_metrics():
                     bucket_date=measurement.bucket_date,
                     probe = probe,
                 )
-
+    
 #                 td_logger.debug('Obj created for bulk create - ID %s' % measurement.id)
-
+    
                 new_metrics.append(obj)
 
         td_logger.debug(
-            "Exiting standard loop, page %s, bulk create: %s metrics."
+            "Exiting standard loop, page %s, bulk create: %s metrics." 
             %
             (str(p), str(len(new_metrics)))
         )
         standard_loop_objects=len(new_metrics)
-
+        
         # testing this code to re/introduce measurements that could not be added becuse of lack of validation / probelms with pagination
         # TODO !!! integrate to the same bulk_create for performace after testing
         if retry_measurements:
@@ -174,10 +172,10 @@ def copy_from_measurements_to_metrics():
                     obj = Metric.objects.get(measurement=measurement.id)
                 except Metric.DoesNotExist:  # Copy if it doesn't
                     td_logger.debug('Measurement will be copied on retry - ID: %s' % measurement.id )
-
-
+                
+    
                     # Add probe relation to object for batch-create
-                    try:
+                    try: 
                         probe_id = measurement.annotations['probe']  # check if probe field is in annotation dict
                     except Exception: # if not asign no_ip probe
                         try:
@@ -222,24 +220,24 @@ def copy_from_measurements_to_metrics():
                         bucket_date=measurement.bucket_date,
                         probe = probe,
                     )
-
+                                
                     td_logger.debug('Obj created for bulk create (on retry) - ID %s' % measurement.id)
                     new_metrics.append(obj)
-                    retry_copied_count += 1
+                    retry_copied_count += 1 
                 else:
                     td_logger.debug('Measurement will NOT be copied, already existed locally- ID: %s' % measurement.id )
             # After the untested measuremnts are verified for collisions with locsal DB, the measurements not existing locallys will be copied
             td_logger.debug('Page%i, on retry %i metrics will be created, out of %i that needed to be checked)' % (p, (len(new_metrics) - standard_loop_objects), len(retry_measurements)))
-
+            
             #             td_logger.debug('Objects that needed revision on this page: %i \n %s)' % (len(retry_measurements), str(retry_measurements)))
-
-
+        
+        
         #at the end of loop, after the standard loop (those whose IDs were checked agianst collitions) and those checked individually on retry
         Metric.objects.bulk_create(new_metrics)
         td_logger.info('%i metrics created in page %i, %i from std loop -index reached: %i' % (len(new_metrics), standard_loop_objects, p, i))
         new_metrics = list() # clean lists for next iteration
         retry_measurements = list()
-
+            
 
     # is this necesary? TO-DO double check and remove
     if len(new_metrics) > 0:
@@ -367,7 +365,7 @@ def change_to_manual_flag_and_create_event(metrics_sql, type_med):
                 probe = Probe.objects.filter(identification=probe_id).first()
                 region = probe.region.name
             except Exception:
-                region = 'CCS'
+                region = 'CCS' 
             # TODO important check best way to create metric with missiing region, wich region
             # Create Manual Flag
             flag = Flag.objects.create(
@@ -476,7 +474,7 @@ def change_to_flag_and_create_event(metrics_sql, list_ip, type_med):
                         type_med=type_med)
                     # Save object in database
                     flag.save()
-
+                    
                     # Add flag to list destinated to associate flags with the new event
                     flags_event.append(flag)
                     # Add id flag to list destinated to get earliest flag date
