@@ -270,9 +270,9 @@ def dns_consistency_to_dns():
                                         pass
                             except (query['resolver_hostname'], KeyError) as e:
                                 inconsistent=False
-                                td_logger.info("no resolver hostname in %s: %s" % (str(dns_metric['measurement']), str(e))
+                                td_logger.info("no resolver hostname in %s: %s" % (str(dns_metric['measurement']), str(e)))
                             except Exception as e:
-                                    SYNCHRONIZE_logger.exception("Unknown exceptionin %s: %s" % (str(dns_metric['measurement']), str(e))
+                                    SYNCHRONIZE_logger.exception("Unknown exceptionin %s: %s" % (str(dns_metric['measurement']), str(e)))
 
 
                         #TODO: remove old deprecated code, here for reference still testing
