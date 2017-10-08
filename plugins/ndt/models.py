@@ -7,9 +7,9 @@ from measurement.models import Metric, ISP, Flag, Plan, State
 
 class DailyTest(models.Model):
 
-    region = models.ForeignKey(State)
     isp = models.ForeignKey(ISP)
-    plan = models.ForeignKey(Plan)
+    region = models.ForeignKey(State, blank=True, null=True)
+    plan = models.ForeignKey(Plan, blank=True, null=True)
     date = models.DateField()
 
     ndt_measurement_count = models.PositiveIntegerField(default=0)

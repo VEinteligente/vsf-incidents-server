@@ -113,15 +113,18 @@ class Metric(models.Model):
             probe = self.annotations['probe']
         except Exception:
             try:
-                p = Probe.objects.get(identification='no_id')
-            except Probe.DoesNotExist:
-                p = Probe(identification='no_id')
-                p.save()
-            self.probe = p
-            return super(Metric, self).save(force_insert=False,
-                                            force_update=False,
-                                            using=None,
-                                            update_fields=None)
+                probe = self.annotations['probeid']
+            except Exception:
+                try:
+                    p = Probe.objects.get(identification='no_id')
+                except Probe.DoesNotExist:
+                    p = Probe(identification='no_id')
+                    p.save()
+                self.probe = p
+                return super(Metric, self).save(force_insert=False,
+                                                force_update=False,
+                                                using=None,
+                                                update_fields=None)
 
         try:
             self.probe = Probe.objects.get(identification=probe)
