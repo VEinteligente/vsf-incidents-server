@@ -54,7 +54,8 @@ def web_connectivity_to_dns():
         'measurement',
         'queries',
         'control_resolver',
-        'dnss'
+        'dnss',
+        'dns_consistency'
     )
 
     new_dns = list()
