@@ -435,7 +435,7 @@ def dns_to_flag():
 
                         isp = dns.metric.probe.isp
                         '''
-                        # TODO: Clean this,
+                        # TODO: Clean this, temporairly here for reference
                         if (dns.control_resolver_failure is None) and (
                             dns.control_resolver_answers is not None
                         ):
@@ -447,17 +447,17 @@ def dns_to_flag():
                             # TODO: Double check (or ask ooni team) formal definition of consistent to maybe drop this case, or part of it
                             if dns.failure == "no_answer":
                                 is_flag = True
-                            else:
-                                if dns.failure is None and dns.answers is not None:
-                                    try:
-                                        addr = dns.answers['ipv4']
-                                    except Exception:
-                                        try:
-                                            addr = dns.answers['ipv6']
-                                        except Exception:
-                                            addr = dns.answers['hostname']
-                                    if addr not in dns.control_resolver_answers['addrs']:
-                                        is_flag = True
+                            # TODO: test code, currently not needed
+                            # else:
+                            #     if dns.failure is None and dns.answers is not None:
+                            #         control_answers=dns.control_resolver_answers
+                            #         for answer in dns.answers:
+                            #             try:
+                            #                 control_answers.remove(answer.hostname)
+                            #             except ValueError:
+                            #                 break
+                            #         if len(control_answers) > 0:
+
 
                     # If there is a true flag give 'soft' type
                     if is_flag is True:
