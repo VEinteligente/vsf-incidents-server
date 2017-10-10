@@ -49,6 +49,9 @@ def web_connectivity_to_dns():
         ),
         dns_experiment_failure=RawSQL(
             "test_keys->'dns_experiment_failure'", ()
+        ),
+        awnsers=RawSQL(
+            "test_keys->'awnsers'", ()
         )
     ).prefetch_related(
         'dnss'
@@ -59,7 +62,8 @@ def web_connectivity_to_dns():
         'control_resolver',
         'dnss',
         'dns_consistency',
-        'dns_experiment_failure'
+        'dns_experiment_failure',
+        'awnsers'
     )
 
     new_dns = list()
