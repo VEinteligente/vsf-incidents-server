@@ -49,9 +49,6 @@ def web_connectivity_to_dns():
         ),
         dns_experiment_failure=RawSQL(
             "test_keys->'dns_experiment_failure'", ()
-        ),
-        awnsers=RawSQL(
-            "test_keys->'awnsers'", ()
         )
     ).prefetch_related(
         'dnss'
@@ -63,7 +60,6 @@ def web_connectivity_to_dns():
         'dnss',
         'dns_consistency',
         'dns_experiment_failure',
-        'awnsers'
     )
 
     new_dns = list()
@@ -112,7 +108,7 @@ def web_connectivity_to_dns():
                         control_resolver_failure=cr['failure'],
                         control_resolver_answers=cr['answers'],
                         failure=dns_metric['dns_experiment_failure'],
-                        answers=dns_metric['answers'],
+                        answers=query['answers'],
                         target=target,
                         dns_consistency=dns_metric['dns_consistency'],
                         inconsistent=inconsistent
