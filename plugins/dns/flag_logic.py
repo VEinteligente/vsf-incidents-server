@@ -527,7 +527,7 @@ def soft_to_hard_flags():
     ).prefetch_related(
         'dnss__metric'
     ).annotate(
-        isp=Case(
+        isp_check=Case(
             default=F('dnss__resolver_hostname'),
             output_field=CharField()
         )
@@ -538,7 +538,7 @@ def soft_to_hard_flags():
     # SOFT_FLAG_REPEATED_X1 number of soft flags
     result = flags.values(
         'target',
-        'isp'
+        'isp_check'
     ).annotate(
         total_soft=Count(
             Case(
@@ -556,7 +556,7 @@ def soft_to_hard_flags():
         for r in result:
             # Get flags to update to hard flags
             flags_to_update_id = flags.filter(
-                isp=r['isp'],
+                isp=r['isp_check'],
                 target__id=r['target']
             ).values_list('id', flat=True)
 
@@ -586,7 +586,7 @@ def soft_to_hard_flags():
     ).prefetch_related(
         'dnss__metric__probe__isp'
     ).annotate(
-        isp=Case(
+        isp_check=Case(
             default=F('dnss__metric__probe__isp__name'),
             output_field=CharField()
         )
@@ -596,7 +596,7 @@ def soft_to_hard_flags():
     # SOFT_FLAG_REPEATED_X1 number of soft flags
     result = flags.values(
         'target',
-        'isp'
+        'isp_check'
     ).annotate(
         total_soft=Count(
             Case(
@@ -614,7 +614,7 @@ def soft_to_hard_flags():
         for r in result:
             # Get flags to update to hard flags
             flags_to_update_id = flags.filter(
-                isp=r['isp'],
+                isp=r['isp_check'],
                 target__id=r['target']
             ).values_list('id', flat=True)
 
@@ -650,7 +650,7 @@ def soft_to_hard_flags():
         ).prefetch_related(
             'dnss__metric__probe__region'
         ).annotate(
-            isp=Case(
+            isp_check=Case(
                 default=F('dnss__resolver_hostname'),
                 output_field=CharField()
             ),
@@ -671,7 +671,7 @@ def soft_to_hard_flags():
         # SOFT_FLAG_REPEATED_X1 number of soft flags
         result = flags.values(
             'target',
-            'isp',
+            'isp_check',
             'region'
         ).annotate(
             total_soft=Count(
@@ -689,7 +689,7 @@ def soft_to_hard_flags():
             for r in result:
                 # Get flags to update to hard flags
                 flags_to_update_id = flags.filter(
-                    isp=r['isp'],
+                    isp=r['isp_check'],
                     target__id=r['target'],
                     region=r['region']
                 ).values_list('id', flat=True)
@@ -718,7 +718,7 @@ def soft_to_hard_flags():
         ).prefetch_related(
             'dnss__metric__probe__isp'
         ).annotate(
-            isp=Case(
+            isp_check=Case(
                 default=F('dnss__metric__probe__isp__name'),
                 output_field=CharField()
             ),
@@ -732,7 +732,7 @@ def soft_to_hard_flags():
         # SOFT_FLAG_REPEATED_X1 number of soft flags
         result = flags.values(
             'target',
-            'isp',
+            'isp_check',
             'region'
         ).annotate(
             total_soft=Count(
@@ -750,7 +750,7 @@ def soft_to_hard_flags():
             for r in result:
                 # Get flags to update to hard flags
                 flags_to_update_id = flags.filter(
-                    isp=r['isp'],
+                    isp=r['isp_check'],
                     target__id=r['target'],
                     region=r['region']
                 ).values_list('id', flat=True)
