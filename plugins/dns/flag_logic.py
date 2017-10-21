@@ -568,6 +568,8 @@ def soft_to_hard_flags():
             flags_to_update.update(flag=Flag.HARD)
 
             for flag in flags_to_update:
+                flag.flag = Flag.HARD
+                flag.save()
                 suggestedEvents(flag)
                 # Here comes the code to suggest events to each hard flag
                 # Here comes the code to suggest hard to another
@@ -762,6 +764,8 @@ def soft_to_hard_flags():
                 flags_to_update.update(flag=Flag.HARD)
 
                 for flag in flags_to_update:
+                    flag.flag = Flag.HARD
+                    flag.save()
                     suggestedEvents(flag)
                     # Here comes the code to suggest events to each hard flag
                     # Here comes the code to suggest hard to another
