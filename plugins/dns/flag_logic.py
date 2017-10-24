@@ -6,7 +6,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
 
 from vsf import conf
-from django.db.models import F, Count, Case, When, CharField, Q
+from django.db.models import F, Count, Case, When, CharField, Q, DateField
 from event.models import MutedInput, Target
 from measurement.models import Metric, Flag, DNSServer
 from plugins.dns.models import DNS
@@ -502,7 +502,7 @@ def dns_to_flag():
     td_logger.info("Terminando con dns_to_flag")
 
 
-def soft_to_hard_flags():
+def soft_to_hard_flags_deprecated():
     td_logger.info("Comenzando con soft_to_hard_flags")
 
     ids = Metric.objects.values_list('id', flat=True)
@@ -782,6 +782,27 @@ def soft_to_hard_flags():
         td_logger.debug("Sending email")
         # send_email_users()
     td_logger.info("Terminando con soft_to_hard_flags")
+
+
+def soft_to_hard_flags():
+    starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+    rolling_window = DNS.objects.filter(
+        metric__bucket_date__gte=starting_date
+    ).annotate(
+        measurement_start_time=Case(
+                default=F('metric__measurement_start_time'),
+                output_field=DateField()
+        )
+    ).order_by(
+        'measurement_start_time'
+    )
+
+    for testing_obj in rolling_window:
+
+        # Codigo aqui para ir  evaluando objeto por objeto
+        pass
+
+    return True
 
 
 def metric_to_dns():
