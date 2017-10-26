@@ -794,7 +794,7 @@ def soft_to_hard_flags():
 
     rolling_window = Flag.objects.filter(
         metric_date__gte=starting_date,
-        plugin_name='dns',
+        plugin_name='DNS',
         flag__in=[Flag.HARD, Flag.SOFT],
     ).order_by(
         'metric_date'
@@ -810,7 +810,7 @@ def soft_to_hard_flags():
 
         latest = Flag.objects.filter(
             metric_date__gte=window,
-            plugin_name='dns',
+            plugin_name='DNS',
             isp=flag.isp,
             target=flag.target,
         ).order_by(
