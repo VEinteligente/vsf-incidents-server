@@ -1,12 +1,14 @@
 import logging
+from datetime import datetime
+
 from django.db.models.expressions import RawSQL
 from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
+from django.db.models import F, Count, Case, When, CharField, Q, DateField
 
 from vsf import conf
-from django.db.models import F, Count, Case, When, CharField, Q, DateField
 from event.models import MutedInput, Target
 from measurement.models import Metric, Flag, DNSServer
 from plugins.dns.models import DNS
@@ -786,22 +788,51 @@ def soft_to_hard_flags_deprecated():
 
 def soft_to_hard_flags():
     starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
-    rolling_window = DNS.objects.filter(
-        metric__bucket_date__gte=starting_date
-    ).annotate(
-        measurement_start_time=Case(
-                default=F('metric__measurement_start_time'),
-                output_field=DateField()
-        )
+
+    rolling_window = Flag.objects.filter(
+        metric_date__gte=starting_date,
+        plugin_name='dns',
+        flag__in=[Flag.HARD, Flag.SOFT],
     ).order_by(
-        'measurement_start_time'
+        'metric_date'
     )
 
-    for testing_obj in rolling_window:
+    to_update = list()
+    i=0
+    for flag in rolling_window:
+        window = \
+            flag.metric_date - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
 
-        # Codigo aqui para ir  evaluando objeto por objeto
-        pass
+        latest = Flag.objects.filter(
+            metric_date__gte=window,
+            plugin_name='dns',
+            isp=flag.isp,
+            target=flag.target,
+        ).order_by(
+            'metric_date'
+        )
 
+        count = 0
+        posibles = list()
+        td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(latest[0]) ) )
+        td_logger.debug("list" %  str(latest[0]) ) 
+
+        for previous in latest[:10]:
+            if previous.flag in [Flag.HARD, Flag.SOFT]:
+                count += 1
+                previous.flag = Flag.HARD
+                posibles.append(previous)
+
+        if count >= conf.SOFT_FLAG_REPEATED_X1:
+            to_update += posibles
+            td_logger.info("soft_to_hard DNS flags '%s'" % str(to_update))
+        i+=1
+    to_update.update(flag=Flag.HARD)
+
+    # for flag in flags_to_update:
+    #     flag.flag = Flag.HARD
+    #     flag.save()
+    #     suggestedEvents(flag)
     return True
 
 
