@@ -787,7 +787,10 @@ def soft_to_hard_flags_deprecated():
 
 
 def soft_to_hard_flags():
+    td_logger.info("Comenzando con soft_to_hard_flags")
+
     starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+    td_logger.info("Staring date: %s" % str(starting_date))
 
     rolling_window = Flag.objects.filter(
         metric_date__gte=starting_date,
@@ -799,6 +802,8 @@ def soft_to_hard_flags():
 
     to_update = list()
     i=0
+    td_logger.debug("Flacgs to check on soft_to_hard %d" % ( rolling_window.count() ) )
+
     for flag in rolling_window:
         window = \
             flag.metric_date - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
