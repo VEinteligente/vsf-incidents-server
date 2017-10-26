@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+import datetime
 
 from django.db.models.expressions import RawSQL
 from django.core.paginator import Paginator
@@ -868,7 +868,7 @@ def soft_to_hard_flags():
         flag.save()
         suggestedEvents(flag)
         # to help creation of events
-        
+
 
 
     send_email = True
