@@ -823,7 +823,7 @@ def soft_to_hard_flags():
         td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(latest[0]) ) )
         td_logger.debug("list %s" %  str(latest[0]) )
 
-        for previous in latest[:LAST_REPORTS_Y1]:
+        for previous in latest[:conf.LAST_REPORTS_Y1]:
             if previous.flag in [Flag.HARD, Flag.SOFT]:
                 count += 1
                 previous.flag = Flag.HARD
@@ -852,7 +852,7 @@ def soft_to_hard_flags():
             td_logger.debug("Checking soft_to_hard region-aware condition, based on: '%s'" % (i, str(latest[0]) ) )
             td_logger.debug("list" %  str(latest[0]) )
 
-            for previous in latest[:LAST_REPORTS_Y2]:
+            for previous in latest[:conf.LAST_REPORTS_Y2]:
                 if previous.flag in [Flag.HARD, Flag.SOFT]:
                     count += 1
                     previous.flag = Flag.HARD
