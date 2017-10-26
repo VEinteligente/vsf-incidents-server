@@ -832,11 +832,44 @@ def soft_to_hard_flags():
         if count >= conf.SOFT_FLAG_REPEATED_X1:
             to_update += posibles
             td_logger.info("soft_to_hard DNS flags '%s'" % str(to_update))
+        else:
+            window = \
+                flag.metric_date - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
+
+            latest = Flag.objects.filter(
+                metric_date__gte=window,
+                plugin_name='DNS',
+                isp=flag.isp,
+                target=flag.target,
+                metric__probe__region=flag.metric.probe.region
+            ).order_by(
+                'metric_date'
+            )
+
+            count = 0
+            posibles = list()
+
+            td_logger.debug("Checking soft_to_hard region-aware condition, based on: '%s'" % (i, str(latest[0]) ) )
+            td_logger.debug("list" %  str(latest[0]) )
+
+            for previous in latest[:LAST_REPORTS_Y2]:
+                if previous.flag in [Flag.HARD, Flag.SOFT]:
+                    count += 1
+                    previous.flag = Flag.HARD
+                    posibles.append(previous)
+
+            if count >= conf.SOFT_FLAG_REPEATED_X2:
+                to_update += posibles
+                td_logger.info("soft_to_hard DNS flags (region-aware condition) '%s'" % str(to_update))
+
         i+=1
 
     for flag in to_update:
         flag.save()
         suggestedEvents(flag)
+        # to help creation of events
+        
+
 
     return True
 
