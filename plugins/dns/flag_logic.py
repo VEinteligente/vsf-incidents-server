@@ -821,7 +821,7 @@ def soft_to_hard_flags():
         posibles = list()
 
         td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(latest[0]) ) )
-        td_logger.debug("list" %  str(latest[0]) )
+        td_logger.debug("list %s" %  str(latest[0]) )
 
         for previous in latest[:LAST_REPORTS_Y1]:
             if previous.flag in [Flag.HARD, Flag.SOFT]:
