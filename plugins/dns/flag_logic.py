@@ -871,6 +871,8 @@ def soft_to_hard_flags():
         
 
 
+    send_email = True
+    td_logger.info("Terminando con soft_to_hard_flags")
     return True
 
 
