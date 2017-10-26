@@ -821,7 +821,7 @@ def soft_to_hard_flags():
         posibles = list()
 
         td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(latest[0]) ) )
-        td_logger.debug("list %s" %  str(latest[0]) )
+        td_logger.debug("list %s" %  str(latest) )
 
         for previous in latest[:conf.LAST_REPORTS_Y1]:
             if previous.flag in [Flag.HARD, Flag.SOFT]:
@@ -850,7 +850,7 @@ def soft_to_hard_flags():
             posibles = list()
 
             td_logger.debug("%i - Checking soft_to_hard region-aware condition, based on: '%s'" % (i, str(latest[0]) ) )
-            td_logger.debug("list: \n %s" %  str(latest[0]) )
+            td_logger.debug("list: \n %s" %  str(latest) )
 
             for previous in latest[:conf.LAST_REPORTS_Y2]:
                 if previous.flag in [Flag.HARD, Flag.SOFT]:
@@ -860,7 +860,7 @@ def soft_to_hard_flags():
 
             if count >= conf.SOFT_FLAG_REPEATED_X2:
                 to_update += posibles
-                td_logger.info("soft_to_hard DNS flags (region-aware condition) '%s'" % str(to_update))
+                td_logger.info("soft_to_hard DNS flags detected (region-aware condition) '%s'" % str(to_update))
 
         i+=1
 
