@@ -802,7 +802,7 @@ def soft_to_hard_flags():
 
     to_update = list()
     i=0
-    td_logger.debug("Flags to check on soft_to_hard %d" % ( rolling_window.count() ) )
+    td_logger.info  ("Flags to check on soft_to_hard %d" % ( rolling_window.count() ) )
 
     for flag in rolling_window:
         window = \
@@ -815,15 +815,15 @@ def soft_to_hard_flags():
             target=flag.target,
         ).order_by(
             'metric_date'
-        )
+        )[:conf.LAST_REPORTS_Y1]
 
         count = 0
         posibles = list()
 
-        td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(latest[0]) ) )
+        td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(flag) ) )
         td_logger.debug("list %s" %  str(latest) )
 
-        for previous in latest[:conf.LAST_REPORTS_Y1]:
+        for previous in latest:
             if previous.flag in [Flag.HARD, Flag.SOFT]:
                 count += 1
                 previous.flag = Flag.HARD
