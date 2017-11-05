@@ -48,21 +48,23 @@ def metric_to_ndt():
     :return: None
     """
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
+
     if SYNCHRONIZE_DATE is not None:
         SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
 
-        ndt_metrics = Metric.objects.filter(
-            test_name='ndt',
-            ndts=None,
-            bucket_date__gte=SYNCHRONIZE_DATE
-        )
+        queryset = Metric.objects.filter(
+            test_name='ndt', ndts=None, bucket_date__gte=SYNCHRONIZE_DATE)
+
+        SYNCHRONIZE_logger.info("Metrics de NDT seran filtradas por fecha")
     else:
-        ndt_metrics = Metric.objects.filter(
+        queryset = Metric.objects.filter(
             test_name='ndt',
             ndts=None,
         )
 
-    ndt_metrics = ndt_metrics.annotate(
+        SYNCHRONIZE_logger.info("Metrics de NDT no seran filtrados por fecha")
+
+    queryset = queryset.annotate(
         download=RawSQL(
             "test_keys->'simple'->'download'", ()
         ),
@@ -86,14 +88,23 @@ def metric_to_ndt():
         ),
     )
 
-    ndt_paginator = Paginator(ndt_metrics, 1000)
-    SYNCHRONIZE_logger.info("Aqui el total de metrics de NDT: %s - total de paginas de 1000 metrics: %s" %
-                            (str(ndt_metrics.count()), str(ndt_paginator.page_range)))
+    ndt_paginator = Paginator(queryset, 1000)
+    SYNCHRONIZE_logger.info(
+        "Aqui el total de metrics de NDT: %s - total de paginas de 100 metrics: %s"
+        %
+        (str(queryset.count()), str(ndt_paginator.page_range)))
+
+    errors = 0
+    all_pages = []
 
     for p in ndt_paginator.page_range:
         SYNCHRONIZE_logger.info("Pagina %s de NDT" % str(p))
-        page = ndt_paginator.page(p)
-        for ndt_metric in page.object_list:
+        print len(ndt_paginator.page(p).object_list)
+        all_pages.append(ndt_paginator.page(p).object_list)
+
+    for page in all_pages:
+        print len(page)
+        for ndt_metric in page:
             try:
                 if ndt_metric.probe is None:
                     isp = None
@@ -104,7 +115,7 @@ def metric_to_ndt():
                     metric_date=ndt_metric.bucket_date,
                     flag=Flag.NONE,
                     manual_flag=False,
-                    plugin_name=ndt_metric.__class__.__name__
+                    plugin_name='ndt'
                 )
                 flag.save()
                 ndt = NDT(
@@ -122,8 +133,21 @@ def metric_to_ndt():
                 )
                 ndt.save()
             except Exception as e:
-                SYNCHRONIZE_logger.error("Fallo en metric_to_ndt, en la metric '%s' con el "
-                                         "siguiente mensaje: %s" % (str(ndt_metric.measurement), str(e)))
+                errors += 1
+
+                if flag:
+                    flag.delete()
+                SYNCHRONIZE_logger.error(
+                    "Fallo en metric_to_ndt, en la metric '%s' con el "
+                    "siguiente mensaje: %s"
+                    %
+            (str(ndt_metric.measurement), str(e)))
+
+        page = []
+
+    SYNCHRONIZE_logger.info(
+        "Termino metric_to_ndt, errores encontrados: %s"
+        % errors)
 
 
 def ndt_to_daily_test():
