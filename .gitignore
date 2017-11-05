@@ -100,3 +100,5 @@ ENV/
 
 # SSL Certificates
 ssl/
+
+\.DS_Store
