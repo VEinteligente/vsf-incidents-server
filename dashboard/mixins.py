@@ -11,7 +11,8 @@ class PageTitleMixin(object):
     breadcrumb = None
 
     def get_context_data(self, **kwargs):
-        ctx = {}
+        ctx = super(PageTitleMixin, self).get_context_data(**kwargs)
+
         ctx.setdefault('active_tab', self.active_tab)
         ctx.setdefault('active_tab_class', self.active_tab_class)
         ctx.setdefault('page_header', self.page_header)

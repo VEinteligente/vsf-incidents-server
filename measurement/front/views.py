@@ -33,7 +33,11 @@ import re
 import json
 from django.db.models.expressions import RawSQL
 
+import logging
+
 from dashboard.mixins import PageTitleMixin
+
+logger = logging.getLogger('')
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -369,18 +373,19 @@ class MeasurementAjaxView(DatatablesView):
 class MeasurementDetail(LoginRequiredMixin, PageTitleMixin, generic.DetailView):
     model = Metric
     slug_url_kwarg = 'id'
-    slug_field = 'measurement__contains'
+    slug_field = 'measurement'
     template_name = 'detail_measurement.html'
     page_header = "Measurement Detail"
     page_header_description = ""
+    context_object_name = "metric"
 
     def get_context_data(self, **kwargs):
         """
         Insert the single object into the context dict.
         """
-        context = {}
-        context.update(kwargs)
-        return super(MeasurementDetail, self).get_context_data(**context)
+        ctx = super(MeasurementDetail, self).get_context_data(**kwargs)
+
+        return ctx
 
 
 class DNSTableView(
@@ -648,7 +653,7 @@ class DNSTableAjax(DatatablesView):
 
                 #Verify each result from queries with control resolver #
                 for query in queries:
-                    
+
                     dns_result = []
                     dns_name = query['resolver_hostname']
                     match = False
