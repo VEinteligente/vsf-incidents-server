@@ -101,8 +101,3 @@ class TCPAjaxView(DatatablesView):
     }
 
     queryset = TCP.objects.all().select_related('metric__probe', 'flag')
-
-    def json_response(self, data):
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder)
-        )

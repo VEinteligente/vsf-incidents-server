@@ -7,7 +7,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from dashboard.mixins import PageTitleMixin
 
 from django.http import HttpResponse, JsonResponse
-from django.core.serializers.json import DjangoJSONEncoder
+from django.core.serializers.json import DjangoJSONEncoder  # TODO: check weather this one is really needed, the standardjson one is a dependency of django-prettyjson
+from standardjson import StandardJSONEncoder
+
 import json
 import time
 from django.core.urlresolvers import reverse_lazy
@@ -19,6 +21,7 @@ from event.utils import suggestedFlags
 from measurement.models import Flag
 
 from .forms import DataTableRangePicker
+
 
 # from django.utils.module_loading import import_string
 # app_label = "demo"
@@ -338,4 +341,19 @@ class DatatablesView(EditableDatatablesView):
     def json_response(self, data):
         return HttpResponse(
             json.dumps(data, cls=DjangoJSONEncoder)
+            # with this non-JSON strings are left untouched, this whoudl probably be reactores
         )
+    def get_rows(self, rows):
+        """
+        Format all rows, and format % of package loss
+        :param rows: All rows
+        :return: dataTable page formatted
+        """
+        page_rows = super(DatatablesView, self).get_rows(rows)
+        for row in page_rows:
+            try:
+                row['test keys'] = json.dumps(row['test keys'], ensure_ascii=False, cls=StandardJSONEncoder)
+            except TypeError:
+                row['test name'] = 'Unknown'
+
+        return page_rows

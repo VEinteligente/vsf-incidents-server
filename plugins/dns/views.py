@@ -3,6 +3,7 @@ from plugins.views import PluginUpdateEventView, PluginCreateEventView, Datatabl
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from cgi import escape
+from standardjson import StandardJSONEncoder
 
 from plugins.dns.models import DNS
 import json
@@ -40,6 +41,7 @@ class DNSTableView(PluginCreateEventView):
     ]
     url_ajax = '/plugins/dns/dns-ajax/'
     enable_event = True
+    dummyJSON= '{}'
 
 
 class DNSUpdateEventView(PluginUpdateEventView):
@@ -112,23 +114,3 @@ class DNSAjaxView(DatatablesView):
     }
 
     queryset = DNS.objects.all().select_related('metric__probe', 'flag')
-
-    def json_response(self, data):
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder)
-        )
-
-    def get_rows(self, rows):
-        """
-        Format all rows, and format % of package loss
-        :param rows: All rows
-        :return: dataTable page formatted
-        """
-        page_rows = super(DNSAjaxView, self).get_rows(rows)
-        for row in page_rows:
-            try:
-                row['test keys'] = escape(str(row['test keys']))
-            except TypeError:
-                row['test name'] = 'Unknown'
-
-        return page_rows

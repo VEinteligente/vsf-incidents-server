@@ -3,7 +3,7 @@ from plugins.views import PluginUpdateEventView, PluginCreateEventView, Datatabl
 # from eztables.views import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
-
+from standardjson import StandardJSONEncoder
 from plugins.http.models import HTTP
 import json
 
@@ -104,23 +104,3 @@ class HTTPAjaxView(DatatablesView):
     }
 
     queryset = HTTP.objects.all().select_related('metric__probe__region', 'flag')
-
-    def get_rows(self, rows):
-        """
-        Format all rows, and format % of package loss
-        :param rows: All rows
-        :return: dataTable page formatted
-        """
-        page_rows = super(HTTPAjaxView, self).get_rows(rows)
-        for row in page_rows:
-            try:
-                row['test keys'] = escape(str(row['test keys']))
-            except TypeError:
-                row['test name'] = 'Unknown'
-
-        return page_rows
-
-    def json_response(self, data):
-        return HttpResponse(
-            json.dumps(data, cls=DjangoJSONEncoder)
-        )

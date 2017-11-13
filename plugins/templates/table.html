@@ -2,6 +2,7 @@
 {% load eztables %}
 {% load bootstrap3 %}
 {% load static %}
+{% load prettyjson %}
 
 
 {% block extracss %}
@@ -44,7 +45,7 @@
             </div>
             <div class="box-footer text-right">
                 <input id="date-search-button" class="btn btn-flat btn-primary" type="submit" value="Search">
-            </div> 
+            </div>
         </form>
     </div>
     <div class="table-responsive">
@@ -52,7 +53,7 @@
             <thead>
                 {% for table_title in titles %}
                     {% if  table_title == "checkbox" %}
-                        
+
                     <th><input type="checkbox" name="select_all" value="1" id="example-select-all"></th>
                     {% else %}
                     <th class="select-filter"> {{ table_title|title }} </th>
@@ -72,7 +73,7 @@
     </div>
 
     {% if form %}
-        
+
     <div class="box box-primary" style="margin-top:30px;">
         <div class="box-header with-border">
             <h3 class="box-title"> Create Event</h3>
@@ -95,7 +96,7 @@
                 {% bootstrap_field form.type %}
                 {% bootstrap_field form.isp %}
                 <div class="row">
-                    
+
                     <div class="col-xs-5">
                         {% bootstrap_field form.start_date %}
                     </div>
@@ -108,7 +109,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-4">
-                        {% bootstrap_field form.target_type %}    
+                        {% bootstrap_field form.target_type %}
                     </div>
                     <div class="col-xs-8">
                         {% bootstrap_field form.target_domain %}
@@ -121,11 +122,11 @@
                 {% bootstrap_field form.private_evidence %}
 
                 {% bootstrap_field form.flags %}
-                
+
             </div>
             <div class="box-footer text-right">
                 <input id="create-event-button" class="btn btn-flat btn-primary" type="submit" value="Save">
-            </div> 
+            </div>
         </form>
     </div>
 
@@ -158,7 +159,8 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-md-6 form-group">
-                        <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>
+                        {% prettyjson dummyJSON %}
+                        {# <textarea id="modal-textarea" class="col-md-12 form-control" rows="10"></textarea>#}
                     </div>
                     <div class="col-md-6 from-group">
                         <div class="form-group">
@@ -178,9 +180,10 @@
 
 
 {% block extrajs %}
-<script type="text/javascript" src="{% static 'plugins/pretty-json/libs/underscore-min.js' %}" ></script>
+{% prettyjson_setup jquery=False %}
+{# <script type="text/javascript" src="{% static 'plugins/pretty-json/libs/underscore-min.js' %}" ></script>
 <script type="text/javascript" src="{% static 'plugins/pretty-json/libs/backbone-min.js' %}" ></script>
-<script type="text/javascript" src="{% static 'plugins/pretty-json/build/pretty-json-min.js' %}"></script>
+<script type="text/javascript" src="{% static 'plugins/pretty-json/build/pretty-json-min.js' %}"></script>#}
 <script type="application/javascript">
 
     $(function () {
@@ -208,7 +211,7 @@
                 disable_bool = false;
             }
             disableEventField(disable_bool);
-            
+
         }
 
         // Ajax URL who fulled principal datatable
@@ -243,7 +246,7 @@
                  list[i]['mRender'] = function ( data, type, full ) {
 
                         var flag_icon = "";
-                        
+
                         if (data == 'hard'){
                             flag_icon = '<span title="Suggested Events" class="btn btn-xs btn-default" ' +
                                 'data-toggle="popover" data-content="' +
@@ -262,7 +265,7 @@
                             flag_icon = '<span class="">mute</span> ' +
                                 '<i class="glyphicon glyphicon-flag" style="color: gray;" aria-hidden="true"></i>';
                         }
-                        
+
                         if (data == 'none'){
                             flag_icon = "<a class='add_manual_flag' data-content='" +
                                 full.checkbox +
@@ -275,13 +278,13 @@
             if (list[i]['mData'] == "test keys" || list[i]['mData'] == "annotations"){
                  list[i]['mRender'] = function ( data, type, full ) {
 
-                        var test_key_content = JSON.stringify(data, null, 2);
+                        var test_key_content = data;
 
-                        return '<div style="display: none;" class="test-key-area" metric-id="'
+                        return '<textarea style="display: none;" class="test-key-area" metric-id="'
                             +
                             full.checkbox
                             +
-                            "\">" + test_key_content + "</div> " +
+                            "\">" + test_key_content + "</textarea> " +
                             '<button type="button" class="btn btn-xs btn-info test_key-button" metric-id="'
                             +
                             full.checkbox
@@ -398,7 +401,7 @@
         // Apply the search
         principal_table.columns().every( function () {
             var that = this;
-     
+
             $( 'input', this.footer() ).on( 'keyup change', function () {
                 if ( that.search() !== this.value ) {
                     that
@@ -431,21 +434,7 @@
         $(document).on("click", ".test_key-button", function () {
             var metric_id = $(this).attr('metric-id');
             var test_keys = $('.test-key-area[metric-id="'+ metric_id +'"]').html();
-            $('#modal-textarea').val(test_keys);
-
-            var data;
-            try{ data = JSON.parse(test_keys.toString()); }
-            catch(e){
-                alert('not valid JSON');
-                return;
-            }
-
-            var node = new PrettyJSON.view.Node({
-                el:$("#modal-json-result"),
-                data: data,
-                dateFormat:"DD/MM/YYYY - HH24:MI:SS"
-            });
-
+            $('div.jsonwidget textarea').val(test_keys);
             $('#test_key-modal').modal('show');
         });
 
@@ -468,7 +457,7 @@
                             flags.val().length
                     )
             );
-           
+
             var principal_rows = $('#principal-table').find('tbody').find('tr');
             $(principal_rows).each(function(index) {
                 row = principal_rows[index];
@@ -485,7 +474,7 @@
             });
 
             checkDisableEventField();
-            
+
         });
 
         // Handle click on a row of principal datatable
@@ -515,7 +504,7 @@
                     flags.val( flags.val() + id_flag + '&');
                     // Add row to selected table
                     selected_table.row.add([
-                        id_flag, 
+                        id_flag,
                         flag,
                         measurement,
                         input,
@@ -535,7 +524,7 @@
                                 flag_index + id_flag.length + 1 ,
                                 flags.val().length
                         )
-                ); 
+                );
 
                 $('#example-select-all').prop("checked", false);
 
@@ -547,7 +536,7 @@
                         var removed = selected_table.row(index);
                         removed.remove().draw();
                     }
-                });              
+                });
             }
 
             checkDisableEventField();
@@ -579,7 +568,7 @@
 
                 if( $( this ).hasClass( 'selected' ) ){
                     $(this).find(":checkbox").prop("checked", true);
-                    
+
                     var selected_rows = $('#selected-table').find('tbody').find('tr');
                     var check_existed = false;
                     $(selected_rows).each(function(index) {
@@ -610,7 +599,7 @@
                                     flag_index + id_flag.length + 1 ,
                                     flags.val().length
                             )
-                    ); 
+                    );
 
                     var selected_rows = $('#selected-table').find('tbody').find('tr');
                     $(selected_rows).each(function(index) {
@@ -638,10 +627,10 @@
             var array = flags.split("&");
             array.pop();
 
-            for (i = 0; i < array.length; i++) { 
+            for (i = 0; i < array.length; i++) {
                 var id_flag = array[i];
                 var principal_rows = $('#principal-table').find('tbody').find('tr');
-                $(principal_rows).each(function(index) { 
+                $(principal_rows).each(function(index) {
                     var row = principal_rows[index];
                     var row_id = row.childNodes[0].getElementsByTagName('input')[0].value;
                     if (row_id == id_flag){
