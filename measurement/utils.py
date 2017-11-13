@@ -239,7 +239,7 @@ def copy_from_measurements_to_metrics():
         retry_measurements = list()
             
 
-    # is this necesary? TO-DO double check and remove
+    # TODO: is this necesary? TO-DO double check and remove
     if len(new_metrics) > 0:
         td_logger.warning('%i metrics left over - creating now' % len(new_metrics))
         Metric.objects.bulk_create(new_metrics)
