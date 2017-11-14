@@ -1,0 +1,36 @@
+
+
+/***
+    *
+    * Data tables
+    *
+    ***/
+    
+    
+#my-table_processing.dataTables_processing{ 
+    background-color: rgba(50, 50, 50, 0.4); 
+    height: 60px; 
+    position: fixed; 
+    top: 300px;    
+}
+
+
+
+/***
+    *
+    * FLAGS
+    *
+    ***/
+    
+.flag.flag-std{
+    color: #e0c602;
+}
+.flag.flag-hard{
+    color: #e11802;
+}
+.flag.flag-muted{
+    color: #699eb1;
+}
+.flag.flag-manual{
+    color: #034f3c;
+}
