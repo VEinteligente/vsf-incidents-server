@@ -29,7 +29,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
         <!-- Theme style -->
         <link rel="stylesheet" href="{% static 'dist/css/AdminLTE.min.css' %}">
-        <link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">
+        {# <link rel="stylesheet" href="{% static 'dist/css/skins/_all-skins.min.css' %}">#}
         <!--
             AdminLTE Skins. We have chosen the skin-blue for this base html.
             However, you can choose any other skin. Make sure you
@@ -44,9 +44,11 @@
         <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
-
+        {# Section-specific generic CSS#}
         {% block extracss %}{% endblock extracss %}
 
+        <link rel="stylesheet" href="{% static 'css/app.css' %}">
+        {# Section-specific override CSS#}
         {% block style %}{% endblock style %}
     </head>
 
