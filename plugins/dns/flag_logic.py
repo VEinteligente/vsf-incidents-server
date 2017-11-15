@@ -789,20 +789,29 @@ def soft_to_hard_flags_deprecated():
 def soft_to_hard_flags():
     td_logger.info("Comenzando con soft_to_hard_flags")
 
-    starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+    starting_date = settings.SYNCHRONIZE_DATE
+    if starting_date is not None:
+        starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+
+        rolling_window = Flag.objects.filter(
+            metric_date__gte=starting_date,
+            plugin_name='DNS',
+            flag__in=[Flag.HARD, Flag.SOFT],
+        ).order_by(
+            'metric_date'
+        )
+    else:
+        rolling_window = Flag.objects.filter(
+            plugin_name='DNS',
+            flag__in=[Flag.HARD, Flag.SOFT],
+        ).order_by(
+            'metric_date'
+        )
     td_logger.info("Staring date: %s" % str(starting_date))
 
-    rolling_window = Flag.objects.filter(
-        metric_date__gte=starting_date,
-        plugin_name='DNS',
-        flag__in=[Flag.HARD, Flag.SOFT],
-    ).order_by(
-        'metric_date'
-    )
-
     to_update = list()
-    i=0
-    td_logger.info  ("Flags to check on soft_to_hard %d" % ( rolling_window.count() ) )
+    i = 0
+    td_logger.info("Flags to check on soft_to_hard %d" % (rolling_window.count()))
 
     for flag in rolling_window:
         window = \
