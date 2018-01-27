@@ -460,8 +460,8 @@ def dns_to_flag():
 
                                     except KeyError:
                                         is_flag = False
+                                        #TODO: remove deprecated code
                                     '''
-                                    #TODO: remove deprecated code
                                         try:
                                             if dns.resolver_hostname in dns.metric.test_keys['inconsistent']: #check for alreadt evaluated logic by ooniprobe
                                             is_flag = True
@@ -495,8 +495,8 @@ def dns_to_flag():
                     if dns.metric.test_name == 'web_connectivity':
 
                         isp = dns.metric.probe.isp
-                        '''
                         # TODO: Clean this, temporairly here for reference
+                        '''
                         if (dns.control_resolver_failure is None) and (
                             dns.control_resolver_answers is not None
                         ):
@@ -869,79 +869,96 @@ def soft_to_hard_flags():
     )
 
     for flag in rolling_window:
-        window = \
-            flag.metric_date - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
-
-        latest = Flag.objects.filter(
-            metric_date__gte=window,
-            plugin_name='DNS',
-            isp=flag.isp,
-            target=flag.target,
-        ).order_by(
-            'metric_date'
-        )[:conf.LAST_REPORTS_Y1]
-
-        count = 0
-        posibles = list()
-
-        td_logger.debug(
-            "Checking soft_to_hard %i, based on: '%s'" % (i, str(flag))
-        )
-        td_logger.debug("list %s" % str(latest))
-
-        for previous in latest:
-            if previous.flag in [Flag.HARD, Flag.SOFT]:
-                count += 1
-                previous.flag = Flag.HARD
-                posibles.append(previous)
-
-        if count >= conf.SOFT_FLAG_REPEATED_X1:
-            to_update += posibles
-            td_logger.info("soft_to_hard DNS flags '%s'" % str(to_update))
-        else:
-            window = flag.metric_date - datetime.timedelta(
-                days=conf.FLAGS_TIME_WINDOW
-            )
+        if flag.flag == Flag.SOFT:
+            window = \
+                flag.metric_date \
+                - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
 
             latest = Flag.objects.filter(
                 metric_date__gte=window,
                 plugin_name='DNS',
                 isp=flag.isp,
                 target=flag.target,
-                metric__probe__region=flag.metric.probe.region
             ).order_by(
                 'metric_date'
-            )
+            ).exclude(id=flag.id)[:conf.LAST_REPORTS_Y1]
 
             count = 0
             posibles = list()
 
             td_logger.debug(
-                "%i - Checking soft_to_hard region-aware condition, "
-                "based on: '%s'" % (i, str(latest[0]))
+                "Checking soft_to_hard %i, based on: '%s'" % (i, str(flag))
             )
-            td_logger.debug("list: \n %s" % str(latest))
-
-            for previous in latest[:conf.LAST_REPORTS_Y2]:
+            # TODO: remove after confimarion, sonly for log vvv
+            posibles_original_state = list()
+            for previous in latest:
                 if previous.flag in [Flag.HARD, Flag.SOFT]:
                     count += 1
                     previous.flag = Flag.HARD
+                    posibles_original_state.append(previous)
                     posibles.append(previous)
 
-            if count >= conf.SOFT_FLAG_REPEATED_X2:
+            if count >= conf.SOFT_FLAG_REPEATED_X1:
+                flag.flag = Flag.HARD
+                posibles.append(flag)
                 to_update += posibles
-                td_logger.info(
-                    "soft_to_hard DNS flags detected (region-aware condition) "
-                    "'%s'" % str(to_update)
+                # TODO: check change from posibles_original_state vvv
+                td_logger.info("%i soft_to_hard DNS flags found/to update:\n"
+                               "%s\n"
+                               % (count, str(posibles_original_state)))
+            else:
+                window = flag.metric_date - datetime.timedelta(
+                    days=conf.FLAGS_TIME_WINDOW
                 )
 
-        i += 1
+                latest = Flag.objects.filter(
+                    metric_date__gte=window,
+                    plugin_name='DNS',
+                    isp=flag.isp,
+                    target=flag.target,
+                    metric__probe__region=flag.metric.probe.region
+                ).order_by(
+                    'metric_date'
+                ).exclude(id=flag.id)
 
+                count = 0
+                posibles = list()
+
+                td_logger.debug(
+                    "%i - Checking soft_to_hard region-aware condition, "
+                    "based on: '%s'" % (i, str(latest[0]))
+                )
+                td_logger.debug("list: \n %s" % str(latest))
+
+                for previous in latest[:conf.LAST_REPORTS_Y2]:
+                    if previous.flag in [Flag.HARD, Flag.SOFT]:
+                        count += 1
+                        previous.flag = Flag.HARD
+                        posibles.append(previous)
+
+                if count >= conf.SOFT_FLAG_REPEATED_X2:
+                    flag.flag = Flag.HARD
+                    posibles.append(flag)
+                    to_update += posibles
+                    td_logger.info(
+                        "%i soft_to_hard DNS flags detected"
+                        " (region-aware condition):\n %s"
+                        % (count, str(posibles))
+                    )
+            i += 1
+            # Save every 1000 iterations:
+        if i>= 1000:
+            td_logger.info("%i sof_to_hard flags checked" % i)
+            for flag in to_update:
+                flag.save()
+                suggestedEvents(flag)
+                # to help creation of events
+            to_update=list()
+            i=0
     for flag in to_update:
         flag.save()
         suggestedEvents(flag)
         # to help creation of events
-
     send_email = True
 
     td_logger.info("Terminando con soft_to_hard_flags")
