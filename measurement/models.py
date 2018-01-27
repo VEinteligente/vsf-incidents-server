@@ -133,8 +133,12 @@ class Metric(models.Model):
             p.save()
             self.probe = p
 
-        return super(Metric, self).save(force_insert=False, force_update=False, using=None,
-                                        update_fields=None)
+        return super(Metric, self).save(
+            force_insert=False,
+            force_update=False,
+            using=None,
+            update_fields=None
+        )
 
     def __unicode__(self):
 
@@ -158,7 +162,9 @@ class Flag(models.Model):
     TYPE_CHOICES = [    # Items are sorted alphabetically
         (k, v) for k, v in sorted(TYPE.items(), key=lambda t: t[1])]
 
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    uuid = models.UUIDField(
+        default=uuid.uuid4, unique=True, editable=False, db_index=True
+    )
     metric = models.ForeignKey(Metric, null=True)
     metric_date = models.DateTimeField()
     target = models.ForeignKey(Target, null=True, blank=True)
@@ -167,7 +173,8 @@ class Flag(models.Model):
 
     # ---------------------------------------------------
     flag = models.CharField(
-        max_length=10, choices=TYPE_CHOICES, default=NONE, db_index=True)
+        max_length=10, choices=TYPE_CHOICES, default=NONE, db_index=True
+    )
     manual_flag = models.BooleanField(default=False, db_index=True)
     # ---------------------------------------------------
 
@@ -184,4 +191,5 @@ class Flag(models.Model):
 
     def __unicode__(self):
         return u"%s - %s [%s] - %s %s" % (
-            self.metric.input, self.metric_date, self.flag, self.pk, self.uuid)
+            self.metric.input, self.metric_date, self.flag, self.pk, self.uuid
+        )

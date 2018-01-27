@@ -6,15 +6,13 @@ from django.core.paginator import Paginator
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import make_aware
-from django.db.models import F, Count, Case, When, CharField, Q, DateField
+from django.db.models import F, Count, Case, When, CharField, Q
 
 from vsf import conf
 from event.models import MutedInput, Target
 from measurement.models import Metric, Flag, DNSServer
 from plugins.dns.models import DNS
 from event.utils import suggestedEvents
-from plugins.utils import dict_compare
-from measurement.views import send_email_users
 
 SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
 td_logger = logging.getLogger('TRUE_DEBUG_logger')
@@ -28,27 +26,33 @@ def web_connectivity_to_dns():
     )
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+        SYNCHRONIZE_DATE = make_aware(
+            parse_datetime(settings.SYNCHRONIZE_DATE)
+        )
 
         web_connectivity_metrics = web_connectivity_metrics.filter(
             bucket_date__gte=SYNCHRONIZE_DATE
         )
 
-    SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
-    SYNCHRONIZE_logger.info("Total de web_connectivity's en el query: %s" % (str(web_connectivity_metrics.count())))
+    SYNCHRONIZE_logger.info(
+        "Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE))
+    )
+    SYNCHRONIZE_logger.info(
+        "Total de web_connectivity's en el query: %s" % (
+            str(web_connectivity_metrics.count())
+        )
+    )
     td_logger.debug("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
-    td_logger.debug("Total de web_connectivity's en el query: %s" % (str(web_connectivity_metrics.count())))
+    td_logger.debug(
+        "Total de web_connectivity's en el query: %s" % (
+            str(web_connectivity_metrics.count())
+        )
+    )
 
     web_connectivity_metrics = web_connectivity_metrics.annotate(
-        queries=RawSQL(
-            "test_keys->'queries'", ()
-        ),
-        control_resolver=RawSQL(
-            "test_keys->'control'", ()
-        ),
-        dns_consistency=RawSQL(
-            "test_keys->'dns_consistency'", ()
-        ),
+        queries=RawSQL("test_keys->'queries'", ()),
+        control_resolver=RawSQL("test_keys->'control'", ()),
+        dns_consistency=RawSQL("test_keys->'dns_consistency'", ()),
         dns_experiment_failure=RawSQL(
             "test_keys->'dns_experiment_failure'", ()
         )
@@ -65,46 +69,58 @@ def web_connectivity_to_dns():
     )
 
     new_dns = list()
-    i=0
+    i = 0
     for dns_metric in web_connectivity_metrics:
-
-
-        cr = {} # Control Resolver information
+        cr = {}     # Control Resolver information
         try:
             cr['failure'] = dns_metric['control_resolver']['dns']['failure']
         except Exception:
             cr['failure'] = None
 
         try:
-            cr['answers'] = {'addrs': dns_metric['control_resolver']['dns']['addrs']}
+            cr['answers'] = {
+                'addrs': dns_metric['control_resolver']['dns']['addrs']
+            }
         except Exception:
             cr['answers'] = None
 
-        td_logger.debug('Total de queries para la metric %s: %s' %
-                        (str(dns_metric['id']), str(len(dns_metric['queries']))))
+        td_logger.debug(
+            'Total de queries para la metric %s: %s' % (
+                str(dns_metric['id']),
+                str(len(dns_metric['queries']))
+            )
+        )
 
         for query in dns_metric['queries']:
             try:
                 if dns_metric['dnss'] is None:
                     if 'hostname' in query:
                         domain = query['hostname']
-                        td_logger.debug("%i - trabajando en metrica %s - dominio %s" % (i, dns_metric['id'], domain))
+                        td_logger.debug(
+                            "%i - trabajando en metrica %s - dominio %s" % (
+                                i, dns_metric['id'], domain
+                            )
+                        )
                         try:
-                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                            target = Target.objects.get(
+                                domain=domain, type=Target.DOMAIN
+                            )
                         except Target.DoesNotExist:
                             target = Target(domain=domain, type=Target.DOMAIN)
                             target.save()
                             td_logger.info("Creado target dominio %s" % domain)
                         except Target.MultipleObjectsReturned:
-                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                            target = Target.objects.Filter(
+                                domain=domain, type=Target.DOMAIN
+                            ).first()
                     else:
                         target = None
 
-                    inconsistent=None
+                    inconsistent = None
                     if dns_metric['dns_consistency'] == 'consistent':
                         inconsistent = False
                     elif dns_metric['dns_consistency'] == 'inconsistent':
-                        constent = True
+                        inconsistent = True
                     dns = DNS(
                         metric_id=dns_metric['id'],
                         control_resolver_failure=cr['failure'],
@@ -118,12 +134,24 @@ def web_connectivity_to_dns():
                     td_logger.debug("DNS a crear %s" % dns)
 
                     new_dns.append(dns)
-                    td_logger.debug('Answer guardada exitosamente para metric %s' % str(dns_metric['id']))
+                    td_logger.debug(
+                        'Answer guardada exitosamente para metric %s' % str(
+                            dns_metric['id']
+                        )
+                    )
             except Exception as e:
-                SYNCHRONIZE_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
-                                         "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
-                td_logger.exception("Fallo en web_connectivity_to_dns, en la metric '%s' con el "
-                                "siguiente mensaje: %s" % (str(dns_metric['measurement']), str(e)))
+                SYNCHRONIZE_logger.exception(
+                    "Fallo en web_connectivity_to_dns, en la metric '%s' con "
+                    "el siguiente mensaje: %s" % (
+                        str(dns_metric['measurement']), str(e)
+                    )
+                )
+                td_logger.exception(
+                    "Fallo en web_connectivity_to_dns, en la metric '%s' con "
+                    "el siguiente mensaje: %s" % (
+                        str(dns_metric['measurement']), str(e)
+                    )
+                )
         i += 1
         if i % 1000 == 0:
             # No necesariamente hay 1000 DNSs nuevos
@@ -145,7 +173,9 @@ def dns_consistency_to_dns():
 
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+        SYNCHRONIZE_DATE = make_aware(
+            parse_datetime(settings.SYNCHRONIZE_DATE)
+        )
 
         dns_consistency_metrics = Metric.objects.filter(
             test_name='dns_consistency',
@@ -188,11 +218,21 @@ def dns_consistency_to_dns():
             )
         )
 
-    SYNCHRONIZE_logger.info("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
-    SYNCHRONIZE_logger.info("Total de dns_consistency's en el query: %s" % (str(dns_consistency_metrics.count())))
+    SYNCHRONIZE_logger.info(
+        "Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE))
+    )
+    SYNCHRONIZE_logger.info(
+        "Total de dns_consistency's en el query: %s" % (
+            str(dns_consistency_metrics.count())
+        )
+    )
 
     td_logger.debug("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
-    td_logger.debug("Total de dns_consistency's en el query: %s" % (str(dns_consistency_metrics.count())))
+    td_logger.debug(
+        "Total de dns_consistency's en el query: %s" % (
+            str(dns_consistency_metrics.count())
+        )
+    )
 
     dns_consistency_metrics = dns_consistency_metrics.prefetch_related(
         'dnss'
@@ -219,30 +259,39 @@ def dns_consistency_to_dns():
         cr = {}
         for query in dns_metric['queries']:
             # searching for control resolver
-            if query['resolver_hostname'] == cr_ip and dns_metric['input'] == query['hostname']:
+            if (
+                query['resolver_hostname'] == cr_ip and
+                dns_metric['input'] == query['hostname']
+            ):
                 cr['failure'] = query['failure']
                 cr['answers'] = query['answers']
                 cr['resolver_hostname'] = query['resolver_hostname']
 
         for query in dns_metric['queries']:
             try:
-                if (query['resolver_hostname'] != cr_ip) and (query['query_type'] == 'A'):
+                if (
+                    (query['resolver_hostname'] != cr_ip) and
+                    (query['query_type'] == 'A')
+                ):
                     if dns_metric['dnss'] is None:
                         domain = dns_metric['input']
                         try:
-                            target = Target.objects.get(domain=domain, type=Target.DOMAIN)
+                            target = Target.objects.get(
+                                domain=domain, type=Target.DOMAIN
+                            )
                         except Target.DoesNotExist:
                             target = Target(domain=domain, type=Target.DOMAIN)
                             target.save()
                         except Target.MultipleObjectsReturned:
-                            target = Target.objects.Filter(domain=domain, type=Target.DOMAIN).first()
+                            target = Target.objects.Filter(
+                                domain=domain, type=Target.DOMAIN
+                            ).first()
 
-                        inconsistent=None
-                        dns_consistency=''
+                        inconsistent = None
+                        dns_consistency = ''
                         if query['resolver_hostname'] in dns_metric['inconsistent']:
-                            inconsistent= True;
-                            dns_consistency= 'inconsistent responses'
-
+                            inconsistent = True;
+                            dns_consistency = 'inconsistent responses'
                         else:
                             try:
                                 if (
@@ -254,7 +303,7 @@ def dns_consistency_to_dns():
                                         or dns_metric['control_resolver'] in dns_metric['failures']
                                     )
                                 ):
-                                    inconsistent= True;
+                                    inconsistent = True;
                                     dns_consistency = 'no_answer'
                                 elif (
                                     dns_metric['errors'][query['resolver_hostname']] == 'reverse_match'
@@ -276,10 +325,20 @@ def dns_consistency_to_dns():
                                     except:
                                         pass
                             except (query['resolver_hostname'], KeyError) as e:
-                                inconsistent=False
-                                td_logger.info("no resolver hostname in %s: %s" % (str(dns_metric['measurement']), str(e)))
+                                inconsistent = False
+                                td_logger.info(
+                                    "no resolver hostname in %s: %s" % (
+                                        str(dns_metric['measurement']),
+                                        str(e)
+                                    )
+                                )
                             except Exception as e:
-                                    SYNCHRONIZE_logger.exception("Unknown exceptionin %s: %s" % (str(dns_metric['measurement']), str(e)))
+                                    SYNCHRONIZE_logger.exception(
+                                        "Unknown exceptionin %s: %s" % (
+                                            str(dns_metric['measurement']),
+                                            str(e)
+                                        )
+                                    )
 
 
                         #TODO: remove old deprecated code, here for reference still testing
@@ -790,28 +849,24 @@ def soft_to_hard_flags():
     td_logger.info("Comenzando con soft_to_hard_flags")
 
     starting_date = settings.SYNCHRONIZE_DATE
+
+    rolling_window = Flag.objects.filter(
+        plugin_name='DNS', flag__in=[Flag.HARD, Flag.SOFT],
+    ).order_by(
+        'metric_date'
+    )
+
     if starting_date is not None:
         starting_date = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
+        rolling_window = rolling_window.filter(metric_date__gte=starting_date)
 
-        rolling_window = Flag.objects.filter(
-            metric_date__gte=starting_date,
-            plugin_name='DNS',
-            flag__in=[Flag.HARD, Flag.SOFT],
-        ).order_by(
-            'metric_date'
-        )
-    else:
-        rolling_window = Flag.objects.filter(
-            plugin_name='DNS',
-            flag__in=[Flag.HARD, Flag.SOFT],
-        ).order_by(
-            'metric_date'
-        )
     td_logger.info("Staring date: %s" % str(starting_date))
 
     to_update = list()
     i = 0
-    td_logger.info("Flags to check on soft_to_hard %d" % (rolling_window.count()))
+    td_logger.info(
+        "Flags to check on soft_to_hard %d" % (rolling_window.count())
+    )
 
     for flag in rolling_window:
         window = \
@@ -829,8 +884,10 @@ def soft_to_hard_flags():
         count = 0
         posibles = list()
 
-        td_logger.debug("Checking soft_to_hard %i, based on: '%s'" % (i, str(flag) ) )
-        td_logger.debug("list %s" %  str(latest) )
+        td_logger.debug(
+            "Checking soft_to_hard %i, based on: '%s'" % (i, str(flag))
+        )
+        td_logger.debug("list %s" % str(latest))
 
         for previous in latest:
             if previous.flag in [Flag.HARD, Flag.SOFT]:
@@ -842,8 +899,9 @@ def soft_to_hard_flags():
             to_update += posibles
             td_logger.info("soft_to_hard DNS flags '%s'" % str(to_update))
         else:
-            window = \
-                flag.metric_date - datetime.timedelta(days=conf.FLAGS_TIME_WINDOW)
+            window = flag.metric_date - datetime.timedelta(
+                days=conf.FLAGS_TIME_WINDOW
+            )
 
             latest = Flag.objects.filter(
                 metric_date__gte=window,
@@ -858,8 +916,11 @@ def soft_to_hard_flags():
             count = 0
             posibles = list()
 
-            td_logger.debug("%i - Checking soft_to_hard region-aware condition, based on: '%s'" % (i, str(latest[0]) ) )
-            td_logger.debug("list: \n %s" %  str(latest) )
+            td_logger.debug(
+                "%i - Checking soft_to_hard region-aware condition, "
+                "based on: '%s'" % (i, str(latest[0]))
+            )
+            td_logger.debug("list: \n %s" % str(latest))
 
             for previous in latest[:conf.LAST_REPORTS_Y2]:
                 if previous.flag in [Flag.HARD, Flag.SOFT]:
@@ -869,19 +930,22 @@ def soft_to_hard_flags():
 
             if count >= conf.SOFT_FLAG_REPEATED_X2:
                 to_update += posibles
-                td_logger.info("soft_to_hard DNS flags detected (region-aware condition) '%s'" % str(to_update))
+                td_logger.info(
+                    "soft_to_hard DNS flags detected (region-aware condition) "
+                    "'%s'" % str(to_update)
+                )
 
-        i+=1
+        i += 1
 
     for flag in to_update:
         flag.save()
         suggestedEvents(flag)
         # to help creation of events
 
-
-
     send_email = True
+
     td_logger.info("Terminando con soft_to_hard_flags")
+
     return True
 
 

@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-import os
 import local_settings
 from os.path import join
 
@@ -111,7 +110,8 @@ EMAIL_HOST_PASSWORD = local_settings.EMAIL_HOST_PASSWORD
 # Django-modeltranslate setup.
 LANGUAGES = local_settings.LANGUAGES
 
-MODELTRANSLATION_DEFAULT_LANGUAGE = local_settings.MODELTRANSLATION_DEFAULT_LANGUAGE
+MODELTRANSLATION_DEFAULT_LANGUAGE = \
+    local_settings.MODELTRANSLATION_DEFAULT_LANGUAGE
 
 # VSF plugin function
 FLAG_TESTS = local_settings.FLAG_TESTS
