@@ -12,9 +12,6 @@ from measurement.models import Metric, Flag, Probe, Measurement
 
 
 def copy_from_measurements_to_metrics():
-    # DELETE LATER
-    return True
-
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
     SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
