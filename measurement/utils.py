@@ -12,35 +12,38 @@ from measurement.models import Metric, Flag, Probe, Measurement
 
 
 def copy_from_measurements_to_metrics():
+    # TODO: Remove this return True
+    return True
+
     td_logger = logging.getLogger('TRUE_DEBUG_logger')
     SYNCHRONIZE_logger = logging.getLogger('SYNCHRONIZE_logger')
-    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
     SYNCHRONIZE_logger.info("[%s]Starting synchronization" %
                             datetime.datetime.now())
+    sync_date = settings.SYNCHRONIZE_DATE
 
     td_logger.info("[%s]Starting synchronization" % datetime.datetime.now())
     td_logger.debug(
         'comenzando la sincronizacion de metrics entre titan y pandora.'
     )
 
-    if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(
-            parse_datetime(settings.SYNCHRONIZE_DATE)
+    if sync_date is not None:
+        sync_date = make_aware(
+            parse_datetime(settings.sync_date)
         )
 
         measurements = Measurement.objects.filter(
-            measurement_start_time__gte=SYNCHRONIZE_DATE
+            measurement_start_time__gte=sync_date
         ).order_by('measurement_start_time')
 
-        td_logger.info('Synchronize date: %s' % str(SYNCHRONIZE_DATE))
+        td_logger.info('Synchronize date: %s' % str(sync_date))
         td_logger.info(
             'Total de metrics desde esa fecha %s' % str(measurements.count())
         )
 
     else:
-        SYNCHRONIZE_logger.info("[%s] SYNCHRONIZE_DATE is None" %
+        SYNCHRONIZE_logger.info("[%s] sync_date is None" %
                                 datetime.datetime.now())
-        td_logger.info("[%s] SYNCHRONIZE_DATE is None" %
+        td_logger.info("[%s] sync_date is None" %
                        datetime.datetime.now())
         measurements = Measurement.objects.all().order_by(
             'measurement_start_time'
