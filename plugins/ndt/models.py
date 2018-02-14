@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from datetime import datetime, timedelta
 from django.db import models
+
 from measurement.models import Metric, ISP, Flag, Plan, State
 
 
@@ -44,5 +44,4 @@ class NDT(models.Model):
     package_loss = models.FloatField()
 
     def __unicode__(self):
-        return u"%s" % (
-            self.metric.measurement)
+        return u"%s" % (self.metric.measurement)

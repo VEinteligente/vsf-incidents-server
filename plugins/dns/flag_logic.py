@@ -171,55 +171,29 @@ def dns_consistency_to_dns():
 
     td_logger.info("Comenzando con dns_consistency")
 
-    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
-    if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(
-            parse_datetime(settings.SYNCHRONIZE_DATE)
+    dns_consistency_metrics = Metric.objects.filter(
+        test_name='dns_consistency'
+    )
+
+    sync_date = settings.SYNCHRONIZE_DATE
+    if sync_date is not None:
+        sync_date = make_aware(
+            parse_datetime(settings.sync_date)
+        )
+        dns_consistency_metrics = Metric.objects.filter(
+            bucket_date__gte=sync_date
         )
 
-        dns_consistency_metrics = Metric.objects.filter(
-            test_name='dns_consistency',
-            bucket_date__gte=SYNCHRONIZE_DATE
-        ).annotate(
-            queries=RawSQL(
-                "test_keys->'queries'", ()
-            ),
-            inconsistent=RawSQL(
-                "test_keys->'inconsistent'", ()
-            ),
-            errors=RawSQL(
-                "test_keys->'errors'", ()
-            ),
-            failures=RawSQL(
-                "test_keys->'failures'", ()
-            ),
-            control_resolver=RawSQL(
-                "test_keys->'control_resolver'", ()
-            )
-        )
-    else:
-        dns_consistency_metrics = Metric.objects.filter(
-            test_name='dns_consistency'
-        ).annotate(
-            queries=RawSQL(
-                "test_keys->'queries'", ()
-            ),
-            inconsistent=RawSQL(
-                "test_keys->'inconsistent'", ()
-            ),
-            errors=RawSQL(
-                "test_keys->'errors'", ()
-            ),
-            failures=RawSQL(
-                "test_keys->'failures'", ()
-            ),
-            control_resolver=RawSQL(
-                "test_keys->'control_resolver'", ()
-            )
-        )
+    dns_consistency_metrics = dns_consistency_metrics.annotate(
+        queries=RawSQL("test_keys->'queries'", ()),
+        inconsistent=RawSQL("test_keys->'inconsistent'", ()),
+        errors=RawSQL("test_keys->'errors'", ()),
+        failures=RawSQL("test_keys->'failures'", ()),
+        control_resolver=RawSQL("test_keys->'control_resolver'", ())
+    )
 
     SYNCHRONIZE_logger.info(
-        "Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE))
+        "Fecha de sincronizacion: %s" % (str(sync_date))
     )
     SYNCHRONIZE_logger.info(
         "Total de dns_consistency's en el query: %s" % (
@@ -227,7 +201,7 @@ def dns_consistency_to_dns():
         )
     )
 
-    td_logger.debug("Fecha de sincronizacion: %s" % (str(SYNCHRONIZE_DATE)))
+    td_logger.debug("Fecha de sincronizacion: %s" % (str(sync_date)))
     td_logger.debug(
         "Total de dns_consistency's en el query: %s" % (
             str(dns_consistency_metrics.count())
@@ -249,7 +223,6 @@ def dns_consistency_to_dns():
     )
 
     # for each dns metric get control resolver and other fields
-
     new_dns = list()
     for i, dns_metric in enumerate(dns_consistency_metrics):
         # Get control_resolver ip address
@@ -289,8 +262,11 @@ def dns_consistency_to_dns():
 
                         inconsistent = None
                         dns_consistency = ''
-                        if query['resolver_hostname'] in dns_metric['inconsistent']:
-                            inconsistent = True;
+                        if (
+                            query['resolver_hostname'] in
+                            dns_metric['inconsistent']
+                        ):
+                            inconsistent = True
                             dns_consistency = 'inconsistent responses'
                         else:
                             try:
@@ -319,7 +295,7 @@ def dns_consistency_to_dns():
 
                                 else:
                                     dns_consistency = 'consitent if exists'
-                                    inconsistent=False
+                                    inconsistent = False
                                     try:
                                         dns_consistency = dns_metric['errors'][query['resolver_hostname']] + '(Resolver)'
                                     except:
@@ -411,19 +387,18 @@ def dns_consistency_to_dns():
 def dns_to_flag():
     td_logger.info("Comenzando con dns_to_flag")
 
-    SYNCHRONIZE_DATE = settings.SYNCHRONIZE_DATE
-    if SYNCHRONIZE_DATE is not None:
-        SYNCHRONIZE_DATE = make_aware(parse_datetime(settings.SYNCHRONIZE_DATE))
-        dnss = DNS.objects.filter(
-            metric__bucket_date__gte=SYNCHRONIZE_DATE
-        )
-    else:
-        dnss = DNS.objects.all()
+    dnss = DNS.objects.select_related('metric', 'flag').all()
 
-    dnss = dnss.select_related('metric', 'flag')
+    sync_date = settings.SYNCHRONIZE_DATE
+    if sync_date is not None:
+        sync_date = make_aware(parse_datetime(sync_date))
+        dnss = dnss.filter(metric__bucket_date__gte=sync_date)
+
     i = 0
 
-    td_logger.debug("Total de mediciones DNS a convertir a flags: %s" % str(dnss.count()))
+    td_logger.debug(
+        "Total de mediciones DNS a convertir a flags: %s" % str(dnss.count())
+    )
 
     dns_paginator = Paginator(dnss, 2000)
     for p in dns_paginator.page_range:
@@ -437,26 +412,45 @@ def dns_to_flag():
                     if dns.metric.test_name == 'dns_consistency':
 
                         try:
-                            dns_server = DNSServer.objects.get(ip=dns.resolver_hostname)
+                            dns_server = DNSServer.objects.get(
+                                ip=dns.resolver_hostname
+                            )
                             isp = dns_server.isp
                         except (DNSServer.DoesNotExist, KeyError) as e:
                             isp = None
 
                         if dns.inconsistent:
                             is_flag = True
-                            td_logger.debug('%d Found inconsistent DNS (%s) - plugin id: %d - metric=%s %s' %
-                                (i, str(dns.dns_consistency), dns.id, str(dns.metric.id), str(dns.target)))
+                            td_logger.debug(
+                                '%d Found inconsistent DNS (%s) - plugin id: '
+                                '%d - metric=%s %s'
+                                %
+                                (
+                                    i, str(dns.dns_consistency),
+                                    dns.id, str(dns.metric.id), str(dns.target)
+                                )
+                            )
                         # elif (dns.inconsistent==False):
                             # td_logger.debug('%s Found consistent DNS - metric=%s %s' %
                             #     (str(i), str(dns.metric.id), str(dns.target)))
                         elif dns.control_resolver_failure in [None, '']:
-                            if dns.failure in [None, '']: # if no failures in measurement
+                            # if no failures in measurement
+                            if dns.failure in [None, '']:
                                 if dns.control_resolver_answers:
                                     try:
-                                        if dns.metric.test_keys['errors'][dns.resolver_hostname] == "no_answer": # Check for case were the DNS server gave no awnser
+                                        # Check for case were the DNS server
+                                        # gave no awnser
+                                        if dns.metric.test_keys['errors'][dns.resolver_hostname] == "no_answer":
                                             is_flag = True
-                                            td_logger.debug('%s Found no_awnser flag DNS - metric=%s %s' %
-                                                (str(i), str(dns.metric.id), str(dns.target)))
+                                            td_logger.debug(
+                                                '%s Found no_awnser flag DNS '
+                                                '- metric=%s %s'
+                                                %
+                                                (
+                                                    str(i), str(dns.metric.id),
+                                                    str(dns.target)
+                                                )
+                                            )
 
                                     except KeyError:
                                         is_flag = False
@@ -889,8 +883,8 @@ def soft_to_hard_flags():
             td_logger.debug(
                 "Checking soft_to_hard %i, based on: '%s'" % (i, str(flag))
             )
-            # TODO: remove after confimarion, sonly for log vvv
-            posibles_original_state = list()
+            td_logger.debug("list: \n %s" % str(latest))
+
             for previous in latest:
                 if previous.flag in [Flag.HARD, Flag.SOFT]:
                     count += 1
@@ -967,30 +961,26 @@ def soft_to_hard_flags():
 
 
 def metric_to_dns():
-    print "Start Web_connectivity test"
     SYNCHRONIZE_logger.info("Start Web_connectivity test")
     td_logger.debug("Start Web_connectivity test")
 
     web_connectivity_to_dns()
 
-    print "End Web_connectivity test"
     SYNCHRONIZE_logger.info("End Web_connectivity test")
     td_logger.debug("End Web_connectivity test")
-    print "Start dns_consistency test"
+
     SYNCHRONIZE_logger.info("Start dns_consistency test")
     td_logger.debug("Start dns_consistency test")
 
     dns_consistency_to_dns()
 
-    print "End dns_consistency test"
     SYNCHRONIZE_logger.info("End dns_consistency test")
     td_logger.debug("End dns_consistency test")
-    print "Start Evaluate DNS Flags"
+
     SYNCHRONIZE_logger.info("Start Evaluate DNS Flags")
     td_logger.debug("Start Evaluate DNS Flags")
 
     dns_to_flag()
 
-    print "End Evaluate DNS Flags"
     SYNCHRONIZE_logger.info("End Evaluate DNS Flags")
     td_logger.debug("End Evaluate DNS Flags")
