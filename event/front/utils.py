@@ -95,13 +95,13 @@ def suggestedFlags(event):
         flags = set(flags)
         # assign every flag in the list as a suggested_event of
         # the event
-        print "suggestedFlags: flags"
-        print flags
+        print("suggestedFlags: flags")
+        print(flags)
         for flag in flags:
                 event.suggested_events.add(flag)
         return True
     except Exception as e:
-        print "suggestedFlags:" + str(e)
+        print("suggestedFlags:" + str(e))
         return False
 
 

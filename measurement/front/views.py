@@ -4,14 +4,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core import serializers
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.core.mail import EmailMessage
 from django.views import generic
 from django.db import connections
 from django.db.models import Q
 from django.db.models.expressions import RawSQL
-from eztables.views import DatatablesView
-from django.utils.six import text_type
+#from eztables.views import DatatablesView
+from .DatatablesView import DatatablesView
+#from django.utils.six import text_type
 from measurement.models import (
     DNS,
     Flag,
@@ -36,7 +37,7 @@ from dashboard.mixins import PageTitleMixin
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
 
-class DBconnection(object):
+class DBconnection():
     """Database connection object.
 
     Attributes:
@@ -67,13 +68,13 @@ class DBconnection(object):
             return {'columns': columns, 'rows': rows}
 
         except Exception as e:
-            print e
+            print(e)
 
         finally:
             connections['titan_db'].close()
 
 
-class DNSTestKey(object):
+class DNSTestKey():
     """Test key object from json string object."""
     def __init__(self, j):
         self.__dict__ = json.loads(j)
@@ -606,7 +607,7 @@ class DNSTableAjax(DatatablesView):
             metric_ids.append(row['id'])
 
         flags = Flag.objects.filter(medicion__in=metric_ids)
-        print flags
+        print (flags)
         for row in page_rows:
             row['flag_id'] = None
             row['manual_flag'] = None
@@ -950,7 +951,7 @@ class TCPTableAjax(LoginRequiredMixin, DatatablesView):
                         ip=tcp['ip'],
                         type_med='TCP'
                     ).exists():
-                        print "hola entre"
+                        print ("hola entre")
                         flag = flags.filter(
                             medicion=row['id'],
                             ip=tcp['ip'],
@@ -1308,7 +1309,7 @@ class ManualFlagsView(generic.FormView):
         if metric_inputs.endswith(','):
             metric_inputs = metric_inputs[:-1]
 
-        print metric_inputs
+        print (metric_inputs)
 
         # Create database object #
         database = DBconnection('titan_db')

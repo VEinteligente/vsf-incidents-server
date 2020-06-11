@@ -302,7 +302,7 @@ def soft_to_hard_flag(flag):
 
 def update_flags_manual():
     try:
-        print "entrando a la funcion"
+        print ("entrando a la funcion")
         # List of 'medicion' of Flags #
         list_dns = Flag.objects.using('default')\
             .values_list('medicion', flat=True)\
@@ -338,11 +338,11 @@ def update_flags_manual():
             query_tcp += " and id not in " + ids
 
         # Results from execute queries #
-        print "antes del query for DNS"
+        print ("antes del query for DNS")
         result_dns = database.db_execute(query_dns)
-        print "Terminado el de DNS y antes del query for TCP"
+        print ("Terminado el de DNS y antes del query for TCP")
         result_tcp = database.db_execute(query_tcp)
-        print "Terminado el de TCP"
+        print ("Terminado el de TCP")
 
         rows_dns = {}
         rows_tcp = {}
@@ -355,23 +355,23 @@ def update_flags_manual():
 
             rows_tcp = result_tcp['rows']
 
-        print "update 1 update DNS"
+        print ("update 1 update DNS")
         # Update DNS Flags #
         update_dns = update_dns_flags(rows_dns)
 
-        print "update 2 Update TCP"
+        print ("update 2 Update TCP")
         # Update TCP Flags #
         update_tcp = update_tcp_flags(rows_tcp)
 
-        print "update 3 Update HTTP"
+        print ("update 3 Update HTTP")
         # Update HTTP Flags #
         update_http = update_http_flags(rows_tcp)
 
-        print "update 4 Update Muted"
+        print ("update 4 Update Muted")
         # Update Muted Flags #
         update_muted = update_muted_flags()
 
-        print "update 5 Update hard"
+        print ("update 5 Update hard")
         # Update Hard Flags #
         update_hard = update_hard_flags()
 
@@ -379,11 +379,11 @@ def update_flags_manual():
            update_http and update_hard and \
            update_muted:
 
-            print "Fin"
+            print ("Fin")
             return "200 ok (="
 
     except Exception as e:
 
-        print e
+        print (e)
 
         return "400 error )="

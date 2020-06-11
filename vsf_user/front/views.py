@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from django.http import JsonResponse
-from eztables.views import DatatablesView
+from DatatablesView import DatatablesView
 from django.core.serializers.json import DjangoJSONEncoder
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
@@ -10,7 +10,7 @@ from django.contrib.auth.models import User, Group
 from django.views import generic
 
 from vsf_user.models import TokenControl
-from froms import ApiUserForm
+from .froms import ApiUserForm
 
 
 class AjaxableResponseMixin(object):

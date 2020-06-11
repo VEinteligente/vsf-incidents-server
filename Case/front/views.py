@@ -9,7 +9,7 @@ from Case.models import Case, Update, Category
 from event.models import Event
 
 from dashboard.mixins import PageTitleMixin
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 
 
 class ListCase(LoginRequiredMixin, PageTitleMixin, generic.ListView):

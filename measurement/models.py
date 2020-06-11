@@ -52,8 +52,10 @@ class MetricFlag(models.Model):
                                 null=False,
                                 default='medicion')
     metric = models.ForeignKey(
-        Metric, related_name='flags'
-    )
+                        to=Metric, 
+                        on_delete=models.CASCADE, #CHECK LATER @TODO
+                        related_name='flags'
+                    )
 
     class Meta:
         db_table = 'flag'
@@ -76,7 +78,10 @@ class Country(models.Model):
 
 class State(models.Model):
     name = models.CharField(max_length=50)
-    country = models.ForeignKey(Country, related_name='states')
+    country = models.ForeignKey(    to=Country, 
+                                    on_delete=models.CASCADE,
+                                    related_name='states'
+                                    )
 
     class Meta:
         verbose_name = "State"
@@ -145,6 +150,7 @@ class Probe(models.Model):
         ('lara', 'Lara'),
         ('merida', 'Merida'),
         ('miranda', 'Miranda'),
+
         ('monagas', 'Monagas'),
         ('nueva_esparta', 'Nueva Esparta'),
         ('portuguesa', 'Portuguesa'),
@@ -161,15 +167,15 @@ class Probe(models.Model):
     )
     identification = models.CharField(max_length=50)
     region = models.ForeignKey(
-        State, related_name='probes', default=3479
+        to=State, on_delete=models.CASCADE, related_name='probes', default=3479
     )
     country = models.ForeignKey(
-        Country, related_name='probes', default=231
+        to=Country, on_delete=models.CASCADE, related_name='probes', default=231
     )
     city = models.CharField(max_length=100)
     isp = models.CharField(max_length=100)
     plan = models.ForeignKey(
-        Plan, null=True, blank=True, related_name='probes')
+        to=Plan, on_delete=models.CASCADE , null=True, blank=True, related_name='probes')
 
     def __unicode__(self):
         return u"%s - %s" % (self.identification, self.region)
@@ -203,10 +209,10 @@ class Flag(models.Model):
     medicion = models.CharField(verbose_name='Id de la Medicion',
                                 max_length=40)
     date = models.DateTimeField()
-    target = models.ForeignKey(Url) 
+    target = models.ForeignKey(to=Url, on_delete=models.CASCADE) 
     isp = models.CharField(max_length=100, null=True, blank=True)
     probe = models.ForeignKey(
-        Probe, null=True, blank=True, related_name='flags')
+        Probe, on_delete=models.CASCADE, null=True, blank=True, related_name='flags')
     ip = models.GenericIPAddressField(null=True, blank=True)
     # True -> hard, False -> soft, None -> muted
     flag = models.NullBooleanField(default=False)
@@ -216,7 +222,7 @@ class Flag(models.Model):
                                 choices=TYPE_CHOICES,
                                 default=MED)
     region = models.CharField(max_length=50, null=True, blank=True)
-    event = models.ForeignKey(Event, null=True, blank=True,
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True, blank=True,
                               related_name='flags')
     suggested_events = models.ManyToManyField(
         Event, related_name="suggested_events", blank=True)

@@ -1,4 +1,4 @@
-class PageTitleMixin(object):
+class PageTitleMixin():
     """
     Passes page_title page_header, page_header_description, breadcrumb
     and active_tab into context, which makes it quite useful.

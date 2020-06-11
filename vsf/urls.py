@@ -28,7 +28,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
-import debug_toolbar
 
 urlpatterns = [
           url(r'^$', HomeView.as_view(), name="home"),
@@ -36,14 +35,13 @@ urlpatterns = [
 
           url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
-          url(r'^dashboard/', include(dashboard_urls, namespace='dashboard')),
-          url(r'^events/', include(event_urls, namespace='events')),
-          url(r'^cases/', include(case_urls, namespace='cases')),
-          url(r'^measurements/', include(measurement_urls, namespace='measurements')),
-          url(r'^custom-tests/', include(plugin_urls, namespace='custom-tests')),
-          url(r'^users/', include(user_urls, namespace='users')),
-          url(r'^plugins/', include(plugins_urls, namespace='plugins')),
-          url(r'^debug/', include(debug_toolbar.urls))
+          url(r'^dashboard/', include(('dashboard.urls','dashboard_urls'), namespace='dashboard')),
+          url(r'^events/', include(('event.urls','event_urls'), namespace='events')),
+          url(r'^cases/', include(('Case.urls','case_urls'), namespace='cases')),
+          url(r'^measurements/', include(('measurement.urls','measurement_urls'), namespace='measurements')),
+          url(r'^custom-tests/', include(('plugins.urls','plugin_urls'), namespace='custom-tests')),
+          url(r'^users/', include(('vsf_user.urls','user_urls'), namespace='users')),
+          url(r'^plugins/', include(('plugins.urls','plugins_urls'), namespace='plugins')),
       ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) \
-      + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

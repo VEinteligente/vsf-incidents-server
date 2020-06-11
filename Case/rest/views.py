@@ -3,7 +3,7 @@ from rest_framework.authentication import BasicAuthentication
 from vsf.vsf_authentication import VSFTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count
-from serializers import (
+from .serializers import (
     DetailEventCaseSerializer,
     CaseSerializer,
     RegionCaseSerializer,

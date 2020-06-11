@@ -32,7 +32,7 @@ from vsf import conf
 from vsf.settings import FLAG_TESTS
 
 import threading
-from update_flags_manual import update_flags_manual
+from .update_flags_manual import update_flags_manual
 
 
 def send_email_users():
@@ -106,7 +106,7 @@ class UpdateFlagView(generic.UpdateView):
                 query_tcp += " and id not in " + ids
 
             # Results from execute queries #
-            print "QUERIESSSSS"
+            print ("QUERIESSSSS")
             result_dns = database.db_execute(query_dns)
             result_tcp = database.db_execute(query_tcp)
             #result_dns = None
@@ -124,32 +124,32 @@ class UpdateFlagView(generic.UpdateView):
                 rows_tcp = result_tcp['rows']
 
             # Update DNS Flags #
-            print "DNS"
+            print ("DNS")
             #update_dns = []
             update_dns = self.update_dns_flags(rows_dns)
 
             # Update TCP Flags #
-            print "TCP"
+            print ("TCP")
             #update_tcp = []
             update_tcp = self.update_tcp_flags(rows_tcp)
 
             # Update HTTP Flags #
-            print "HTTP"
+            print ("HTTP")
             #update_http = []
             update_http = self.update_http_flags(rows_tcp)
 
             to_bulk_list = []
             to_bulk_list += update_dns + update_tcp + update_http
 
-            print "BULK"
+            print ("BULK")
             MetricFlag.objects.bulk_create(to_bulk_list)
 
             # Update Muted Flags #
-            print "MUTED"
+            print ("MUTED")
             update_muted = self.update_muted_flags()
 
             # Update Hard Flags #
-            print "HARD"
+            print ("HARD")
             update_hard = self.update_hard_flags()
 
             if update_dns and update_tcp and \
@@ -162,7 +162,7 @@ class UpdateFlagView(generic.UpdateView):
 
         except Exception as e:
 
-            print e
+            print (e)
 
             return HttpResponse(status=400)
 
@@ -541,7 +541,7 @@ def luigiUpdateFlagTask():
     """
     global running
     running += 1
-    print "comenzo a hacer el hilo"
+    print ("comenzo a hacer el hilo")
     update_flags_manual()
     # ----------------------------------------------
     for module in FLAG_TESTS:
@@ -551,7 +551,7 @@ def luigiUpdateFlagTask():
             result = methodToCall()
     # ---------------------------------------------
     running -= 1
-    print "termino el hilo"
+    print ("termino el hilo")
 
 
 """
@@ -574,5 +574,5 @@ class LuigiUpdateFlagView(generic.View):
             t = threading.Thread(target=luigiUpdateFlagTask)
             t.start()
         else:
-            print "task already run"
+            print ("task already run")
         return HttpResponse(status=200)

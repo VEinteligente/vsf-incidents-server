@@ -59,7 +59,7 @@ def change_to_manual_flag_sql(metric_sql):
         return True
 
     except Exception as e:
-        print e
+        print (e)
         return False
 
 
@@ -302,10 +302,10 @@ def validate_metrics(metrics_sql):
     test_names_set = set(
         [x for x in metric_test_names if metric_test_names.count(x) >= 1])
     isp_set = set([x for x in metric_isp if metric_isp.count(x) >= 1])
-    print "Pedro sets:"
-    print input_set
-    print test_names_set
-    print isp_set
+    print ("Pedro sets:")
+    print (input_set)
+    print (test_names_set)
+    print (isp_set)
 
     if (len(input_set) == 1) and (len(test_names_set) == 1):
         if (len(isp_set) <= 1):

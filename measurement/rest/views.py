@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from measurement.models import Metric, Flag
 from measurement.rest.serializers import FlagSerializer
 
-from serializers import (
+from .serializers import (
     MeasurementSerializer,
     DNSMeasurementSerializer
 )

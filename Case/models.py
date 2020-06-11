@@ -35,7 +35,9 @@ class Case(models.Model):
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    category = models.ForeignKey(Category, related_name="cases")
+    category = models.ForeignKey(   to=Category, 
+                                    on_delete=models.CASCADE, #FOR DEBUG ONLY @TODO
+                                    related_name="cases")
     draft = models.BooleanField(default=True)
     events = models.ManyToManyField(Event, related_name="cases")
     twitter_search = models.CharField(max_length=400, null=True, blank=True)
@@ -52,9 +54,12 @@ class Update(models.Model):
     title = models.CharField(max_length=100)
     text = models.TextField()
     category = models.CharField(choices=TYPE, max_length=20)
-    case = models.ForeignKey(Case, related_name="updates")
+    case = models.ForeignKey(   to=Case, 
+                                on_delete=models.CASCADE, #FOR DEBUGGING, CHECK LATER @TODO
+                                related_name="updates")
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE, #FOR DEBUGGING, CHECK LATER @TODO
         related_name='updates',
         null=True, blank=True
     )

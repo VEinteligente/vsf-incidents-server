@@ -14,7 +14,12 @@ class Site(models.Model):
 
 class Url(models.Model):
 
-    site = models.ForeignKey(Site, null=True, blank=True)
+    site = models.ForeignKey(
+                        Site, 
+                        on_delete=models.CASCADE, #FOR TESTING PURPOSE ONLY @TODO
+                        null=True, 
+                        blank=True)
+
     url = models.URLField(null=True, blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
 
@@ -37,7 +42,8 @@ class Event(models.Model):
     isp = models.CharField(max_length=25)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField(null=True, blank=True)
-    target = models.ForeignKey(Url)  # input in metrics
+    target = models.ForeignKey( to=Url, # input in metrics
+                                on_delete=models.CASCADE)  # ONLY DEBUGGING
     identification = models.CharField(max_length=50, unique=True)
     draft = models.BooleanField(default=True)
     public_evidence = models.TextField(null=True, blank=True)

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.serializers.json import DjangoJSONEncoder
-from eztables.views import DatatablesView
+from DatatablesView import DatatablesView
 from measurement.models import Flag, MetricFlag
 from django.db.models import Q, Count, Case, When, IntegerField
 from .forms import EventForm, EventExtendForm, EventEvidenceForm
@@ -14,7 +14,7 @@ import json
 import re
 
 from dashboard.mixins import PageTitleMixin
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 
 RE_FORMATTED = re.compile(r'\{(\w+)\}')
 
@@ -148,8 +148,8 @@ class UpdateEvent(CreateEvent,
         if not event.end_date:
             open_ended = True
 
-        print "FLAGS"
-        print flags
+        print ("FLAGS")
+        print (flags)
         # Initial data for the form
         context['form'] = form(initial={'identification': event.identification,
                                         'flags': flags_str,
@@ -287,8 +287,8 @@ class UpdateFlagsTable(LoginRequiredMixin, DatatablesView):
                     output_field=IntegerField()))
             ).order_by('-selected')
 
-            print queryset[0]
-            print queryset[1]
+            print (queryset[0])
+            print (queryset[1])
 
         # Perform global search
         queryset = self.global_search(queryset)
