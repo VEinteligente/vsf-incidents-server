@@ -1,5 +1,5 @@
 from plugins.views import PluginTableView
-from eztables.views import DatatablesView
+from DatatablesView import DatatablesView
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.expressions import RawSQL

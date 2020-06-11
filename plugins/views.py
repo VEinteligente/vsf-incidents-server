@@ -34,7 +34,7 @@ class PluginTableView(
         context = super(PluginTableView, self).get_context_data(**kwargs)
         context['titles'] = self.titles
         json = self.get_render_json()
-        print json
+        print (json)
         context['aoColumns_json'] = json
         if self.url_ajax is not None:
             context['url_ajax'] = self.url_ajax
